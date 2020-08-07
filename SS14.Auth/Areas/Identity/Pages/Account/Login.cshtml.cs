@@ -42,7 +42,6 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
         {
             [Required]
             [Display(Name = "Email or Username")]
-            [EmailAddress]
             public string EmailOrUsername { get; set; }
 
             [Required]
