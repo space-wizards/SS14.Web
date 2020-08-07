@@ -41,7 +41,7 @@ namespace SS14.Auth
                     o.Password.RequireNonAlphanumeric = false;
                     o.SignIn.RequireConfirmedEmail = true;
                     o.SignIn.RequireConfirmedAccount = true;
-                    //o.User.RequireUniqueEmail = true;
+                    o.User.RequireUniqueEmail = true;
                     // We use our own username validation logic.
                     // See SS14UserValidator.
                     o.User.AllowedUserNameCharacters = null;
