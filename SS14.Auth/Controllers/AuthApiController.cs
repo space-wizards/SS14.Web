@@ -33,6 +33,9 @@ namespace SS14.Auth.Controllers
         [HttpPost("authenticate")]
         public async Task<IActionResult> Authenticate(AuthenticateRequest request)
         {
+            // Console.WriteLine(Request.Headers["SS14-Launcher-Fingerprint"]);
+            // Console.WriteLine(Request.Headers["User-Agent"]);
+
             var user = await _userManager.FindByNameAsync(request.Username);
 
             if (user == null)
