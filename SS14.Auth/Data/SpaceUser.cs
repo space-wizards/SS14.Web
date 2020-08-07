@@ -1,0 +1,11 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
+
+namespace SS14.Auth.Data
+{
+    public class SpaceUser : IdentityUser<Guid>
+    {
+        public List<ActiveSession> ActiveSessions { get; set; } = new List<ActiveSession>();
+    }
+}
