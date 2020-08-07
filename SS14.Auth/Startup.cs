@@ -33,6 +33,8 @@ namespace SS14.Auth
                     Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddSingleton<IUserValidator<SpaceUser>, SS14UserValidator>();
+            services.AddScoped<UserManager<SpaceUser>, SpaceUserManager>();
+            services.AddScoped<SpaceUserManager>();
             services.AddIdentity<SpaceUser, SpaceRole>(o =>
                 {
                     o.Password.RequireDigit = false;

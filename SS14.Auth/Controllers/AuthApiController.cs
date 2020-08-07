@@ -18,10 +18,10 @@ namespace SS14.Auth.Controllers
         private readonly SessionManager _sessionManager;
         private readonly IEmailSender _emailSender;
 
-        private readonly UserManager<SpaceUser> _userManager;
+        private readonly SpaceUserManager _userManager;
         private readonly SignInManager<SpaceUser> _signInManager;
 
-        public AuthApiController(UserManager<SpaceUser> userManager, SignInManager<SpaceUser> signInManager,
+        public AuthApiController(SpaceUserManager userManager, SignInManager<SpaceUser> signInManager,
             SessionManager sessionManager, IEmailSender emailSender)
         {
             _userManager = userManager;
@@ -36,7 +36,7 @@ namespace SS14.Auth.Controllers
             // Console.WriteLine(Request.Headers["SS14-Launcher-Fingerprint"]);
             // Console.WriteLine(Request.Headers["User-Agent"]);
 
-            var user = await _userManager.FindByNameAsync(request.Username);
+            var user = await _userManager.FindByNameOrEmailAsync(request.Username);
 
             if (user == null)
             {
