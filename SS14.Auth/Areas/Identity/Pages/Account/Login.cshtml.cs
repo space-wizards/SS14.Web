@@ -77,6 +77,17 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
 
             var user = await _userManager.FindByNameOrEmailAsync(Input.EmailOrUsername);
 
+            var emailUnconfirmed = _userManager.Options.SignIn.RequireConfirmedEmail &&
+                                   !await _userManager.IsEmailConfirmedAsync(user);
+
+            if (emailUnconfirmed)
+            {
+                ModelState.AddModelError(string.Empty,
+                    "The email address for this account still needs to be confirmed. " +
+                    "Please confirm your email address before trying to log in.");
+                return Page();
+            }
+
             if (user != null)
             {
                 // This doesn't count login failures towards account lockout
