@@ -77,19 +77,19 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
 
             var user = await _userManager.FindByNameOrEmailAsync(Input.EmailOrUsername);
 
-            var emailUnconfirmed = _userManager.Options.SignIn.RequireConfirmedEmail &&
-                                   !await _userManager.IsEmailConfirmedAsync(user);
-
-            if (emailUnconfirmed)
-            {
-                ModelState.AddModelError(string.Empty,
-                    "The email address for this account still needs to be confirmed. " +
-                    "Please confirm your email address before trying to log in.");
-                return Page();
-            }
-
             if (user != null)
             {
+                var emailUnconfirmed = _userManager.Options.SignIn.RequireConfirmedEmail &&
+                                       !await _userManager.IsEmailConfirmedAsync(user);
+
+                if (emailUnconfirmed)
+                {
+                    ModelState.AddModelError(string.Empty,
+                        "The email address for this account still needs to be confirmed. " +
+                        "Please confirm your email address before trying to log in.");
+                    return Page();
+                }
+
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe,
@@ -112,7 +112,7 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
                 }
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            ModelState.AddModelError(string.Empty, "Invalid login credentials.");
             return Page();
 
             // If we got this far, something failed, redisplay form
