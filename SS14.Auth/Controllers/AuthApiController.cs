@@ -1,10 +1,13 @@
 using System;
 using System.Linq;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using SS14.Auth.Areas.Identity.Pages.Account;
 using SS14.Auth.Data;
 using SS14.Auth.Sessions;
@@ -33,6 +36,11 @@ namespace SS14.Auth.Controllers
         [HttpPost("authenticate")]
         public async Task<IActionResult> Authenticate(AuthenticateRequest request)
         {
+            if (request.Username == null || request.Password == null)
+            {
+                return BadRequest();
+            }
+
             // Console.WriteLine(Request.Headers["SS14-Launcher-Fingerprint"]);
             // Console.WriteLine(Request.Headers["User-Agent"]);
 
@@ -79,6 +87,11 @@ namespace SS14.Auth.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
+            if (request.Username == null || request.Email == null)
+            {
+                return BadRequest();
+            }
+
             var userName = request.Username.Trim();
             var email = request.Email.Trim();
 
@@ -104,6 +117,41 @@ namespace SS14.Auth.Controllers
             {
                 Status = status
             });
+        }
+
+        [HttpPost("resetPassword")]
+        public async Task<IActionResult> ResetPassword(RegisterRequest request)
+        {
+            if (request.Email == null)
+            {
+                return BadRequest();
+            }
+
+            var email = request.Email.Trim();
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return Ok();
+            }
+
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = Url.Page(
+                "/Account/ResetPassword",
+                pageHandler: null,
+                values: new { area = "Identity", code },
+                protocol: Request.Scheme);
+
+            await _emailSender.SendEmailAsync(
+                email,
+                "Reset Password",
+                "A password reset has been requested for your account.<br />" +
+                $"If you did indeed request this, <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>click here</a> to reset your password.<br />" +
+                "If you did not request this, simply ignore this email.");
+
+            return Ok();
         }
 
 
@@ -141,6 +189,12 @@ namespace SS14.Auth.Controllers
         public string Email { get; set; }
         public string Password { get; set; }
     }
+
+    public sealed class ResetPasswordRequest
+    {
+        public string Email { get; set; }
+    }
+
 
     public sealed class RegisterResponse
     {
