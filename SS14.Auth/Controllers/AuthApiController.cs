@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -120,7 +119,7 @@ namespace SS14.Auth.Controllers
         }
 
         [HttpPost("resetPassword")]
-        public async Task<IActionResult> ResetPassword(RegisterRequest request)
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
         {
             if (request.Email == null)
             {
@@ -149,6 +148,36 @@ namespace SS14.Auth.Controllers
             return Ok();
         }
 
+        [HttpPost("resendConfirmation")]
+        public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request)
+        {
+            if (request.Email == null)
+            {
+                return BadRequest();
+            }
+
+            var email = request.Email.Trim();
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return Ok();
+            }
+
+            var userId = await _userManager.GetUserIdAsync(user);
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var confirmLink = Url.Page(
+                "/Account/ConfirmEmail",
+                pageHandler: null,
+                values: new { area = "Identity", userId = userId, code = code },
+                protocol: Request.Scheme);
+
+            await RegisterModel.SendConfirmEmail(_emailSender, email, confirmLink);
+
+            return Ok();
+        }
 
         [Authorize(AuthenticationSchemes = "SS14Auth")]
         [HttpGet("ping")]
@@ -190,6 +219,11 @@ namespace SS14.Auth.Controllers
         public string Email { get; set; }
     }
 
+
+    public sealed class ResendConfirmationRequest
+    {
+        public string Email { get; set; }
+    }
 
     public sealed class RegisterResponse
     {
