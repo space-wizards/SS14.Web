@@ -38,25 +38,41 @@ namespace SS14.Auth.Controllers
 
             var user = await _userManager.FindByNameOrEmailAsync(request.Username);
 
-            if (user == null)
+            if (user != null)
             {
-                return Unauthorized();
+                var emailUnconfirmed = _userManager.Options.SignIn.RequireConfirmedEmail &&
+                                       !await _userManager.IsEmailConfirmedAsync(user);
+
+                if (emailUnconfirmed)
+                {
+                    return Unauthorized(new AuthenticateDenyResponse
+                    {
+                        Errors = new[]
+                        {
+                            "The email address for this account still needs to be confirmed. " +
+                            "Please confirm your email address before trying to log in."
+                        }
+                    });
+                }
+
+                var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
+
+                if (signInResult.Succeeded)
+                {
+                    var token = await _sessionManager.RegisterNewSession(user, TimeSpan.FromDays(30));
+
+                    return Ok(new AuthenticateResponse
+                    {
+                        Token = token.AsBase64,
+                        Username = request.Username,
+                        UserId = user.Id
+                    });
+                }
             }
 
-            var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-
-            if (!signInResult.Succeeded)
+            return Unauthorized(new AuthenticateDenyResponse
             {
-                return Unauthorized();
-            }
-
-            var token = await _sessionManager.RegisterNewSession(user, TimeSpan.FromDays(30));
-
-            return Ok(new AuthenticateResponse
-            {
-                Token = token.AsBase64,
-                Username = request.Username,
-                UserId = user.Id
+                Errors = new[] {"Invalid login credentials."}
             });
         }
 
@@ -112,6 +128,11 @@ namespace SS14.Auth.Controllers
         public string Token { get; set; }
         public string Username { get; set; }
         public Guid UserId { get; set; }
+    }
+
+    public sealed class AuthenticateDenyResponse
+    {
+        public string[] Errors { get; set; } = default!;
     }
 
     public sealed class RegisterRequest
