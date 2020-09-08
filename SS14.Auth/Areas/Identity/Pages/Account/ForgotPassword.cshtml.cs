@@ -57,16 +57,21 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
                     values: new { area = "Identity", code },
                     protocol: Request.Scheme);
 
-                await _emailSender.SendEmailAsync(
-                    Input.Email, "Reset Password",
-                    "A password reset has been requested for your account.<br />" +
-                    $"If you did indeed request this, <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>click here</a> to reset your password.<br />" +
-                    "If you did not request this, simply ignore this email.");
+                await SendResetEmail(_emailSender, Input.Email, callbackUrl);
 
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }
 
             return Page();
+        }
+
+        public static async Task SendResetEmail(IEmailSender emailSender, string email, string callbackUrl)
+        {
+            await emailSender.SendEmailAsync(
+                email, "Reset Password",
+                "A password reset has been requested for your account.<br />" +
+                $"If you did indeed request this, <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>click here</a> to reset your password.<br />" +
+                "If you did not request this, simply ignore this email.");
         }
     }
 }

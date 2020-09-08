@@ -144,12 +144,7 @@ namespace SS14.Auth.Controllers
                 values: new { area = "Identity", code },
                 protocol: Request.Scheme);
 
-            await _emailSender.SendEmailAsync(
-                email,
-                "Reset Password",
-                "A password reset has been requested for your account.<br />" +
-                $"If you did indeed request this, <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>click here</a> to reset your password.<br />" +
-                "If you did not request this, simply ignore this email.");
+            await ForgotPasswordModel.SendResetEmail(_emailSender, email, callbackUrl);
 
             return Ok();
         }
