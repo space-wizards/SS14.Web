@@ -187,6 +187,23 @@ namespace SS14.Auth.Controllers
 
             return Ok($"Hi, {user.UserName}");
         }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout(LogoutRequest request)
+        {
+            if (request.Token == null)
+            {
+                return BadRequest();
+            }
+
+            if (!SessionToken.TryFromBase64(request.Token, out var token))
+            {
+                return BadRequest();
+            }
+
+            await _sessionManager.InvalidateToken(token);
+            return Ok();
+        }
     }
 
     public sealed class AuthenticateRequest
@@ -233,6 +250,11 @@ namespace SS14.Auth.Controllers
     public sealed class RegisterResponseError
     {
         public string[] Errors { get; set; }
+    }
+
+    public sealed class LogoutRequest
+    {
+        public string Token { get; set; }
     }
 
     public enum RegisterResponseStatus

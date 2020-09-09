@@ -63,5 +63,18 @@ namespace SS14.Auth.Sessions
 
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task InvalidateToken(SessionToken token)
+        {
+            var session = await _dbContext.ActiveSessions.SingleOrDefaultAsync(p => p.Token == token.Token);
+
+            if (session == null)
+            {
+                return;
+            }
+
+            _dbContext.ActiveSessions.Remove(session);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }
