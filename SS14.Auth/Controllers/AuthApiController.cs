@@ -66,13 +66,14 @@ namespace SS14.Auth.Controllers
 
                 if (signInResult.Succeeded)
                 {
-                    var token = await _sessionManager.RegisterNewSession(user, TimeSpan.FromDays(30));
+                    var (token, expireTime) = await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
 
                     return Ok(new AuthenticateResponse
                     {
                         Token = token.AsBase64,
                         Username = request.Username,
-                        UserId = user.Id
+                        UserId = user.Id,
+                        ExpireTime = expireTime.ToString("O")
                     });
                 }
             }
@@ -204,6 +205,34 @@ namespace SS14.Auth.Controllers
             await _sessionManager.InvalidateToken(token);
             return Ok();
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh(RefreshRequest request)
+        {
+            if (request.Token == null)
+            {
+                return BadRequest();
+            }
+
+            if (!SessionToken.TryFromBase64(request.Token, out var token))
+            {
+                return BadRequest();
+            }
+
+            var refreshed = await _sessionManager.RefreshToken(token);
+            if (refreshed == null)
+            {
+                return Unauthorized();
+            }
+
+            var (newToken, expireTime) = refreshed.Value;
+
+            return Ok(new RefreshResponse
+            {
+                ExpireTime = expireTime.ToString("O"),
+                NewToken = newToken.AsBase64
+            });
+        }
     }
 
     public sealed class AuthenticateRequest
@@ -217,6 +246,7 @@ namespace SS14.Auth.Controllers
         public string Token { get; set; }
         public string Username { get; set; }
         public Guid UserId { get; set; }
+        public string ExpireTime { get; set; }
     }
 
     public sealed class AuthenticateDenyResponse
@@ -236,7 +266,6 @@ namespace SS14.Auth.Controllers
         public string Email { get; set; }
     }
 
-
     public sealed class ResendConfirmationRequest
     {
         public string Email { get; set; }
@@ -255,6 +284,17 @@ namespace SS14.Auth.Controllers
     public sealed class LogoutRequest
     {
         public string Token { get; set; }
+    }
+
+    public sealed class RefreshRequest
+    {
+        public string Token { get; set; }
+    }
+
+    public sealed class RefreshResponse
+    {
+        public string NewToken { get; set; }
+        public string ExpireTime { get; set; }
     }
 
     public enum RegisterResponseStatus

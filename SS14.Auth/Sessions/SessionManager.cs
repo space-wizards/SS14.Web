@@ -10,6 +10,8 @@ namespace SS14.Auth.Sessions
 {
     public sealed class SessionManager
     {
+        public static readonly TimeSpan DefaultExpireTime = TimeSpan.FromDays(30);
+
         private readonly ApplicationDbContext _dbContext;
         private readonly RandomNumberGenerator _cryptoRng;
         private readonly ISystemClock _clock;
@@ -21,19 +23,21 @@ namespace SS14.Auth.Sessions
             _clock = clock;
         }
 
-        public async Task<SessionToken> RegisterNewSession(SpaceUser user, TimeSpan expireTime)
+        public async Task<(SessionToken token, DateTimeOffset expireTime)> RegisterNewSession(SpaceUser user,
+            TimeSpan expireTime)
         {
             var dat = new byte[SessionToken.TokenLength];
             _cryptoRng.GetBytes(dat);
             var token = new SessionToken(dat);
+            var expires = _clock.UtcNow + expireTime;
             user.ActiveSessions.Add(new ActiveSession
             {
-                Expires = _clock.UtcNow + expireTime,
+                Expires = expires,
                 Token = dat
             });
 
             await _dbContext.SaveChangesAsync();
-            return token;
+            return (token, expires);
         }
 
         public async Task<SpaceUser> GetUserForSession(SessionToken token)
@@ -75,6 +79,32 @@ namespace SS14.Auth.Sessions
 
             _dbContext.ActiveSessions.Remove(session);
             await _dbContext.SaveChangesAsync();
+        }
+
+        /// <returns>Null if the provided token was not valid.</returns>
+        public async Task<(SessionToken token, DateTimeOffset expireTime)?> RefreshToken(SessionToken token)
+        {
+            var session = await _dbContext.ActiveSessions
+                .Include(p => p.SpaceUser)
+                .SingleOrDefaultAsync(p => p.Token == token.Token);
+
+            if (session == null)
+            {
+                return null;
+            }
+
+            if (session.Expires < _clock.UtcNow)
+            {
+                // Token expired.
+                return null;
+            }
+
+            var user = session.SpaceUser;
+
+            // Remove old token.
+            _dbContext.ActiveSessions.Remove(session);
+
+            return await RegisterNewSession(user, DefaultExpireTime);
         }
     }
 }
