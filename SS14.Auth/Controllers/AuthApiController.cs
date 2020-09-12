@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,7 +36,8 @@ namespace SS14.Auth.Controllers
         [HttpPost("authenticate")]
         public async Task<IActionResult> Authenticate(AuthenticateRequest request)
         {
-            if (request.Username == null || request.Password == null)
+            // Password may never be null, and only either username OR userID can be used for login, not both.
+            if (request.Password == null || !(request.Username == null ^ request.UserId == null))
             {
                 return BadRequest();
             }
@@ -43,7 +45,17 @@ namespace SS14.Auth.Controllers
             // Console.WriteLine(Request.Headers["SS14-Launcher-Fingerprint"]);
             // Console.WriteLine(Request.Headers["User-Agent"]);
 
-            var user = await _userManager.FindByNameOrEmailAsync(request.Username);
+            SpaceUser user;
+            if (request.Username != null)
+            {
+                user = await _userManager.FindByNameOrEmailAsync(request.Username);
+            }
+            else
+            {
+                Debug.Assert(request.UserId != null);
+
+                user = await _userManager.FindByIdAsync(request.UserId!.Value.ToString());
+            }
 
             if (user != null)
             {
@@ -238,6 +250,7 @@ namespace SS14.Auth.Controllers
     public sealed class AuthenticateRequest
     {
         public string Username { get; set; }
+        public Guid? UserId { get; set; }
         public string Password { get; set; }
     }
 
