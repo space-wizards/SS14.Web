@@ -71,7 +71,7 @@ namespace SS14.Auth.Controllers
                     return Ok(new AuthenticateResponse
                     {
                         Token = token.AsBase64,
-                        Username = request.Username,
+                        Username = user.UserName,
                         UserId = user.Id,
                         ExpireTime = expireTime.ToString("O")
                     });
