@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Internal;
 using SS14.Auth.Areas.Identity.Pages.Account;
 using SS14.Auth.Data;
 using SS14.Auth.Sessions;
@@ -20,17 +21,19 @@ namespace SS14.Auth.Controllers
     {
         private readonly SessionManager _sessionManager;
         private readonly IEmailSender _emailSender;
+        private readonly ISystemClock _systemClock;
 
         private readonly SpaceUserManager _userManager;
         private readonly SignInManager<SpaceUser> _signInManager;
 
         public AuthApiController(SpaceUserManager userManager, SignInManager<SpaceUser> signInManager,
-            SessionManager sessionManager, IEmailSender emailSender)
+            SessionManager sessionManager, IEmailSender emailSender, ISystemClock systemClock)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _sessionManager = sessionManager;
             _emailSender = emailSender;
+            _systemClock = systemClock;
         }
 
         [HttpPost("authenticate")]
@@ -107,7 +110,7 @@ namespace SS14.Auth.Controllers
             var userName = request.Username.Trim();
             var email = request.Email.Trim();
 
-            var user = new SpaceUser {UserName = userName, Email = email};
+            var user = RegisterModel.CreateNewUser(userName, email, _systemClock);
             var result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)

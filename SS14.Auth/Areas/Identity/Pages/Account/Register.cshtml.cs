@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using SS14.Auth.Data;
+using ISystemClock = Microsoft.Extensions.Internal.ISystemClock;
 
 namespace SS14.Auth.Areas.Identity.Pages.Account
 {
@@ -24,17 +26,20 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
         private readonly UserManager<SpaceUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly ISystemClock _systemClock;
 
         public RegisterModel(
             UserManager<SpaceUser> userManager,
             SignInManager<SpaceUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ISystemClock systemClock)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _systemClock = systemClock;
         }
 
         [BindProperty] public InputModel Input { get; set; }
@@ -82,7 +87,7 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new SpaceUser {UserName = userName, Email = email};
+                var user = CreateNewUser(userName, email, _systemClock);
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
@@ -111,6 +116,11 @@ namespace SS14.Auth.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        public static SpaceUser CreateNewUser(string userName, string email, ISystemClock systemClock)
+        {
+            return new SpaceUser {UserName = userName, Email = email, CreatedTime = systemClock.UtcNow};
         }
 
         public static async Task<string> GenerateEmailConfirmLink(

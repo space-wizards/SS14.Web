@@ -6,6 +6,7 @@ namespace SS14.Auth.Data
 {
     public class SpaceUser : IdentityUser<Guid>
     {
+        public DateTimeOffset CreatedTime { get; set; }
         public List<ActiveSession> ActiveSessions { get; set; } = new List<ActiveSession>();
     }
 }
