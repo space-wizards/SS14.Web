@@ -15,6 +15,9 @@ using SS14.Auth.Sessions;
 
 namespace SS14.Auth.Controllers
 {
+    /// <summary>
+    ///     Contains the API endpoints used by the launcher to log in and such.
+    /// </summary>
     [ApiController]
     [Route("/api/auth")]
     public class AuthApiController : ControllerBase
