@@ -8,5 +8,6 @@ namespace SS14.Auth.Data
     {
         public DateTimeOffset CreatedTime { get; set; }
         public List<ActiveSession> ActiveSessions { get; set; } = new List<ActiveSession>();
+        public List<AuthHash> AuthHashes { get; set; } = new List<AuthHash>();
     }
 }

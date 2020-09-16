@@ -42,8 +42,13 @@ namespace SS14.Auth.Data
 
             builder.Entity<ActiveSession>()
                 .HasIndex(p => p.Token);
+
+            builder.Entity<AuthHash>()
+                .HasIndex(p => new {p.Hash, p.SpaceUserId})
+                .IsUnique();
         }
 
         public DbSet<ActiveSession> ActiveSessions { get; set; }
+        public DbSet<AuthHash> AuthHashes { get; set; }
     }
 }

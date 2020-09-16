@@ -1,12 +1,11 @@
 using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Internal;
 using Microsoft.IdentityModel.Tokens;
 using SS14.Auth.Data;
 
@@ -16,113 +15,109 @@ namespace SS14.Auth.Controllers
     [Route("/api/session")]
     public class SessionApiController : ControllerBase
     {
+        private static readonly TimeSpan JoinTimeout = TimeSpan.FromSeconds(20);
+        private const int HashSize = 32; // SHA-256
+
         private readonly IConfiguration _configuration;
         private readonly SpaceUserManager _userManager;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly ISystemClock _clock;
         private static readonly TimeSpan SessionLength = TimeSpan.FromHours(1);
 
-        public SessionApiController(IConfiguration configuration, SpaceUserManager userManager)
+        public SessionApiController(
+            IConfiguration configuration,
+            SpaceUserManager userManager,
+            ApplicationDbContext dbContext,
+            ISystemClock clock)
         {
             _configuration = configuration;
             _userManager = userManager;
+            _dbContext = dbContext;
+            _clock = clock;
         }
 
         [Authorize(AuthenticationSchemes = "SS14Auth")]
-        [HttpPost("getToken")]
-        public async Task<IActionResult> GetToken(GetTokenRequest request)
+        [HttpPost("join")]
+        public async Task<IActionResult> Join(JoinRequest request)
         {
+            if (request.Hash == null)
+            {
+                return BadRequest();
+            }
+
             var user = await _userManager.GetUserAsync(User);
+            var hash = Convert.FromBase64String(request.Hash);
+            if (hash.Length != HashSize)
+            {
+                return BadRequest();
+            }
 
-            var privKey = LoadPrivateKey(Convert.FromBase64String(_configuration["SessionKey:Private"]));
-            var serverPkBytes = Convert.FromBase64String(request.ServerPublicKey);
+            if (await _dbContext.AuthHashes.AnyAsync(p => p.Hash == hash && p.SpaceUserId == user.Id))
+            {
+                return BadRequest();
+            }
 
-            var serverRsa = RSA.Create();
-            serverRsa.ImportRSAPublicKey(serverPkBytes, out _);
+            user.AuthHashes.Add(new AuthHash
+            {
+                Expires = _clock.UtcNow + JoinTimeout,
+                Hash = hash
+            });
 
-            var h = SHA256.Create();
-            var hash = h.ComputeHash(serverPkBytes);
+            await _dbContext.SaveChangesAsync();
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tok = tokenHandler.CreateJwtSecurityToken(
-                audience: Convert.ToBase64String(hash),
-                subject: new ClaimsIdentity(new[]
+            return NoContent();
+        }
+
+        [HttpGet("hasJoined")]
+        public async Task<IActionResult> HasJoined(Guid userId, string hash)
+        {
+            var hashBytes = Base64UrlEncoder.DecodeBytes(hash);
+            if (hashBytes.Length != HashSize)
+            {
+                return BadRequest();
+            }
+
+            var authHash = await _dbContext.AuthHashes
+                    .Include(p => p.SpaceUser)
+                    .SingleOrDefaultAsync(p => p.Hash == hashBytes && p.SpaceUserId == userId);
+
+            if (authHash == null || authHash.Expires < _clock.UtcNow)
+            {
+                return Ok(new HasJoinedResponse {IsValid = false});
+            }
+
+            var resp = new HasJoinedResponse
+            {
+                IsValid = true,
+                UserData = new HasJoinedUserData
                 {
-                    new Claim("sub", user.Id.ToString()),
-                    new Claim("name", user.UserName),
-                }),
-                expires: DateTime.UtcNow + SessionLength,
-                signingCredentials: new SigningCredentials(new ECDsaSecurityKey(privKey),
-                    SecurityAlgorithms.EcdsaSha256));
+                    UserName = authHash.SpaceUser.UserName,
+                    UserId = userId
+                }
+            };
 
-            var tokStr = tokenHandler.WriteToken(tok);
+            _dbContext.AuthHashes.Remove(authHash);
 
-            var tokBytes = Encoding.UTF8.GetBytes(tokStr);
+            await _dbContext.SaveChangesAsync();
 
-            Console.WriteLine(tokBytes.Length);
-
-            return Ok(Encrypt(tokBytes, serverRsa));
+            return Ok(resp);
         }
 
-        private static ECDsa LoadPublicKey(byte[] key)
+        public sealed class JoinRequest
         {
-            var ecDsa = ECDsa.Create();
-            ecDsa.ImportSubjectPublicKeyInfo(key, out _);
-            return ecDsa;
+            public string Hash { get; set; }
         }
 
-        private static ECDsa LoadPrivateKey(byte[] key)
+        public sealed class HasJoinedResponse
         {
-            var ecdsa = ECDsa.Create();
-            ecdsa.ImportECPrivateKey(key, out _);
-            return ecdsa;
+            public bool IsValid { get; set; }
+            public HasJoinedUserData UserData { get; set; }
         }
 
-        // Encrypt and decrypt methods here taken from http://pages.infinit.net/ctech/20031101-0151.html.
-        internal static string Encrypt(byte[] data, RSA rsa)
+        public sealed class HasJoinedUserData
         {
-            var sa = Aes.Create();
-
-            var encryptor = sa.CreateEncryptor();
-            var encrypted = encryptor.TransformFinalBlock(data, 0, data.Length);
-
-            var fmt = new RSAPKCS1KeyExchangeFormatter(rsa);
-            var keyEx = fmt.CreateKeyExchange(sa.Key);
-
-            var result = new byte[keyEx.Length + encrypted.Length + sa.IV.Length];
-
-            keyEx.CopyTo(result.AsSpan());
-            sa.IV.CopyTo(result.AsSpan(keyEx.Length));
-            encrypted.CopyTo(result.AsSpan(keyEx.Length + sa.IV.Length));
-
-            return Convert.ToBase64String(result);
-        }
-
-        // Mostly kept here for reference and testing.
-        internal static byte[] Decrypt(string data, RSA rsa)
-        {
-            var dataBytes = Convert.FromBase64String(data);
-
-            var sa = Aes.Create();
-
-            var keyEx = new byte[rsa.KeySize >> 3];
-            dataBytes.AsSpan(..keyEx.Length).CopyTo(keyEx);
-            var def = new RSAPKCS1KeyExchangeDeformatter(rsa);
-            var key = def.DecryptKeyExchange(keyEx);
-
-            var iv = new byte[sa.IV.Length];
-            var keyPlusIvLength = keyEx.Length + iv.Length;
-            dataBytes.AsSpan(keyEx.Length..keyPlusIvLength).CopyTo(iv);
-
-            var decrypt = sa.CreateDecryptor(key, iv);
-            var decrypted = decrypt.TransformFinalBlock(dataBytes,
-                keyEx.Length + iv.Length,
-                dataBytes.Length - keyPlusIvLength);
-
-            return decrypted;
-        }
-
-        public sealed class GetTokenRequest
-        {
-            public string ServerPublicKey { get; set; }
+            public string UserName { get; set; }
+            public Guid UserId { get; set; }
         }
     }
 }
