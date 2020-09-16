@@ -1,12 +1,10 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Internal;
-using Microsoft.IdentityModel.Tokens;
 using SS14.Auth.Data;
 
 namespace SS14.Auth.Controllers
