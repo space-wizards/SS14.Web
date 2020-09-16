@@ -120,32 +120,6 @@ namespace SS14.Auth.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("SS14.Auth.Data.ActiveSession", b =>
-                {
-                    b.Property<int>("ActiveSessionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<DateTimeOffset>("Expires")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("SpaceUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<byte[]>("Token")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.HasKey("ActiveSessionId");
-
-                    b.HasIndex("SpaceUserId");
-
-                    b.HasIndex("Token");
-
-                    b.ToTable("ActiveSessions");
-                });
-
             modelBuilder.Entity("SS14.Auth.Data.AuthHash", b =>
                 {
                     b.Property<int>("AuthHashId")
@@ -171,6 +145,33 @@ namespace SS14.Auth.Migrations
                         .IsUnique();
 
                     b.ToTable("AuthHashes");
+                });
+
+            modelBuilder.Entity("SS14.Auth.Data.LoginSession", b =>
+                {
+                    b.Property<int>("LoginSessionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<DateTimeOffset>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SpaceUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Token")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.HasKey("LoginSessionId");
+
+                    b.HasIndex("SpaceUserId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("ActiveSessions");
                 });
 
             modelBuilder.Entity("SS14.Auth.Data.SpaceRole", b =>
@@ -301,19 +302,19 @@ namespace SS14.Auth.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SS14.Auth.Data.ActiveSession", b =>
+            modelBuilder.Entity("SS14.Auth.Data.AuthHash", b =>
                 {
                     b.HasOne("SS14.Auth.Data.SpaceUser", "SpaceUser")
-                        .WithMany("ActiveSessions")
+                        .WithMany("AuthHashes")
                         .HasForeignKey("SpaceUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SS14.Auth.Data.AuthHash", b =>
+            modelBuilder.Entity("SS14.Auth.Data.LoginSession", b =>
                 {
                     b.HasOne("SS14.Auth.Data.SpaceUser", "SpaceUser")
-                        .WithMany("AuthHashes")
+                        .WithMany("LoginSessions")
                         .HasForeignKey("SpaceUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

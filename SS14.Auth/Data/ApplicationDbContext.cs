@@ -40,15 +40,16 @@ namespace SS14.Auth.Data
                 .Ignore(p => p.LockoutEnabled)
                 .Ignore(p => p.AccessFailedCount);
 
-            builder.Entity<ActiveSession>()
-                .HasIndex(p => p.Token);
+            builder.Entity<LoginSession>()
+                .HasIndex(p => p.Token)
+                .IsUnique();
 
             builder.Entity<AuthHash>()
                 .HasIndex(p => new {p.Hash, p.SpaceUserId})
                 .IsUnique();
         }
 
-        public DbSet<ActiveSession> ActiveSessions { get; set; }
+        public DbSet<LoginSession> ActiveSessions { get; set; }
         public DbSet<AuthHash> AuthHashes { get; set; }
     }
 }

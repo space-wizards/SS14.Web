@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SS14.Auth.Data
 {
-    public class ActiveSession
+    public class LoginSession
     {
-        public int ActiveSessionId { get; set; }
+        public int LoginSessionId { get; set; }
 
         public Guid SpaceUserId { get; set; }
         public SpaceUser SpaceUser { get; set; }

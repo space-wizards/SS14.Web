@@ -30,7 +30,7 @@ namespace SS14.Auth.Sessions
             _cryptoRng.GetBytes(dat);
             var token = new SessionToken(dat);
             var expires = _clock.UtcNow + expireTime;
-            user.ActiveSessions.Add(new ActiveSession
+            user.LoginSessions.Add(new LoginSession
             {
                 Expires = expires,
                 Token = dat
