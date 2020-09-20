@@ -28,6 +28,7 @@ namespace SS14.Auth.Areas.Identity.Pages.Account.Manage
         [TempData]
         public string StatusMessage { get; set; }
 
+        /*
         [BindProperty]
         public InputModel Input { get; set; }
 
@@ -37,18 +38,19 @@ namespace SS14.Auth.Areas.Identity.Pages.Account.Manage
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
         }
+        */
 
         private async Task LoadAsync(SpaceUser user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            //var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
             Username = userName;
 
-            Input = new InputModel
+            /*Input = new InputModel
             {
                 PhoneNumber = phoneNumber
-            };
+            };*/
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -63,6 +65,7 @@ namespace SS14.Auth.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
+        /*
         public async Task<IActionResult> OnPostAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -91,6 +94,6 @@ namespace SS14.Auth.Areas.Identity.Pages.Account.Manage
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
-        }
+        }*/
     }
 }

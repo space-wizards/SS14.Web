@@ -28,10 +28,20 @@ namespace SS14.Auth.Controllers
             return View();
         }
 
+        public IActionResult Contact()
+        {
+            return Redirect("https://spacestation14.io/about/contact/");
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
+        }
+
+        public IActionResult MainWebsite()
+        {
+            return Redirect("https://spacestation14.io/");
         }
     }
 }
