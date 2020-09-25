@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
+        <OutputType>Library</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,9 +16,7 @@
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
         <PackageReference Include="Robust.Shared.AuthLib" Version="0.1.1" />
+
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\SS14.Auth.Shared\SS14.Auth.Shared.csproj" />
-    </ItemGroup>
 </Project>

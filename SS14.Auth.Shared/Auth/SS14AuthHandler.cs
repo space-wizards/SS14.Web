@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
-using SS14.Web.Data;
-using SS14.Web.Sessions;
+using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Sessions;
 
-namespace SS14.Web.Auth
+namespace SS14.Auth.Shared.Auth
 {
     [UsedImplicitly]
     public sealed class SS14AuthHandler : AuthenticationHandler<SS14AuthOptions>

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 
-namespace SS14.Web.Data
+namespace SS14.Auth.Shared.Data
 {
     public class SpaceUser : IdentityUser<Guid>
     {

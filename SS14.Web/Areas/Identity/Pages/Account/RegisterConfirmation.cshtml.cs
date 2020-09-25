@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using SS14.Web.Data;
+using SS14.Auth.Shared;
+using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account
 {
@@ -46,7 +47,7 @@ namespace SS14.Web.Areas.Identity.Pages.Account
             DisplayConfirmAccountLink = true;
             if (DisplayConfirmAccountLink)
             {
-                EmailConfirmationUrl = await RegisterModel.GenerateEmailConfirmLink(
+                EmailConfirmationUrl = await ModelShared.GenerateEmailConfirmLink(
                     _userManager, Url, Request, user, returnUrl);
             }
 

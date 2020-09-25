@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SS14.Web.Data
+namespace SS14.Auth.Shared.Data
 {
     public class LoginSession
     {

@@ -10,7 +10,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using SS14.Web.Data;
+using SS14.Auth.Shared;
+using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account
 {
@@ -65,7 +66,7 @@ namespace SS14.Web.Areas.Identity.Pages.Account
                 values: new { userId = userId, code = code },
                 protocol: Request.Scheme);
 
-            await RegisterModel.SendConfirmEmail(_emailSender, email, confirmLink);
+            await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
             ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
             return Page();

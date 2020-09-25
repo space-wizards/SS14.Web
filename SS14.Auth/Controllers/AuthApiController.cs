@@ -9,11 +9,10 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Internal;
-using SS14.Web.Areas.Identity.Pages.Account;
-using SS14.Web.Data;
-using SS14.Web.Sessions;
+using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Sessions;
 
-namespace SS14.Web.Controllers
+namespace SS14.Auth.Shared.Controllers
 {
     /// <summary>
     ///     Contains the API endpoints used by the launcher to log in and such.
@@ -113,7 +112,7 @@ namespace SS14.Web.Controllers
             var userName = request.Username.Trim();
             var email = request.Email.Trim();
 
-            var user = RegisterModel.CreateNewUser(userName, email, _systemClock);
+            var user = ModelShared.CreateNewUser(userName, email, _systemClock);
             var result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
@@ -123,9 +122,9 @@ namespace SS14.Web.Controllers
             }
 
             var confirmLink =
-                await RegisterModel.GenerateEmailConfirmLink(_userManager, Url, Request, user, launcher: true);
+                await ModelShared.GenerateEmailConfirmLink(_userManager, Url, Request, user, launcher: true);
 
-            await RegisterModel.SendConfirmEmail(_emailSender, email, confirmLink);
+            await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
             var status = _userManager.Options.SignIn.RequireConfirmedAccount
                 ? RegisterResponseStatus.RegisteredNeedConfirmation
@@ -162,7 +161,7 @@ namespace SS14.Web.Controllers
                 values: new { area = "Identity", code },
                 protocol: Request.Scheme);
 
-            await ForgotPasswordModel.SendResetEmail(_emailSender, email, callbackUrl);
+            await ModelShared.SendResetEmail(_emailSender, email, callbackUrl);
 
             return Ok();
         }
@@ -193,7 +192,7 @@ namespace SS14.Web.Controllers
                 values: new { area = "Identity", userId = userId, code = code },
                 protocol: Request.Scheme);
 
-            await RegisterModel.SendConfirmEmail(_emailSender, email, confirmLink);
+            await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
             return Ok();
         }

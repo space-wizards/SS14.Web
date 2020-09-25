@@ -5,9 +5,9 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Robust.Shared.AuthLib;
-using SS14.Web.Data;
+using SS14.Auth.Shared.Data;
 
-namespace SS14.Web
+namespace SS14.Auth.Shared
 {
     public sealed class SS14UserValidator : UserValidator<SpaceUser>
     {

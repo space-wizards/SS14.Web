@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace SS14.Web.Data
+namespace SS14.Auth.Shared.Data
 {
     [UsedImplicitly]
     public sealed class SpaceUserManager : UserManager<SpaceUser>

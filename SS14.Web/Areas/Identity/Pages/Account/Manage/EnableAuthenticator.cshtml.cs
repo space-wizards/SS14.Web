@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using SS14.Web.Data;
+using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage
 {

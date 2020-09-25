@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace SS14.Web.Data
+namespace SS14.Auth.Shared.Data
 {
     public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid>
     {

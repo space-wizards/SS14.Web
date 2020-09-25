@@ -2,7 +2,7 @@ using System;
 
 #nullable enable
 
-namespace SS14.Web.Sessions
+namespace SS14.Auth.Shared.Sessions
 {
     public readonly struct SessionToken
     {

@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Internal;
 using Microsoft.IdentityModel.Tokens;
-using SS14.Web.Data;
+using SS14.Auth.Shared.Data;
 
-namespace SS14.Web.Controllers
+namespace SS14.Auth.Controllers
 {
     [ApiController]
     [Route("/api/session")]

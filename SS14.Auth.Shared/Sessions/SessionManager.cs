@@ -4,9 +4,9 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
-using SS14.Web.Data;
+using SS14.Auth.Shared.Data;
 
-namespace SS14.Web.Sessions
+namespace SS14.Auth.Shared.Sessions
 {
     public sealed class SessionManager
     {

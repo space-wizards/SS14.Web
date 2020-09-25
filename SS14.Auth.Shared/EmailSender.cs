@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.UI.Services;
 
-namespace SS14.Web
+namespace SS14.Auth.Shared
 {
     public class EmailSender : IEmailSender
     {

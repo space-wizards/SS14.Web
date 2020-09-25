@@ -14,7 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using SS14.Web.Data;
+using SS14.Auth.Shared;
+using SS14.Auth.Shared.Data;
 using ISystemClock = Microsoft.Extensions.Internal.ISystemClock;
 
 namespace SS14.Web.Areas.Identity.Pages.Account
@@ -87,15 +88,15 @@ namespace SS14.Web.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = CreateNewUser(userName, email, _systemClock);
+                var user = ModelShared.CreateNewUser(userName, email, _systemClock);
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    var confirmLink = await GenerateEmailConfirmLink(_userManager, Url, Request, user, returnUrl);
+                    var confirmLink = await ModelShared.GenerateEmailConfirmLink(_userManager, Url, Request, user, returnUrl);
 
-                    await SendConfirmEmail(_emailSender, email, confirmLink);
+                    await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
@@ -116,38 +117,6 @@ namespace SS14.Web.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
-        }
-
-        public static SpaceUser CreateNewUser(string userName, string email, ISystemClock systemClock)
-        {
-            return new SpaceUser {UserName = userName, Email = email, CreatedTime = systemClock.UtcNow};
-        }
-
-        public static async Task<string> GenerateEmailConfirmLink(
-            UserManager<SpaceUser> userMgr, IUrlHelper url, HttpRequest request,
-            SpaceUser user, string returnUrl = null, bool launcher = false)
-        {
-            var code = await userMgr.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = url.Page(
-                "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new
-                {
-                    area = "Identity",
-                    userId = user.Id,
-                    code = code,
-                    returnUrl = returnUrl,
-                    launcher = launcher
-                },
-                protocol: request.Scheme);
-            return callbackUrl;
-        }
-
-        public static async Task SendConfirmEmail(IEmailSender sender, string address, string confirmLink)
-        {
-            await sender.SendEmailAsync(address, "Confirm your Space Station 14 account",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(confirmLink)}'>clicking here</a>.");
         }
     }
 }
