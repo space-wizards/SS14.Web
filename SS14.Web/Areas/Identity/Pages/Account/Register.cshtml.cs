@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
-using IEmailSender = SS14.Auth.Shared.Emails.IEmailSender;
+using SS14.Auth.Shared.Emails;
 using ISystemClock = Microsoft.Extensions.Internal.ISystemClock;
 
 namespace SS14.Web.Areas.Identity.Pages.Account
