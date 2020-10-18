@@ -8,5 +8,9 @@
       <ProjectReference Include="..\SS14.Auth.Shared\SS14.Auth.Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="NetEscapades.Configuration.Yaml" Version="2.0.1" />
+    </ItemGroup>
+
 
 </Project>
