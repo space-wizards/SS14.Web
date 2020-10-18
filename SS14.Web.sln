@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SS14.Auth.Shared", "SS14.Au
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SS14.Auth", "SS14.Auth\SS14.Auth.csproj", "{389F7D97-4154-4F6A-8B7E-7E5027D3EF7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SS14.ServerHub", "SS14.ServerHub\SS14.ServerHub.csproj", "{1B0A75F4-0AD5-4189-A505-281CF96CCD80}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{389F7D97-4154-4F6A-8B7E-7E5027D3EF7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{389F7D97-4154-4F6A-8B7E-7E5027D3EF7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{389F7D97-4154-4F6A-8B7E-7E5027D3EF7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B0A75F4-0AD5-4189-A505-281CF96CCD80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B0A75F4-0AD5-4189-A505-281CF96CCD80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B0A75F4-0AD5-4189-A505-281CF96CCD80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B0A75F4-0AD5-4189-A505-281CF96CCD80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{569B190C-2FE6-44FA-B282-E0E7ACE64226} = {E8B08827-B7DC-459A-985C-BFAB426B570E}
