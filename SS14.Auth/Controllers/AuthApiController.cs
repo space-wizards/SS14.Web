@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Internal;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.Sessions;
 
 namespace SS14.Auth.Shared.Controllers

@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
+using IEmailSender = SS14.Auth.Shared.Emails.IEmailSender;
 
 namespace SS14.Web.Areas.Identity.Pages.Account
 {

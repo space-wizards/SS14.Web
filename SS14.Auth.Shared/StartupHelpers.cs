@@ -1,12 +1,12 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Internal;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.Sessions;
 
 namespace SS14.Auth.Shared
@@ -38,7 +38,18 @@ namespace SS14.Auth.Shared
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddSingleton<IEmailSender, EmailSender>();
+            if (string.IsNullOrEmpty(config.GetValue<string>("Email:Server")))
+            {
+                // Dummy emails.
+                services.AddSingleton<IEmailSender, DummyEmailSender>();
+            }
+            else
+            {
+                services.Configure<SmtpEmailOptions>(config.GetSection("Email"));
+                services.AddSingleton<IEmailSender, SmtpEmailSender>();
+            }
+
+            services.AddSingleton<IEmailSender, SmtpEmailSender>();
             services.AddScoped<SessionManager>();
 
             services.AddTransient(_ => RandomNumberGenerator.Create());

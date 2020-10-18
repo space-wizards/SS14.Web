@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Internal;
 using SS14.Auth.Shared.Data;
+using IEmailSender = SS14.Auth.Shared.Emails.IEmailSender;
 
 namespace SS14.Auth.Shared
 {
