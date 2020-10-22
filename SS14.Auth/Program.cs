@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -11,15 +12,22 @@ namespace SS14.Auth
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            var config = Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {
                     var env = context.HostingEnvironment;
                     builder.AddYamlFile("appsettings.yml", false, true);
                     builder.AddYamlFile($"appsettings.{env.EnvironmentName}.yml", true, true);
                 })
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
-                .UseSystemd();
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+
+            if (args.Contains("--systemd"))
+            {
+                config.UseSystemd();
+            }
+            return config;
+        }
     }
 }
