@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +19,10 @@ namespace SS14.Auth.Shared
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(
                     config.GetConnectionString("DefaultConnection")));
+
+            services.AddDataProtection()
+                .PersistKeysToDbContext<ApplicationDbContext>()
+                .SetApplicationName("SS14.Auth.Shared");
 
             services.AddSingleton<IUserValidator<SpaceUser>, SS14UserValidator>();
             services.AddScoped<UserManager<SpaceUser>, SpaceUserManager>();

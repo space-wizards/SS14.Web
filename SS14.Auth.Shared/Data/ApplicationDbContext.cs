@@ -1,10 +1,11 @@
 ﻿using System;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace SS14.Auth.Shared.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid>
+    public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid>, IDataProtectionKeyContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -51,5 +52,6 @@ namespace SS14.Auth.Shared.Data
 
         public DbSet<LoginSession> ActiveSessions { get; set; }
         public DbSet<AuthHash> AuthHashes { get; set; }
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     }
 }
