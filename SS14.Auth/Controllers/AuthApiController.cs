@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Internal;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
@@ -24,18 +25,22 @@ namespace SS14.Auth.Shared.Controllers
         private readonly SessionManager _sessionManager;
         private readonly IEmailSender _emailSender;
         private readonly ISystemClock _systemClock;
+        private readonly IConfiguration _cfg;
 
         private readonly SpaceUserManager _userManager;
         private readonly SignInManager<SpaceUser> _signInManager;
 
+        private string WebBaseUrl => _cfg.GetValue<string>("WebBaseUrl");
+
         public AuthApiController(SpaceUserManager userManager, SignInManager<SpaceUser> signInManager,
-            SessionManager sessionManager, IEmailSender emailSender, ISystemClock systemClock)
+            SessionManager sessionManager, IEmailSender emailSender, ISystemClock systemClock, IConfiguration cfg)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _sessionManager = sessionManager;
             _emailSender = emailSender;
             _systemClock = systemClock;
+            _cfg = cfg;
         }
 
         [HttpPost("authenticate")]
@@ -121,8 +126,7 @@ namespace SS14.Auth.Shared.Controllers
                 return UnprocessableEntity(new RegisterResponseError {Errors = errors});
             }
 
-            var confirmLink =
-                await ModelShared.GenerateEmailConfirmLink(_userManager, Url, Request, user, launcher: true);
+            var confirmLink = await GenerateEmailConfirmLink(user);
 
             await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
@@ -155,11 +159,7 @@ namespace SS14.Auth.Shared.Controllers
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page(
-                "/Account/ResetPassword",
-                pageHandler: null,
-                values: new { area = "Identity", code },
-                protocol: Request.Scheme);
+            var callbackUrl = $"{WebBaseUrl}Identity/Account/ResetPassword?code={code}&launcher=true";
 
             await ModelShared.SendResetEmail(_emailSender, email, callbackUrl);
 
@@ -183,14 +183,7 @@ namespace SS14.Auth.Shared.Controllers
                 return Ok();
             }
 
-            var userId = await _userManager.GetUserIdAsync(user);
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var confirmLink = Url.Page(
-                "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new { area = "Identity", userId = userId, code = code },
-                protocol: Request.Scheme);
+            var confirmLink = await GenerateEmailConfirmLink(user);
 
             await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
@@ -249,6 +242,14 @@ namespace SS14.Auth.Shared.Controllers
                 ExpireTime = expireTime.ToString("O"),
                 NewToken = newToken.AsBase64
             });
+        }
+
+        private async Task<string> GenerateEmailConfirmLink(SpaceUser user)
+        {
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var baseUrl = WebBaseUrl;
+            return $"{baseUrl}Identity/Account/ConfirmEmail?code={code}&userId={user.Id}&launcher=true";
         }
     }
 

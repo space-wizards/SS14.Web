@@ -43,7 +43,7 @@ namespace SS14.Auth.Shared
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            if (string.IsNullOrEmpty(config.GetValue<string>("Email:Server")))
+            if (string.IsNullOrEmpty(config.GetValue<string>("Email:Host")))
             {
                 // Dummy emails.
                 services.AddSingleton<IEmailSender, DummyEmailSender>();

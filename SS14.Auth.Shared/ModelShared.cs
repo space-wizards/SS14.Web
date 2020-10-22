@@ -32,26 +32,5 @@ namespace SS14.Auth.Shared
         {
             return new SpaceUser {UserName = userName, Email = email, CreatedTime = systemClock.UtcNow};
         }
-
-        public static async Task<string> GenerateEmailConfirmLink(
-            UserManager<SpaceUser> userMgr, IUrlHelper url, HttpRequest request,
-            SpaceUser user, string returnUrl = null, bool launcher = false)
-        {
-            var code = await userMgr.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = url.Page(
-                "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new
-                {
-                    area = "Identity",
-                    userId = user.Id,
-                    code = code,
-                    returnUrl = returnUrl,
-                    launcher = launcher
-                },
-                protocol: request.Scheme);
-            return callbackUrl;
-        }
     }
 }

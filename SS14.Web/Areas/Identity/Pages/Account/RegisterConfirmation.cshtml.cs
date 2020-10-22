@@ -23,8 +23,6 @@ namespace SS14.Web.Areas.Identity.Pages.Account
 
         public string Email { get; set; }
 
-        public bool DisplayConfirmAccountLink { get; set; }
-
         public string EmailConfirmationUrl { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string email, string returnUrl = null)
@@ -41,13 +39,6 @@ namespace SS14.Web.Areas.Identity.Pages.Account
             }
 
             Email = email;
-            // Once you add a real email sender, you should remove this code that lets you confirm the account
-            DisplayConfirmAccountLink = true;
-            if (DisplayConfirmAccountLink)
-            {
-                EmailConfirmationUrl = await ModelShared.GenerateEmailConfirmLink(
-                    _userManager, Url, Request, user, returnUrl);
-            }
 
             return Page();
         }
