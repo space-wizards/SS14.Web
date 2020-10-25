@@ -24,7 +24,7 @@ namespace SS14.Auth.Shared
                 .PersistKeysToDbContext<ApplicationDbContext>()
                 .SetApplicationName("SS14.Auth.Shared");
 
-            services.AddSingleton<IUserValidator<SpaceUser>, SS14UserValidator>();
+            services.AddScoped<IUserValidator<SpaceUser>, SS14UserValidator>();
             services.AddScoped<UserManager<SpaceUser>, SpaceUserManager>();
             services.AddScoped<SpaceUserManager>();
             services.AddIdentity<SpaceUser, SpaceRole>(o =>

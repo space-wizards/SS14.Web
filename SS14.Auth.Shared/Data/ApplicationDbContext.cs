@@ -48,10 +48,15 @@ namespace SS14.Auth.Shared.Data
             builder.Entity<AuthHash>()
                 .HasIndex(p => new {p.Hash, p.SpaceUserId})
                 .IsUnique();
+
+            builder.Entity<BurnerEmail>()
+                .HasIndex(p => new {p.Domain})
+                .IsUnique();
         }
 
         public DbSet<LoginSession> ActiveSessions { get; set; }
         public DbSet<AuthHash> AuthHashes { get; set; }
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+        public DbSet<BurnerEmail> BurnerEmails { get; set; }
     }
 }
