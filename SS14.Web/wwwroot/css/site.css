@@ -90,7 +90,7 @@ body {
   width: 100%;
   white-space: nowrap;
   line-height: 30px; /* Vertically center the text there */
-  background-image: url("/stripeback.svg");
+  background-image: url("../stripeback.svg");
   border-top: 2px solid #525252 !important;
 }
 
