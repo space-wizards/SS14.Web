@@ -60,6 +60,12 @@ namespace SS14.Web
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
 
+            var pathBase = Configuration.GetValue<string>("PathBase");
+            if (!string.IsNullOrEmpty(pathBase))
+            {
+                app.UsePathBase(pathBase);
+            }
+
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
