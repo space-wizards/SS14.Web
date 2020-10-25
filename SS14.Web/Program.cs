@@ -22,7 +22,15 @@ namespace SS14.Web
                     builder.AddYamlFile("appsettings.Secret.yml", true, true);
                     builder.AddYamlFile($"appsettings.{env.EnvironmentName}.yml", true, true);
                 })
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    var webRoot = webBuilder.GetSetting("WEBROOT");
+                    if (!string.IsNullOrEmpty(webRoot))
+                    {
+                        webBuilder.UseWebRoot(webRoot);
+                    }
+                    webBuilder.UseStartup<Startup>();
+                });
 
             if (args.Contains("--systemd"))
             {
