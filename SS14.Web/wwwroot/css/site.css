@@ -6,6 +6,10 @@ body {
   color: #EEEEEE;
 }
 
+strong {
+  font-weight: bold;
+}
+
 .bg-dark {
   /* Bootstrap is also using fucking !important so not my problem */
   background-color: #212126 !important;
