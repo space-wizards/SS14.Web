@@ -33,7 +33,12 @@
                 <input asp-for="Input.ConfirmPassword" class="form-control" />
                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Register</button>
+            <div class="form-group">
+                <input asp-for="Input.AgeCheck" id="13CheckBox"/>
+                <label asp-for="Input.AgeCheck"></label>
+                <span asp-validation-for="Input.AgeCheck" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary" id="registerButton">Register</button>
         </form>
     </div>
     @*<div class="col-md-6 col-md-offset-2">
@@ -69,5 +74,23 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+        window.addEventListener('DOMContentLoaded', function (event){
+            var checkBox = document.getElementById("13CheckBox");
+            var registerButton = document.getElementById("registerButton");
+            if (checkBox === null || registerButton === null)
+            {
+                return;
+            }
+
+            checkBox.addEventListener("input", function (event) {
+                var value = event.target.checked;
+                console.log(value);
+                registerButton.disabled = !value;
+            });
+
+            registerButton.disabled = !checkBox.checked;
+        });
+    </script>
+    <partial name="_ValidationScriptsPartial"/>
 }

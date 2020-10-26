@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
+using SS14.Web.Helpers;
 using ISystemClock = Microsoft.Extensions.Internal.ISystemClock;
 
 namespace SS14.Web.Areas.Identity.Pages.Account
@@ -68,6 +69,11 @@ namespace SS14.Web.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required]
+            [Display(Name = "I am 13 years of age or older")]
+            [MustBeTrue(ErrorMessage = "You must be 13 or older to sign up for Space Station 14.")]
+            public bool AgeCheck { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)
