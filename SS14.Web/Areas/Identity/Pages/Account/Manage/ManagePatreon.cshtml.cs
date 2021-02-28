@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Config;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage
 {

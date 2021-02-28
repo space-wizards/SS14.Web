@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Internal;
+using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.Sessions;
@@ -59,6 +60,9 @@ namespace SS14.Auth.Shared
             services.AddTransient(_ => RandomNumberGenerator.Create());
 
             services.TryAddSingleton<ISystemClock, SystemClock>();
+            
+            var patreonCfg = config.GetSection("Patreon");
+            services.Configure<PatreonConfiguration>(patreonCfg);
         }
     }
 }

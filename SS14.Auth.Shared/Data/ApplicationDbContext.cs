@@ -67,5 +67,6 @@ namespace SS14.Auth.Shared.Data
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
         public DbSet<BurnerEmail> BurnerEmails { get; set; }
         public DbSet<Patron> Patrons { get; set; }
+        public DbSet<PatreonWebhookLog> PatreonWebhookLogs { get; set; }
     }
 }

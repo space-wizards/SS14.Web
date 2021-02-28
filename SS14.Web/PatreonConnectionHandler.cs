@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Config;
 
 namespace SS14.Web
 {

@@ -6,5 +6,6 @@ urls: "http://localhost:5000"
 Logging:
   LogLevel:
     Default: "Information"
+    SS14: "Debug"
     Microsoft: "Warning"
     Microsoft.Hosting.Lifetime: "Information"

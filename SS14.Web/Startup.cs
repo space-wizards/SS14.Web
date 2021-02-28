@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SS14.Auth.Shared;
-using SS14.Web.Config;
+using SS14.Auth.Shared.Config;
 
 namespace SS14.Web
 {
@@ -42,14 +42,13 @@ namespace SS14.Web
 
             services.AddControllersWithViews();
             services.AddRazorPages();
-
-            var patreonCfg = Configuration.GetSection("Patreon");
-            services.Configure<PatreonConfiguration>(patreonCfg);
-            var cfg = patreonCfg.Get<PatreonConfiguration>();
-
+            
             services.AddScoped<PatreonConnectionHandler>();
 
-            if (cfg.ClientId != null && cfg.ClientSecret != null)
+            var patreonSection = Configuration.GetSection("Patreon");
+            var patreonCfg = patreonSection.Get<PatreonConfiguration>();
+            
+            if (patreonCfg.ClientId != null && patreonCfg.ClientSecret != null)
             {
                 services.AddAuthentication()
                     // Rider is dumb that null is valid.
@@ -59,8 +58,8 @@ namespace SS14.Web
                         // Patreon docs lied you don't need this to see memberships to your own campaign.
                         // options.Scope.Add("identity.memberships");
                         options.Includes.Add("memberships.currently_entitled_tiers");
-                        options.ClientId = cfg.ClientId;
-                        options.ClientSecret = cfg.ClientSecret;
+                        options.ClientId = patreonCfg.ClientId;
+                        options.ClientSecret = patreonCfg.ClientSecret;
 
                         options.Events.OnCreatingTicket += context =>
                         {

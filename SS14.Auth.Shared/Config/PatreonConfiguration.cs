@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SS14.Web.Config
+namespace SS14.Auth.Shared.Config
 {
     public sealed class PatreonConfiguration
     {
@@ -8,5 +8,7 @@ namespace SS14.Web.Config
         public string ClientSecret { get; set; }
         public Dictionary<string, string> TierMap { get; set; }
         public Dictionary<string, string> TierNames { get; set; }
+        public string WebhookSecret { get; set; }
+        public bool LogWebhooks { get; set; } = true;
     }
 }
