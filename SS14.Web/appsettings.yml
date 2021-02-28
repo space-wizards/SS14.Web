@@ -19,4 +19,7 @@ Serilog:
   #  Address: "http://localhost:3100"
   #  Name: "Test"
 
+ForwardProxies:
+  - 127.0.0.1
+
 AllowedHosts: "*"

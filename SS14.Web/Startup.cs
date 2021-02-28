@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -92,11 +93,17 @@ namespace SS14.Web
                 app.UseHsts();
             }
 
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            var forwardedHeadersOptions = new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-                KnownProxies = { IPAddress.Parse("192.168.2.1") }
-            });
+            };
+            
+            foreach (var ip in Configuration.GetSection("ForwardProxies").Get<string[]>())
+            {
+                forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(ip));
+            }
+            
+            app.UseForwardedHeaders(forwardedHeadersOptions);
 
             var pathBase = Configuration.GetValue<string>("PathBase");
             if (!string.IsNullOrEmpty(pathBase))
