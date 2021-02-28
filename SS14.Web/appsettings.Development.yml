@@ -2,9 +2,3 @@ ConnectionStrings:
   DefaultConnection: "Server=127.0.0.1;Port=5432;Database=ss14-auth-test"
 
 urls: "http://localhost:5001"
-
-Logging:
-  LogLevel:
-    Default: "Information"
-    Microsoft: "Warning"
-    Microsoft.Hosting.Lifetime: "Information"

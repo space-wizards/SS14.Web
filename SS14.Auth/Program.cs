@@ -1,7 +1,8 @@
-using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using SS14.Auth.Shared;
 
 namespace SS14.Auth
 {
@@ -14,7 +15,7 @@ namespace SS14.Auth
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            var config = Host.CreateDefaultBuilder(args)
+            return Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {
                     var env = context.HostingEnvironment;
@@ -22,13 +23,14 @@ namespace SS14.Auth
                     builder.AddYamlFile($"appsettings.{env.EnvironmentName}.yml", true, true);
                     builder.AddYamlFile("appsettings.Secret.yml", true, true);
                 })
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .UseSerilog((ctx, cfg) =>
+                {
+                    cfg.ReadFrom.Configuration(ctx.Configuration);
 
-            if (args.Contains("--systemd"))
-            {
-                config.UseSystemd();
-            }
-            return config;
+                    StartupHelpers.SetupLoki(cfg, ctx.Configuration, "SS14.Auth");
+                })
+                .UseSystemd()
+                .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
         }
     }
 }

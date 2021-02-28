@@ -3,6 +3,8 @@ using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using SS14.Auth.Shared;
 
 [assembly: InternalsVisibleTo("SS14.Web.Tests")]
 
@@ -17,13 +19,19 @@ namespace SS14.Web
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            var config = Host.CreateDefaultBuilder(args)
+            return Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, builder) =>
                 {
                     var env = context.HostingEnvironment;
                     builder.AddYamlFile("appsettings.yml", false, true);
                     builder.AddYamlFile($"appsettings.{env.EnvironmentName}.yml", true, true);
                     builder.AddYamlFile("appsettings.Secret.yml", true, true);
+                })
+                .UseSerilog((ctx, cfg) =>
+                {
+                    cfg.ReadFrom.Configuration(ctx.Configuration);
+
+                    StartupHelpers.SetupLoki(cfg, ctx.Configuration, "SS14.Web");
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
@@ -32,15 +40,10 @@ namespace SS14.Web
                     {
                         webBuilder.UseWebRoot(webRoot);
                     }
+
                     webBuilder.UseStartup<Startup>();
-                });
-
-            if (args.Contains("--systemd"))
-            {
-                config.UseSystemd();
-            }
-
-            return config;
+                })
+                .UseSystemd();
         }
     }
 }
