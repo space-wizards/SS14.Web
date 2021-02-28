@@ -54,7 +54,6 @@ namespace SS14.Auth.Shared
                 services.AddSingleton<IEmailSender, SmtpEmailSender>();
             }
 
-            services.AddSingleton<IEmailSender, SmtpEmailSender>();
             services.AddScoped<SessionManager>();
 
             services.AddTransient(_ => RandomNumberGenerator.Create());

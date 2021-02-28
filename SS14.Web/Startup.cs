@@ -1,3 +1,6 @@
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -5,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SS14.Auth.Shared;
+using SS14.Web.Config;
 
 namespace SS14.Web
 {
@@ -38,6 +42,44 @@ namespace SS14.Web
 
             services.AddControllersWithViews();
             services.AddRazorPages();
+
+            var patreonCfg = Configuration.GetSection("Patreon");
+            services.Configure<PatreonConfiguration>(patreonCfg);
+            var cfg = patreonCfg.Get<PatreonConfiguration>();
+
+            services.AddScoped<PatreonConnectionHandler>();
+
+            if (cfg.ClientId != null && cfg.ClientSecret != null)
+            {
+                services.AddAuthentication()
+                    // Rider is dumb that null is valid.
+                    // It disables Patreon as an external login.
+                    .AddPatreon("Patreon", null!, options =>
+                    {
+                        // Patreon docs lied you don't need this to see memberships to your own campaign.
+                        // options.Scope.Add("identity.memberships");
+                        options.Includes.Add("memberships.currently_entitled_tiers");
+                        options.ClientId = cfg.ClientId;
+                        options.ClientSecret = cfg.ClientSecret;
+
+                        options.Events.OnCreatingTicket += context =>
+                        {
+                            var handler = context.HttpContext.RequestServices.GetService<PatreonConnectionHandler>();
+                            return handler!.HookCreatingTicket(context);
+                        };
+
+                        options.Events.OnTicketReceived += context =>
+                        {
+                            var handler = context.HttpContext.RequestServices.GetService<PatreonConnectionHandler>();
+                            return handler!.HookReceivedTicket(context);
+                        };
+                    });
+            }
+        }
+
+        private async Task OnTicketReceived(TicketReceivedContext arg)
+        {
+            arg.HandleResponse();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,7 +99,8 @@ namespace SS14.Web
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+                KnownProxies = { IPAddress.Parse("192.168.2.1") }
             });
 
             var pathBase = Configuration.GetValue<string>("PathBase");

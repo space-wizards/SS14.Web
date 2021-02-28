@@ -77,8 +77,9 @@ namespace SS14.Auth.Controllers
             }
 
             var authHash = await _dbContext.AuthHashes
-                    .Include(p => p.SpaceUser)
-                    .SingleOrDefaultAsync(p => p.Hash == hashBytes && p.SpaceUserId == userId);
+                .Include(p => p.SpaceUser)
+                .ThenInclude(u => u.Patron)
+                .SingleOrDefaultAsync(p => p.Hash == hashBytes && p.SpaceUserId == userId);
 
             if (authHash == null || authHash.Expires < _clock.UtcNow)
             {
@@ -91,7 +92,8 @@ namespace SS14.Auth.Controllers
                 UserData = new HasJoinedUserData
                 {
                     UserName = authHash.SpaceUser.UserName,
-                    UserId = userId
+                    UserId = userId,
+                    PatronTier = authHash.SpaceUser?.Patron?.CurrentTier
                 }
             };
 
@@ -117,6 +119,7 @@ namespace SS14.Auth.Controllers
         {
             public string UserName { get; set; }
             public Guid UserId { get; set; }
+            public string PatronTier { get; set; }
         }
     }
 }

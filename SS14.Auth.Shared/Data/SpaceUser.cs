@@ -9,5 +9,7 @@ namespace SS14.Auth.Shared.Data
         public DateTimeOffset CreatedTime { get; set; }
         public List<LoginSession> LoginSessions { get; set; } = new List<LoginSession>();
         public List<AuthHash> AuthHashes { get; set; } = new List<AuthHash>();
+        
+        public Patron Patron { get; set; }
     }
 }

@@ -21,6 +21,7 @@ We collect only data you enter into the website or launcher to register your acc
     <li>Username</li>
     <li>Time of registration</li>
     <li>Randomly generated UUID to identify your account across SS14</li>
+    <li>Patreon user ID and membership tier (if you choose to <a asp-area="Identity" asp-page="/Account/Manage/ManagePatreon">link your Patreon account</a>)</li>
 </ul>
 
 <p>
@@ -30,7 +31,16 @@ We use your email address to confirm validity of your account and may send you n
 Your email address and/or username can be used to log you in into our services, combined with your password of course.
 
 <p>
-Your username, account UUID and account creation time are considered public information that will be shared with any SS14 servers you play on. We do not share any other data such as your email address with game servers.
+
+The following data is considered public information that may be queried or shared to game servers you play on:
+<ul>
+    <li>username</li>
+    <li>account UUID</li>
+    <li>account creation time</li>
+    <li>Patreon membership tier (if you choose to <a asp-area="Identity" asp-page="/Account/Manage/ManagePatreon">link your Patreon account</a>)</li>
+</ul>
+
+We do not share any other data such as your email address (via game servers or API). 
 
 <h2 id="game-servers">Game Server Privacy Policy</h2>
 

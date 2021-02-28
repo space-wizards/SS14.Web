@@ -52,11 +52,20 @@ namespace SS14.Auth.Shared.Data
             builder.Entity<BurnerEmail>()
                 .HasIndex(p => new {p.Domain})
                 .IsUnique();
+
+            builder.Entity<Patron>()
+                .HasIndex(p => p.PatreonId)
+                .IsUnique();
+            
+            builder.Entity<Patron>()
+                .HasIndex(p => p.SpaceUserId)
+                .IsUnique();
         }
 
         public DbSet<LoginSession> ActiveSessions { get; set; }
         public DbSet<AuthHash> AuthHashes { get; set; }
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
         public DbSet<BurnerEmail> BurnerEmails { get; set; }
+        public DbSet<Patron> Patrons { get; set; }
     }
 }
