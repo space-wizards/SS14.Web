@@ -9,11 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Internal;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.Sessions;
 
-namespace SS14.Auth.Shared.Controllers
+namespace SS14.Auth.Controllers
 {
     /// <summary>
     ///     Contains the API endpoints used by the launcher to log in and such.
