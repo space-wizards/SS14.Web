@@ -23,7 +23,6 @@ namespace SS14.Auth.Controllers
         private readonly ApplicationDbContext _dbContext;
         private readonly PatreonDataManager _patreonDataManager;
         private readonly ISystemClock _clock;
-        private static readonly TimeSpan SessionLength = TimeSpan.FromHours(1);
 
         public SessionApiController(
             IConfiguration configuration,
@@ -43,11 +42,6 @@ namespace SS14.Auth.Controllers
         [HttpPost("join")]
         public async Task<IActionResult> Join(JoinRequest request)
         {
-            if (request.Hash == null)
-            {
-                return BadRequest();
-            }
-
             var user = await _userManager.GetUserAsync(User);
             var hash = Convert.FromBase64String(request.Hash);
             if (hash.Length != HashSize)
@@ -86,15 +80,13 @@ namespace SS14.Auth.Controllers
 
             if (authHash == null || authHash.Expires < _clock.UtcNow)
             {
-                return Ok(new HasJoinedResponse {IsValid = false});
+                return Ok(new HasJoinedResponse(false, null));
             }
 
-            var resp = new HasJoinedResponse
-            {
-                IsValid = true,
-                UserData = await QueryApiController.BuildUserResponse(
-                    _patreonDataManager, authHash.SpaceUser)
-            };
+            var userResponse = await QueryApiController.BuildUserResponse(
+                _patreonDataManager, authHash.SpaceUser);
+            
+            var resp = new HasJoinedResponse(true, userResponse);
 
             _dbContext.AuthHashes.Remove(authHash);
 
@@ -103,15 +95,12 @@ namespace SS14.Auth.Controllers
             return Ok(resp);
         }
 
-        public sealed class JoinRequest
+        public sealed record JoinRequest(string Hash)
         {
-            public string Hash { get; set; }
         }
 
-        public sealed class HasJoinedResponse
+        public sealed record HasJoinedResponse(bool IsValid, QueryUserResponse? UserData)
         {
-            public bool IsValid { get; set; }
-            public QueryUserResponse UserData { get; set; }
         }
     }
 }

@@ -48,7 +48,7 @@ namespace SS14.Auth.Controllers
         public async Task<IActionResult> Authenticate(AuthenticateRequest request)
         {
             // Password may never be null, and only either username OR userID can be used for login, not both.
-            if (request.Password == null || !(request.Username == null ^ request.UserId == null))
+            if (!(request.Username == null ^ request.UserId == null))
             {
                 return BadRequest();
             }
@@ -75,46 +75,30 @@ namespace SS14.Auth.Controllers
 
                 if (emailUnconfirmed)
                 {
-                    return Unauthorized(new AuthenticateDenyResponse
+                    return Unauthorized(new AuthenticateDenyResponse(new[]
                     {
-                        Errors = new[]
-                        {
-                            "The email address for this account still needs to be confirmed. " +
-                            "Please confirm your email address before trying to log in."
-                        }
-                    });
+                        "The email address for this account still needs to be confirmed. " +
+                        "Please confirm your email address before trying to log in."
+                    }));
                 }
 
                 var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
 
                 if (signInResult.Succeeded)
                 {
-                    var (token, expireTime) = await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
+                    var (token, expireTime) =
+                        await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
 
-                    return Ok(new AuthenticateResponse
-                    {
-                        Token = token.AsBase64,
-                        Username = user.UserName,
-                        UserId = user.Id,
-                        ExpireTime = expireTime.ToString("O")
-                    });
+                    return Ok(new AuthenticateResponse(token.AsBase64, user.UserName, user.Id, expireTime));
                 }
             }
 
-            return Unauthorized(new AuthenticateDenyResponse
-            {
-                Errors = new[] {"Invalid login credentials."}
-            });
+            return Unauthorized(new AuthenticateDenyResponse(new[] {"Invalid login credentials."}));
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
-            if (request.Username == null || request.Email == null)
-            {
-                return BadRequest();
-            }
-
             var userName = request.Username.Trim();
             var email = request.Email.Trim();
 
@@ -124,7 +108,7 @@ namespace SS14.Auth.Controllers
             if (!result.Succeeded)
             {
                 var errors = result.Errors.Select(p => p.Description).ToArray();
-                return UnprocessableEntity(new RegisterResponseError {Errors = errors});
+                return UnprocessableEntity(new RegisterResponseError(errors));
             }
 
             var confirmLink = await GenerateEmailConfirmLink(user);
@@ -135,20 +119,12 @@ namespace SS14.Auth.Controllers
                 ? RegisterResponseStatus.RegisteredNeedConfirmation
                 : RegisterResponseStatus.Registered;
 
-            return Ok(new RegisterResponse
-            {
-                Status = status
-            });
+            return Ok(new RegisterResponse(status));
         }
 
         [HttpPost("resetPassword")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
         {
-            if (request.Email == null)
-            {
-                return BadRequest();
-            }
-
             var email = request.Email.Trim();
 
             var user = await _userManager.FindByEmailAsync(email);
@@ -170,11 +146,6 @@ namespace SS14.Auth.Controllers
         [HttpPost("resendConfirmation")]
         public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request)
         {
-            if (request.Email == null)
-            {
-                return BadRequest();
-            }
-
             var email = request.Email.Trim();
 
             var user = await _userManager.FindByEmailAsync(email);
@@ -203,11 +174,6 @@ namespace SS14.Auth.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(LogoutRequest request)
         {
-            if (request.Token == null)
-            {
-                return BadRequest();
-            }
-
             if (!SessionToken.TryFromBase64(request.Token, out var token))
             {
                 return BadRequest();
@@ -220,11 +186,6 @@ namespace SS14.Auth.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(RefreshRequest request)
         {
-            if (request.Token == null)
-            {
-                return BadRequest();
-            }
-
             if (!SessionToken.TryFromBase64(request.Token, out var token))
             {
                 return BadRequest();
@@ -238,11 +199,7 @@ namespace SS14.Auth.Controllers
 
             var (newToken, expireTime) = refreshed.Value;
 
-            return Ok(new RefreshResponse
-            {
-                ExpireTime = expireTime.ToString("O"),
-                NewToken = newToken.AsBase64
-            });
+            return Ok(new RefreshResponse(expireTime, newToken.AsBase64));
         }
 
         private async Task<string> GenerateEmailConfirmLink(SpaceUser user)
@@ -254,67 +211,48 @@ namespace SS14.Auth.Controllers
         }
     }
 
-    public sealed class AuthenticateRequest
+    public sealed record AuthenticateRequest(string? Username, Guid? UserId, string Password)
     {
-        public string Username { get; set; }
-        public Guid? UserId { get; set; }
-        public string Password { get; set; }
     }
 
-    public sealed class AuthenticateResponse
+    public sealed record AuthenticateResponse(string Token, string Username, Guid UserId, DateTimeOffset ExpireTime)
     {
-        public string Token { get; set; }
-        public string Username { get; set; }
-        public Guid UserId { get; set; }
-        public string ExpireTime { get; set; }
     }
 
-    public sealed class AuthenticateDenyResponse
+    public sealed record AuthenticateDenyResponse(string[] Errors)
     {
-        public string[] Errors { get; set; } = default!;
     }
 
-    public sealed class RegisterRequest
+    public sealed record RegisterRequest(string Username, string Email, string Password)
     {
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
     }
 
-    public sealed class ResetPasswordRequest
+    public sealed record ResetPasswordRequest(string Email)
     {
-        public string Email { get; set; }
     }
 
-    public sealed class ResendConfirmationRequest
+    public sealed record ResendConfirmationRequest(string Email)
     {
-        public string Email { get; set; }
     }
 
-    public sealed class RegisterResponse
+    public sealed record RegisterResponse(RegisterResponseStatus Status)
     {
-        public RegisterResponseStatus Status { get; set; }
     }
 
-    public sealed class RegisterResponseError
+    public sealed record RegisterResponseError(string[] Errors)
     {
-        public string[] Errors { get; set; }
     }
 
-    public sealed class LogoutRequest
+    public sealed record LogoutRequest(string Token)
     {
-        public string Token { get; set; }
     }
 
-    public sealed class RefreshRequest
+    public sealed record RefreshRequest(string Token)
     {
-        public string Token { get; set; }
     }
 
-    public sealed class RefreshResponse
+    public sealed record RefreshResponse(DateTimeOffset NewToken, string ExpireTime)
     {
-        public string NewToken { get; set; }
-        public string ExpireTime { get; set; }
     }
 
     public enum RegisterResponseStatus
