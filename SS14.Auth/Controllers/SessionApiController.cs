@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Internal;
 using Microsoft.IdentityModel.Tokens;
+using SS14.Auth.Responses;
 using SS14.Auth.Shared.Data;
 
 namespace SS14.Auth.Controllers
@@ -20,6 +21,7 @@ namespace SS14.Auth.Controllers
         private readonly IConfiguration _configuration;
         private readonly SpaceUserManager _userManager;
         private readonly ApplicationDbContext _dbContext;
+        private readonly PatreonDataManager _patreonDataManager;
         private readonly ISystemClock _clock;
         private static readonly TimeSpan SessionLength = TimeSpan.FromHours(1);
 
@@ -27,12 +29,14 @@ namespace SS14.Auth.Controllers
             IConfiguration configuration,
             SpaceUserManager userManager,
             ApplicationDbContext dbContext,
-            ISystemClock clock)
+            ISystemClock clock,
+            PatreonDataManager patreonDataManager)
         {
             _configuration = configuration;
             _userManager = userManager;
             _dbContext = dbContext;
             _clock = clock;
+            _patreonDataManager = patreonDataManager;
         }
 
         [Authorize(AuthenticationSchemes = "SS14Auth")]
@@ -78,7 +82,6 @@ namespace SS14.Auth.Controllers
 
             var authHash = await _dbContext.AuthHashes
                 .Include(p => p.SpaceUser)
-                .ThenInclude(u => u.Patron)
                 .SingleOrDefaultAsync(p => p.Hash == hashBytes && p.SpaceUserId == userId);
 
             if (authHash == null || authHash.Expires < _clock.UtcNow)
@@ -89,12 +92,8 @@ namespace SS14.Auth.Controllers
             var resp = new HasJoinedResponse
             {
                 IsValid = true,
-                UserData = new HasJoinedUserData
-                {
-                    UserName = authHash.SpaceUser.UserName,
-                    UserId = userId,
-                    PatronTier = authHash.SpaceUser?.Patron?.CurrentTier
-                }
+                UserData = await QueryApiController.BuildUserResponse(
+                    _patreonDataManager, authHash.SpaceUser)
             };
 
             _dbContext.AuthHashes.Remove(authHash);
@@ -112,14 +111,7 @@ namespace SS14.Auth.Controllers
         public sealed class HasJoinedResponse
         {
             public bool IsValid { get; set; }
-            public HasJoinedUserData UserData { get; set; }
-        }
-
-        public sealed class HasJoinedUserData
-        {
-            public string UserName { get; set; }
-            public Guid UserId { get; set; }
-            public string PatronTier { get; set; }
+            public QueryUserResponse UserData { get; set; }
         }
     }
 }

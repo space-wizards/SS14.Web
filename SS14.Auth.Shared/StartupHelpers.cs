@@ -60,6 +60,7 @@ namespace SS14.Auth.Shared
             }
 
             services.AddScoped<SessionManager>();
+            services.AddScoped<PatreonDataManager>();
 
             services.AddTransient(_ => RandomNumberGenerator.Create());
 
