@@ -21,6 +21,7 @@ namespace SS14.Auth.Controllers
         }
 
         [HttpGet("name")]
+        [HttpHead("name")]
         public async Task<IActionResult> QueryByName(string name)
         {
             var user = await _userManager.FindByNameAsync(name);
@@ -28,6 +29,7 @@ namespace SS14.Auth.Controllers
         }
         
         [HttpGet("userid")]
+        [HttpHead("userid")]
         public async Task<IActionResult> QueryByUserId(Guid userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
