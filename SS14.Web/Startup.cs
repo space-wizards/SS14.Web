@@ -1,15 +1,15 @@
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Config;
+using SS14.Auth.Shared.Data;
 
 namespace SS14.Web
 {
@@ -44,13 +44,15 @@ namespace SS14.Web
 
             services.AddControllersWithViews();
             services.AddRazorPages();
-            
+
             services.AddScoped<PatreonConnectionHandler>();
 
             var patreonSection = Configuration.GetSection("Patreon");
             var patreonCfg = patreonSection.Get<PatreonConfiguration>();
-            
-            if (patreonCfg.ClientId != null && patreonCfg.ClientSecret != null)
+
+            services.AddAuthentication(options => options.DefaultScheme = IdentityConstants.ApplicationScheme);
+
+            if (patreonCfg?.ClientId != null && patreonCfg.ClientSecret != null)
             {
                 services.AddAuthentication()
                     // Rider is dumb that null is valid.
@@ -76,11 +78,69 @@ namespace SS14.Web
                         };
                     });
             }
+
+            services.AddIdentityServer()
+                .AddAspNetIdentity<SpaceUser>()
+                .AddDeveloperSigningCredential()
+                .AddOperationalStore<ApplicationDbContext>()
+                .AddConfigurationStore<ApplicationDbContext>()
+                /*.AddInMemoryClients(new[]
+                {
+                    new Client
+                    {
+                        ClientId = "A",
+                        ClientSecrets = {new Secret("A".Sha256())},
+                        AllowedGrantTypes = GrantTypes.Code,
+                        // RequireConsent = true,
+                        RedirectUris = {"https://localhost:5002/signin-oidc"},
+                        AllowedScopes =
+                        {
+                            IdentityServerConstants.StandardScopes.Profile,
+                            IdentityServerConstants.StandardScopes.OpenId,
+                            IdentityServerConstants.StandardScopes.Email,
+                            "A",
+                        },
+
+                        // AllowOfflineAccess = true,
+                    },
+                    new Client
+                    {
+                        ClientId = "invision",
+                        ClientSecrets = {new Secret("foobar".Sha256())},
+                        AllowedGrantTypes = GrantTypes.Code,
+                        // RequireConsent = true,
+                        RedirectUris =
+                        {
+                            "https://t309923.invisionservice.com/oauth/callback/",
+                            "https://mommibb.spacestation14.io/entry/oauth2"
+                        },
+                        AllowedScopes =
+                        {
+                            IdentityServerConstants.StandardScopes.Profile,
+                            IdentityServerConstants.StandardScopes.OpenId,
+                            IdentityServerConstants.StandardScopes.Email,
+                            "A"
+                        },
+                        RequirePkce = false
+
+                        // AllowOfflineAccess = true,
+                    }
+                })
+                .AddInMemoryIdentityResources(new List<IdentityResource>
+                {
+                    new IdentityResources.OpenId(),
+                    new IdentityResources.Profile(),
+                    new IdentityResources.Email(),
+                })
+                .AddInMemoryApiScopes(new[] {new ApiScope("A")})
+                .AddInMemoryApiResources(Array.Empty<ApiResource>())*/;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseSerilogRequestLogging();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -97,12 +157,12 @@ namespace SS14.Web
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
             };
-            
+
             foreach (var ip in Configuration.GetSection("ForwardProxies").Get<string[]>())
             {
                 forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(ip));
             }
-            
+
             app.UseForwardedHeaders(forwardedHeadersOptions);
 
             var pathBase = Configuration.GetValue<string>("PathBase");
@@ -126,6 +186,8 @@ namespace SS14.Web
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
             });
+
+            app.UseIdentityServer();
         }
     }
 }
