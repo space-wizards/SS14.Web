@@ -7,3 +7,4 @@ riderModule.iml
 /*.sln.DotSettings.user
 
 */appsettings.Secret.yml
+*/tempkey.jwk
