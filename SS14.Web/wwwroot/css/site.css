@@ -31,7 +31,7 @@ a.navbar-brand {
 
 /* Provide sufficient contrast against white background */
 a {
-  color: #0366d6;
+  color: #3678ce;
 }
 
 .btn-primary {
@@ -46,7 +46,7 @@ a {
   border-color: #1861ac;
 }
 
-nav {
+nav.navbar {
   border-bottom: 2px solid #ADA24B;
 }
 
@@ -114,4 +114,24 @@ body {
   background-color: #181821;
   border-color: #30303a;
   color: #888888;
+}
+
+.breadcrumb {
+  background-color: #212126;
+}
+
+.breadcrumb-item.active {
+  color: #EEEEEE;
+}
+
+.alert-success {
+  background-color: hsl(134, 61%, 17%);
+  border-color: hsl(133, 60%, 19%);
+  color: #d4edda;
+}
+
+.alert-danger {
+  background-color: hsl(353, 60%, 17%);
+  border-color: hsl(353, 60%, 19%);
+  color: #f8d7da;
 }

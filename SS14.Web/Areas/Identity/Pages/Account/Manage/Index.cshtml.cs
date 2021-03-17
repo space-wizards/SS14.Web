@@ -29,6 +29,10 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
         public string StatusMessage { get; set; }
 
         /*
+        public IEnumerable<string> Roles { get; private set; }
+        */
+        
+        /*
         [BindProperty]
         public InputModel Input { get; set; }
 
@@ -46,7 +50,10 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
             //var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
             Username = userName;
+            /*
+            Roles = await _userManager.GetRolesAsync(user);
 
+            */
             /*Input = new InputModel
             {
                 PhoneNumber = phoneNumber

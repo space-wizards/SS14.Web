@@ -1,0 +1,74 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Users.ViewUser
+
+@{
+    ViewData["Title"] = $"User: {Model.SpaceUser.UserName}";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Users</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.SpaceUser.UserName</li>
+    </ol>
+</nav>
+
+<partial name="_StatusMessage" model="Model.StatusMessage"/>
+
+<h5>User data</h5>
+<form id="email-form" method="post" class="container">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group row">
+        <label for="userId" class="col-sm-2 col-form-label">User ID</label>
+        <input id="userId" disabled class="form-control col-sm-10" value="@Model.SpaceUser.Id"/>
+    </div>
+    <div class="form-group row">
+        <label asp-for="Input.Username" class="col-sm-2 col-form-label"></label>
+        <input asp-for="Input.Username" class="form-control col-sm-10"/>
+    </div>
+    <div class="form-group row">
+        <label asp-for="Input.Email" class="col-sm-2 col-form-label"></label>
+        <input asp-for="Input.Email" class="form-control col-sm-10"/>
+        <span asp-validation-for="Input.Email" class="text-danger"></span>
+    </div>
+    <div class="form-group row">
+        <div class="col-sm-10 offset-sm-2">
+            <div class="form-check">
+                <input asp-for="Input.EmailConfirmed" class="form-check-input"/>
+                <label asp-for="Input.EmailConfirmed" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
+    <fieldset class="form-group row">
+        <legend class="col-form-label col-sm-2 float-sm-left pt-0">Permissions</legend>
+        <div class="col-sm-10">
+            <div class="form-check">
+                <input asp-for="Input.HubAdmin" class="form-check-input"/>
+                <label asp-for="Input.HubAdmin" class="form-check-label"></label>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="form-group row">
+        <label for="patron" class="col-sm-2 col-form-label">Patron tier</label>
+        <input disabled id="patron" class="form-control col-sm-10" value="@(Model.PatronTier)"/>
+    </div>
+    
+    <button id="save-button" type="submit" asp-page-handler="Save" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary btn-sm">Save</button>
+</form>
+
+<h5 class="mt-5">Actions</h5>
+
+<a asp-page="./ConfirmDelete" asp-route-id="@Model.SpaceUser.Id" class="btn btn-danger">Delete</a>
+<form method="post">
+    <button id="resend-confirmation-button" type="submit" asp-page-handler="ResendConfirmation" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary btn-sm">Resend Confirmation Email</button>
+</form>
+
+<form method="post">
+    <button id="logout-button" type="submit" asp-page-handler="Logout" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary btn-sm">Log out all sessions</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

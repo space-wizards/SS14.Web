@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using SS14.Auth.Shared
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -24,6 +25,12 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Home" asp-action="MainWebsite">Main Website</a>
                     </li>
+                    @if (User.IsInRole(AuthConstants.RoleSysAdmin))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-page="/Index">Hub Admin</a>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>
