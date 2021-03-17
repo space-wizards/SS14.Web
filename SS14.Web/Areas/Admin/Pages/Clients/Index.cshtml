@@ -1,0 +1,44 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Clients.Index
+
+@{
+    ViewData["Title"] = "OAuth Clients";
+}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+@if (TempData.ContainsKey("StatusMessage"))
+{
+    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />   
+}
+
+<form asp-page-handler="NewClient" method="post">
+    <button type="submit" class="btn btn-success">New Client</button>
+</form>
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+        @foreach (var client in Model.Clients)
+        {
+            <tr>
+                <td>@client.ClientId</td>
+                <td>@client.ClientName</td>
+                <td>
+                    <a asp-page="./Client" asp-route-id="@client.Id">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

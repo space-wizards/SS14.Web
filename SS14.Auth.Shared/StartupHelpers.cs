@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.DataProtection;
@@ -45,6 +46,7 @@ namespace SS14.Auth.Shared
                     // See SS14UserValidator.
                     o.User.AllowedUserNameCharacters = null;
                 })
+                .AddRoles<SpaceRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -68,6 +70,12 @@ namespace SS14.Auth.Shared
             
             var patreonCfg = config.GetSection("Patreon");
             services.Configure<PatreonConfiguration>(patreonCfg);
+
+            services.Configure<SecurityStampValidatorOptions>(options =>
+            {
+                // The fact that this isn't default absolutely baffles me.
+                options.ValidationInterval = TimeSpan.FromSeconds(5);
+            });
         }
         
         public static void SetupLoki(LoggerConfiguration log, IConfiguration cfg, string appName)

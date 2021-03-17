@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Net;
+using IdentityServer4.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -28,11 +30,20 @@ namespace SS14.Web
             services.AddDatabaseDeveloperPageExceptionFilter();
             StartupHelpers.AddShared(services, Configuration);
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(AuthConstants.PolicySysAdmin, builder =>
+                {
+                    builder.RequireRole(AuthConstants.RoleSysAdmin);
+                });
+            });
+            
             services.AddMvc()
                 .AddRazorPagesOptions(options =>
                 {
                     options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
                     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
+                    options.Conventions.AuthorizeAreaFolder("Admin", "/", AuthConstants.PolicySysAdmin);
                 });
 
             services.ConfigureApplicationCookie(options =>
@@ -84,56 +95,12 @@ namespace SS14.Web
                 .AddDeveloperSigningCredential()
                 .AddOperationalStore<ApplicationDbContext>()
                 .AddConfigurationStore<ApplicationDbContext>()
-                /*.AddInMemoryClients(new[]
-                {
-                    new Client
-                    {
-                        ClientId = "A",
-                        ClientSecrets = {new Secret("A".Sha256())},
-                        AllowedGrantTypes = GrantTypes.Code,
-                        // RequireConsent = true,
-                        RedirectUris = {"https://localhost:5002/signin-oidc"},
-                        AllowedScopes =
-                        {
-                            IdentityServerConstants.StandardScopes.Profile,
-                            IdentityServerConstants.StandardScopes.OpenId,
-                            IdentityServerConstants.StandardScopes.Email,
-                            "A",
-                        },
-
-                        // AllowOfflineAccess = true,
-                    },
-                    new Client
-                    {
-                        ClientId = "invision",
-                        ClientSecrets = {new Secret("foobar".Sha256())},
-                        AllowedGrantTypes = GrantTypes.Code,
-                        // RequireConsent = true,
-                        RedirectUris =
-                        {
-                            "https://t309923.invisionservice.com/oauth/callback/",
-                            "https://mommibb.spacestation14.io/entry/oauth2"
-                        },
-                        AllowedScopes =
-                        {
-                            IdentityServerConstants.StandardScopes.Profile,
-                            IdentityServerConstants.StandardScopes.OpenId,
-                            IdentityServerConstants.StandardScopes.Email,
-                            "A"
-                        },
-                        RequirePkce = false
-
-                        // AllowOfflineAccess = true,
-                    }
-                })
-                .AddInMemoryIdentityResources(new List<IdentityResource>
+                .AddInMemoryIdentityResources(new IdentityResource[]
                 {
                     new IdentityResources.OpenId(),
                     new IdentityResources.Profile(),
                     new IdentityResources.Email(),
-                })
-                .AddInMemoryApiScopes(new[] {new ApiScope("A")})
-                .AddInMemoryApiResources(Array.Empty<ApiResource>())*/;
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

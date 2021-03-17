@@ -111,6 +111,7 @@ namespace SS14.Auth.Shared.Data
 
         // IS4 configuration.
         public DbSet<Client> Clients { get; set; }
+        public DbSet<ClientSecret> ClientSecrets { get; set; }
         public DbSet<ClientCorsOrigin> ClientCorsOrigins { get; set; }
         public DbSet<IdentityResource> IdentityResources { get; set; }
         public DbSet<ApiResource> ApiResources { get; set; }

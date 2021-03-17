@@ -1,0 +1,79 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Users.Index
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+  </ol>
+</nav>
+
+@if (TempData.ContainsKey("StatusMessage"))
+{
+    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />   
+}
+
+<form asp-page="./Index" method="get" class="container">
+    <div class="form-group row">
+            <label class="col-md-3" for="searchBar">Search name or email:</label>
+            <input type="text" id="searchBar" name="SearchString" value="@Model.CurrentFilter" class="form-control form-control-sm col-md-7" />
+            <input type="submit" value="Search" class="btn btn-primary col-md-1 btn-sm"/>
+            <a class="btn btn-danger btn-sm col-md-1" asp-page="./Index">Clear</a>
+    </div>
+</form>
+
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>
+            <a asp-page="./Index" asp-route-sortOrder="@Model.NameSort"
+               asp-route-currentFilter="@Model.CurrentFilter">
+                User name
+            </a>
+        </th>
+        <th>
+            <a asp-page="./Index" asp-route-sortOrder="@Model.EmailSort"
+               asp-route-currentFilter="@Model.CurrentFilter">
+                Email
+            </a>
+        </th>
+        <th>
+            Confirmed?
+        </th>
+        <th>
+            <a asp-page="./Index" asp-route-sortOrder="@Model.DateSort"
+               asp-route-currentFilter="@Model.CurrentFilter">
+                Creation time
+            </a>
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.UsersList.PaginatedItems)
+    {
+        <tr>
+            <td>
+                @item.UserName
+            </td>
+            <td>
+                @item.Email
+            </td>
+            <td>
+                <input type="checkbox" class="form-control" @(item.EmailConfirmed ? "checked" : "") disabled>
+            </td>
+            <td>
+                @item.CreatedTime
+            </td>
+            <td>
+                <a asp-page="./ViewUser" asp-route-id="@item.Id">View</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

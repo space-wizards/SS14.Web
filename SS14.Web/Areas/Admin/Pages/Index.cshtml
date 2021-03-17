@@ -1,0 +1,15 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Index
+
+@{
+    ViewData["Title"] = "Hub Admin";
+}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+  </ol>
+</nav>
+
+<a asp-page="Users/Index" class="btn btn-primary">Users</a>
+<a asp-page="Clients/Index" class="btn btn-primary">OAuth Clients</a>
