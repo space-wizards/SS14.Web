@@ -16,6 +16,7 @@ namespace SS14.Web.Areas.Admin.Pages.Users
         public string NameSort { get; set; }
         public string DateSort { get; set; }
         public string EmailSort { get; set; }
+        public string ConfirmedSort { get; set; }
         public string CurrentFilter { get; set; }
         public string CurrentSort { get; set; }
 
@@ -35,6 +36,7 @@ namespace SS14.Web.Areas.Admin.Pages.Users
             NameSort = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             DateSort = sortOrder == "date" ? "date_desc" : "date";
             EmailSort = sortOrder == "email" ? "email_desc" : "email";
+            ConfirmedSort = sortOrder == "confirmed" ? "confirmed_desc" : "confirmed";
 
             if (searchString != null)
             {
@@ -71,6 +73,12 @@ namespace SS14.Web.Areas.Admin.Pages.Users
                     break;
                 case "email_desc":
                     userQuery = userQuery.OrderByDescending(s => s.Email);
+                    break;
+                case "confirmed":
+                    userQuery = userQuery.OrderBy(s => s.EmailConfirmed);
+                    break;
+                case "confirmed_desc":
+                    userQuery = userQuery.OrderByDescending(s => s.EmailConfirmed);
                     break;
                 default:
                     userQuery = userQuery.OrderBy(s => s.UserName);

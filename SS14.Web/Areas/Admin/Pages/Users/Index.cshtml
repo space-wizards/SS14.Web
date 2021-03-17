@@ -43,7 +43,10 @@
             </a>
         </th>
         <th>
-            Confirmed?
+            <a asp-page="./Index" asp-route-sortOrder="@Model.ConfirmedSort"
+               asp-route-currentFilter="@Model.CurrentFilter">
+                Confirmed
+            </a>
         </th>
         <th>
             <a asp-page="./Index" asp-route-sortOrder="@Model.DateSort"
@@ -77,3 +80,23 @@
     }
     </tbody>
 </table>
+
+@{
+    var prevDisabled = !Model.UsersList.HasPrevPage ? "disabled" : "";
+    var nextDisabled = !Model.UsersList.HasNextPage ? "disabled" : "";
+}
+
+<a asp-page="./Index"
+   asp-route-sortOrder="@Model.CurrentSort"
+   asp-route-pageIndex="@(Model.UsersList.PageIndex - 1)"
+   asp-route-currentFilter="@Model.CurrentFilter"
+   class="btn btn-primary @prevDisabled">
+    Previous
+</a>
+<a asp-page="./Index"
+   asp-route-sortOrder="@Model.CurrentSort"
+   asp-route-pageIndex="@(Model.UsersList.PageIndex + 1)"
+   asp-route-currentFilter="@Model.CurrentFilter"
+   class="btn btn-primary @nextDisabled">
+    Next
+</a>
