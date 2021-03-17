@@ -1,5 +1,8 @@
-using System.Collections.Generic;
+using System;
+using System.IO;
 using System.Net;
+using System.Security.Cryptography;
+using IdentityServer4;
 using IdentityServer4.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Config;
@@ -17,12 +21,14 @@ namespace SS14.Web
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -32,12 +38,10 @@ namespace SS14.Web
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(AuthConstants.PolicySysAdmin, builder =>
-                {
-                    builder.RequireRole(AuthConstants.RoleSysAdmin);
-                });
+                options.AddPolicy(AuthConstants.PolicySysAdmin,
+                    policy => policy.RequireRole(AuthConstants.RoleSysAdmin));
             });
-            
+
             services.AddMvc()
                 .AddRazorPagesOptions(options =>
                 {
@@ -90,9 +94,9 @@ namespace SS14.Web
                     });
             }
 
-            services.AddIdentityServer()
+
+            var builder = services.AddIdentityServer()
                 .AddAspNetIdentity<SpaceUser>()
-                .AddDeveloperSigningCredential()
                 .AddOperationalStore<ApplicationDbContext>()
                 .AddConfigurationStore<ApplicationDbContext>()
                 .AddInMemoryIdentityResources(new IdentityResource[]
@@ -101,6 +105,30 @@ namespace SS14.Web
                     new IdentityResources.Profile(),
                     new IdentityResources.Email(),
                 });
+
+            var keyPath = Configuration.GetValue<string>("Is4SigningKeyPath");
+            if (keyPath == null)
+            {
+                if (Environment.IsDevelopment())
+                {
+                    Log.Debug("Using developer signing credentials");
+                    builder.AddDeveloperSigningCredential();
+                }
+                else
+                {
+                    throw new Exception("No key specified for IS4!");
+                }
+            }
+            else
+            {
+                var keyPem = File.ReadAllText(keyPath);
+                var key = ECDsa.Create();
+                key.ImportFromPem(keyPem);
+
+                builder.AddSigningCredential(
+                    new ECDsaSecurityKey(key),
+                    IdentityServerConstants.ECDsaSigningAlgorithm.ES256);
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
