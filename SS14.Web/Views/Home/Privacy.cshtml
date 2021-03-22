@@ -4,10 +4,17 @@
 <h1>@ViewData["Title"]</h1>
 
 <p>
-This document will outline how we, Space Wizards Federation, collect and handle your data. Both on first-party Space Station 14 (SS14) servers, as well as our other services like the SS14 authentication server and launcher.
-
-<p>
-Because we host both first-party SS14 servers and the authentication server and launcher also used by third-party SS14 servers, this document will be split in two: the <strong>authentication hub</strong> and <strong>official servers</strong>.
+This document will outline how we, Space Wizards Federation, collect and handle your data. Here are the first-party services we manage for Space Station 14 (SS14), covered by this privacy policy:
+<dl>
+    <dt>SS14 Authentication Hub</dt>
+    <dd>Manages your SS14 account and is used by the official launcher whenever you play on servers.</dd>
+    
+    <dt>Wizard's Den SS14 servers</dt>
+    <dd>Official game servers (named "Wizard's Den") ran by us. Only relevant if you actually connect and play on these servers.</dd>
+    
+    <dt><a href="https://forum.spacestation14.io/">SS14 Forums</a></dt>
+    <dd>Official forums for SS14. Only relevant if you connect to these forums.</dd>
+</dl>
 
 <h2 id="authentication-hub">Authentication Hub Privacy Policy</h2>
 
@@ -32,7 +39,7 @@ Your email address and/or username can be used to log you in into our services, 
 
 <p>
 
-The following data is considered public information that may be queried or shared to game servers you play on:
+The following data is considered public information that may be queried for or shared to game servers you play on:
 <ul>
     <li>username</li>
     <li>account UUID</li>
@@ -40,7 +47,7 @@ The following data is considered public information that may be queried or share
     <li>Patreon membership tier (if you choose to <a asp-area="Identity" asp-page="/Account/Manage/ManagePatreon">link your Patreon account</a>)</li>
 </ul>
 
-We do not share any other data such as your email address (via game servers or API). 
+We do not share any other data such as your email address (via game servers or API) without your explicit consent.  
 
 <h2 id="game-servers">Game Server Privacy Policy</h2>
 
@@ -48,13 +55,37 @@ We do not share any other data such as your email address (via game servers or A
 This section of the privacy policy applies only if you play on our first-party SS14 servers.
 
 <p>
-We log all connections you make to our game servers, storing IP address used to connect and your account UUID/name. All in-game actions you take may also be logged, only directly associated with your account UUID. We also store all data you explicitly enter such as your character preferences in-game.
+Some terminology used in this section:
+
+<dl>
+    <dt>Hardware ID (HWID)</dt>
+    <dd>A hashed identifier generated from your computer's hardware or OS installation.</dd>
+</dl>
 
 <p>
-Connection logs (including IP) are shared with trusted server administrators for enforcement of server rules such as, but not limited to, enforcing server bans. Connection logs are not shared publically.
+We log all connections you make to our game servers, storing IP address, HWID and account UUID/name used to connect. All in-game actions you take may also be logged, only directly associated with your account UUID/name. We also store all data you explicitly enter such as your character preferences in-game.
+
+<p>
+Connection logs (including IP/HWID) are shared with trusted server administrators for enforcement of server rules such as, but not limited to, enforcing server bans. Connection logs are not shared publically.
 
 <p>
 Logs of in-game actions may be made public for anybody to view, once again for the purposes of rule enforcement. This includes private conversations had with server administrators in-game.
+
+<h2 id="forum">Forum Privacy Policy</h2>
+
+<p>
+This section of the privacy policy applies only if you use our <a href="https://forum.spacestation14.io/">first-party forum</a>.
+
+<p>
+We store all data you submit on the forum.
+
+<p>
+Your forum account is directly tied to your main SS14 account, and forum administrators have access to data such as your email address necessary for the forum to function.
+
+<p>
+We also store IP addresses associated with actions such as posts or spam defense logs for up to 30 days.
+
+<h2 id="contact">Contact</h2>
 
 <p>
 See our <a asp-area="" asp-controller="Home" asp-action="Contact">contact</a> page for any questions you may have.
