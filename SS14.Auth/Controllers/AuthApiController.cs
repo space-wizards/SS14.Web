@@ -251,7 +251,7 @@ namespace SS14.Auth.Controllers
     {
     }
 
-    public sealed record RefreshResponse(DateTimeOffset NewToken, string ExpireTime)
+    public sealed record RefreshResponse(DateTimeOffset ExpireTime, string NewToken)
     {
     }
 
