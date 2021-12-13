@@ -129,6 +129,21 @@ namespace SS14.Web
                     new ECDsaSecurityKey(key),
                     IdentityServerConstants.ECDsaSigningAlgorithm.ES256);
             }
+            
+            var keyPathRsa = Configuration.GetValue<string>("Is4SigningKeyPathRsa");
+            if (keyPathRsa != null)
+            {
+                var keyPem = File.ReadAllText(keyPathRsa);
+                var key = RSA.Create();
+                key.ImportFromPem(keyPem);
+
+                builder.AddSigningCredential(
+                    new RsaSecurityKey(key),
+                    IdentityServerConstants.RsaSigningAlgorithm.PS256);
+                builder.AddSigningCredential(
+                    new RsaSecurityKey(key),
+                    IdentityServerConstants.RsaSigningAlgorithm.RS256);
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
