@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SS14.ServerHub.Data;
 
 namespace SS14.ServerHub
 {
@@ -27,6 +30,17 @@ namespace SS14.ServerHub
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddDbContext<HubDbContext>(options =>
+            {
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            services.AddHttpClient("ServerStatusCheck",
+                client => client.DefaultRequestHeaders.Add("User-Agent", "SS14.ServerHub/1.0 Status Checker"));
+
+            services.AddOptions<HubOptions>()
+                .Bind(Configuration.GetSection(HubOptions.Position));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

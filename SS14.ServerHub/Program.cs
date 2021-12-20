@@ -18,6 +18,7 @@ namespace SS14.ServerHub
                     var env = context.HostingEnvironment;
                     builder.AddYamlFile("appsettings.yml", false, true);
                     builder.AddYamlFile($"appsettings.{env.EnvironmentName}.yml", true, true);
+                    builder.AddYamlFile("appsettings.Secret.yml", true, true);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

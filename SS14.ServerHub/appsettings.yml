@@ -7,3 +7,9 @@ Logging:
 
 AllowedHosts: "*"
 
+Servers:
+  - Name: Foo
+    Address: Bar
+
+  - Name: Syndicate Mothership
+    Address: Honk
