@@ -12,7 +12,7 @@ using SS14.ServerHub.Data;
 namespace SS14.ServerHub.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20211219235111_Initial")]
+    [Migration("20211220075136_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,16 +39,9 @@ namespace SS14.ServerHub.Migrations
                     b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<byte[]>("Secret")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
                     b.HasKey("AdvertisedServerId");
 
                     b.HasIndex("Address")
-                        .IsUnique();
-
-                    b.HasIndex("Secret")
                         .IsUnique();
 
                     b.ToTable("AdvertisedServer");

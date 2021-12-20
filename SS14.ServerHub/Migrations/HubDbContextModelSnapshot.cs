@@ -37,16 +37,9 @@ namespace SS14.ServerHub.Migrations
                     b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<byte[]>("Secret")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
                     b.HasKey("AdvertisedServerId");
 
                     b.HasIndex("Address")
-                        .IsUnique();
-
-                    b.HasIndex("Secret")
                         .IsUnique();
 
                     b.ToTable("AdvertisedServer");

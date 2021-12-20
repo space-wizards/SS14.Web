@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,72 +90,38 @@ namespace SS14.ServerHub.Controllers
             }
 
             // Check if a server with this address already exists.
-            var secretHash = HashSecret(advertise.Secret);
             var existingAddress =
                 await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Address == advertise.Address);
 
+            var newExpireTime = DateTime.UtcNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes);
             if (existingAddress != null)
             {
-                // Already have an existing server by this address.
-                if (!existingAddress.Secret.AsSpan().SequenceEqual(secretHash))
-                {
-                    // Not the correct secret, you don't own this server, outta here.
-                    return Forbid();
-                }
-
                 // Update expiry time, do nothing else.
-                existingAddress.Expires = DateTime.UtcNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes);
+                existingAddress.Expires = newExpireTime;
             }
             else
             {
-                // Remove existing secret if it exists.
-                var existingSecret =
-                    await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Secret == secretHash);
-                if (existingSecret != null)
-                    _dbContext.AdvertisedServer.Remove(existingSecret);
-
                 _dbContext.AdvertisedServer.Add(new AdvertisedServer
                 {
                     Address = advertise.Address,
-                    Expires = DateTime.UtcNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes),
-                    Secret = secretHash
+                    Expires = newExpireTime,
                 });
             }
 
             await _dbContext.SaveChangesAsync();
             return NoContent();
         }
-
-        [HttpPost("deadvertise")]
-        public async Task<IActionResult> DeAdvertise([FromBody] ServerDeAdvertise deAdvertise)
-        {
-            var secretHash = HashSecret(deAdvertise.Secret);
-
-            var existing = await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Secret == secretHash);
-            if (existing == null)
-                return NotFound();
-
-            _dbContext.AdvertisedServer.Remove(existing);
-            await _dbContext.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private static byte[] HashSecret(string secret)
-        {
-            return SHA256.HashData(Encoding.UTF8.GetBytes(secret));
-        }
-
+        
         public sealed record ServerInfo(string Name, string Address)
         {
+            // Used when loading config.
+            // ReSharper disable once UnusedMember.Global
             public ServerInfo() : this(default!, default!)
             {
             }
         }
 
-        public sealed record ServerAdvertise(string Address, string Secret);
-
-        public sealed record ServerDeAdvertise(string Secret);
+        public sealed record ServerAdvertise(string Address);
 
         // ReSharper disable once ClassNeverInstantiated.Local
         private sealed record ServerStatus(

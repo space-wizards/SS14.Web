@@ -17,7 +17,6 @@ namespace SS14.ServerHub.Migrations
                     AdvertisedServerId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Address = table.Column<string>(type: "text", nullable: false),
-                    Secret = table.Column<byte[]>(type: "bytea", nullable: false),
                     Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -30,12 +29,6 @@ namespace SS14.ServerHub.Migrations
                 name: "IX_AdvertisedServer_Address",
                 table: "AdvertisedServer",
                 column: "Address",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AdvertisedServer_Secret",
-                table: "AdvertisedServer",
-                column: "Secret",
                 unique: true);
         }
 

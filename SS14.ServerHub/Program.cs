@@ -22,7 +22,7 @@ namespace SS14.ServerHub
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls("http://localhost:51953");
+                    webBuilder.UseUrls("http://localhost:21953");
                     webBuilder.UseStartup<Startup>();
                 })
                 .UseSystemd();

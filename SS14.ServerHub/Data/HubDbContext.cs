@@ -16,11 +16,6 @@ namespace SS14.ServerHub.Data
             modelBuilder.Entity<AdvertisedServer>()
                 .HasCheckConstraint("AddressSs14Uri", "\"Address\" LIKE 'ss14://%' OR \"Address\" LIKE 'ss14s://%'");
 
-            // Unique index on secret.
-            modelBuilder.Entity<AdvertisedServer>()
-                .HasIndex(e => e.Secret)
-                .IsUnique();
-            
             // Unique index on address.
             modelBuilder.Entity<AdvertisedServer>()
                 .HasIndex(e => e.Address)
