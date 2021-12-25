@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -65,6 +66,10 @@ namespace SS14.ServerHub.Controllers
                 parsedAddress.Scheme is not (Ss14UriHelper.SchemeSs14 or Ss14UriHelper.SchemeSs14s))
                 return BadRequest("Invalid SS14 URI");
 
+            // Ban check.
+            if (await CheckAddressBannedAsync(parsedAddress))
+                return Unauthorized();
+            
             // Validate that we can reach the server.
             try
             {
@@ -110,6 +115,37 @@ namespace SS14.ServerHub.Controllers
 
             await _dbContext.SaveChangesAsync();
             return NoContent();
+        }
+
+        private async Task<bool> CheckAddressBannedAsync(Uri uri)
+        {
+            var host = uri.Host;
+            
+            if (!IPAddress.TryParse(host, out _))
+            {
+                // If a domain name, check for domain ban.
+
+                var banned = await _dbContext.BannedDomain
+                    .AnyAsync(b => b.DomainName == host || EF.Functions.Like(host, "%." + b.DomainName));
+
+                if (banned)
+                    return true;
+            }
+            
+            // If the host is an IP address, GetHostAddressesAsync returns it directly.
+            var addresses = await Dns.GetHostAddressesAsync(host);
+
+            // Check EVERY address.
+            foreach (var checkAddress in addresses)
+            {
+                var banned = await _dbContext.BannedAddress
+                    .AnyAsync(b => EF.Functions.ContainsOrEqual(b.Address, checkAddress));
+
+                if (banned)
+                    return true;
+            }
+
+            return false;
         }
         
         public sealed record ServerInfo(string Name, string Address)

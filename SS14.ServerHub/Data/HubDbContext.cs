@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace SS14.ServerHub.Data
 {
@@ -6,6 +7,13 @@ namespace SS14.ServerHub.Data
     {
         public HubDbContext(DbContextOptions<HubDbContext> options) : base(options)
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            
+            optionsBuilder.ReplaceService<IRelationalTypeMappingSource, CustomNpgsqlTypeMappingSource>();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -23,5 +31,7 @@ namespace SS14.ServerHub.Data
         }
 
         public DbSet<AdvertisedServer> AdvertisedServer { get; set; } = default!;
+        public DbSet<BannedAddress> BannedAddress { get; set; } = default!;
+        public DbSet<BannedDomain> BannedDomain { get; set; } = default!;
     }
 }
