@@ -8,6 +8,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace SS14.ServerHub.Data;
 
+#pragma warning disable EF1001
+
 // Taken from https://github.com/npgsql/efcore.pg/issues/1158
 // To support inet -> (IPAddress, int) mapping.
 public class CustomNpgsqlTypeMappingSource : NpgsqlTypeMappingSource
