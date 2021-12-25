@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,6 +61,22 @@ namespace SS14.ServerHub.Controllers
         {
             var options = _options.Value;
 
+            var senderIp = HttpContext.Connection.RemoteIpAddress;
+            if (senderIp != null)
+            {
+                // Check IP ban for request sender (NOT advertised address yet).
+                var ban = await CheckIpBannedAsync(senderIp);
+                if (ban != null)
+                {
+                    _logger.LogInformation(
+                        "Advertise request sender {Address} is banned: {BanReason}",
+                        senderIp,
+                        ban.Reason);
+
+                    return Unauthorized();
+                }
+            }
+
             // Validate that the address is valid.
             if (!Uri.TryCreate(advertise.Address, UriKind.Absolute, out var parsedAddress) ||
                 string.IsNullOrWhiteSpace(parsedAddress.Host) ||
@@ -67,9 +84,14 @@ namespace SS14.ServerHub.Controllers
                 return BadRequest("Invalid SS14 URI");
 
             // Ban check.
-            if (await CheckAddressBannedAsync(parsedAddress))
-                return Unauthorized();
-            
+            switch (await CheckAddressBannedAsync(parsedAddress))
+            {
+                case BanCheckResult.Banned:
+                    return Unauthorized();
+                case BanCheckResult.FailedResolve:
+                    return UnprocessableEntity("Server host name failed to resolve");
+            }
+
             // Validate that we can reach the server.
             try
             {
@@ -117,37 +139,65 @@ namespace SS14.ServerHub.Controllers
             return NoContent();
         }
 
-        private async Task<bool> CheckAddressBannedAsync(Uri uri)
+        private async Task<BanCheckResult> CheckAddressBannedAsync(Uri uri)
         {
             var host = uri.Host;
-            
+
             if (!IPAddress.TryParse(host, out _))
             {
                 // If a domain name, check for domain ban.
 
-                var banned = await _dbContext.BannedDomain
-                    .AnyAsync(b => b.DomainName == host || EF.Functions.Like(host, "%." + b.DomainName));
+                var domainBan = await _dbContext.BannedDomain
+                    .FirstOrDefaultAsync(b => b.DomainName == host || EF.Functions.Like(host, "%." + b.DomainName));
 
-                if (banned)
-                    return true;
+                if (domainBan != null)
+                {
+                    _logger.LogInformation("{Host} is banned: {BanReason}", host, domainBan.Reason);
+                    return BanCheckResult.Banned;
+                }
             }
-            
-            // If the host is an IP address, GetHostAddressesAsync returns it directly.
-            var addresses = await Dns.GetHostAddressesAsync(host);
+
+            IPAddress[] addresses;
+            try
+            {
+                // If the host is an IP address, GetHostAddressesAsync returns it directly.
+                addresses = await Dns.GetHostAddressesAsync(host);
+            }
+            catch (SocketException e)
+            {
+                // Failure to resolve or something. Could be a mistake or something, so don't report 401.
+                _logger.LogInformation(e, "{Host} is failed to resolve", host);
+                return BanCheckResult.FailedResolve;
+            }
 
             // Check EVERY address.
             foreach (var checkAddress in addresses)
             {
-                var banned = await _dbContext.BannedAddress
-                    .AnyAsync(b => EF.Functions.ContainsOrEqual(b.Address, checkAddress));
+                var addressBan = await CheckIpBannedAsync(checkAddress);
 
-                if (banned)
-                    return true;
+                if (addressBan != null)
+                {
+                    _logger.LogInformation("{Host} is banned: {BanReason}", host, addressBan.Reason);
+                    return BanCheckResult.Banned;
+                }
             }
 
-            return false;
+            return BanCheckResult.NotBanned;
         }
-        
+
+        private async Task<BannedAddress?> CheckIpBannedAsync(IPAddress address)
+        {
+            return await _dbContext.BannedAddress
+                .SingleOrDefaultAsync(b => EF.Functions.ContainsOrEqual(b.Address, address));
+        }
+
+        private enum BanCheckResult
+        {
+            Banned,
+            NotBanned,
+            FailedResolve
+        }
+
         public sealed record ServerInfo(string Name, string Address)
         {
             // Used when loading config.
