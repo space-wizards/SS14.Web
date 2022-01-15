@@ -1,0 +1,21 @@
+﻿@page
+@model SS14.Web.Areas.Identity.Pages.Account.Manage.Developer
+
+@{
+    ViewData["Title"] = "Developer settings";
+    ViewData["ActivePage"] = ManageNavPages.Developer;
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="d-flex align-items-center">
+    <h5 class="flex-grow-1">Manage OAuth Apps</h5>
+    <a asp-page="./OAuthApps/Create" class="btn btn-success btn-sm">New OAuth App</a>
+</div>
+
+<div class="list-group-flush">
+    @foreach (var app in Model.OAuthClients)
+    {
+        <a asp-page="./OAuthApps/Manage" asp-route-client="@app.UserOAuthClientId" class="list-group-item">@app.Client.ClientName</a>
+    }
+</div>

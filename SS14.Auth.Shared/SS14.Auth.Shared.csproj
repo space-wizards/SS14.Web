@@ -27,4 +27,9 @@
         <PackageReference Include="IdentityServer4.EntityFramework.Storage" Version="4.1.2" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Data\Migrations\20220115010730_Consent.cs" />
+      <Compile Remove="Data\Migrations\20220115010730_Consent.Designer.cs" />
+    </ItemGroup>
+
 </Project>

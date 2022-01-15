@@ -1,10 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace OAuthTest
 {
@@ -20,6 +21,11 @@ namespace OAuthTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpLogging(logging =>
+            {
+                logging.LoggingFields = HttpLoggingFields.All;
+                //Write your code to configure the HttpLogging middleware here    
+            });
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             
             services.AddControllersWithViews();
@@ -39,9 +45,10 @@ namespace OAuthTest
                     options.ClientSecret = "A";
 
                     options.GetClaimsFromUserInfoEndpoint = true;
+                    options.ResponseType = OpenIdConnectResponseType.Code;
                     //options.SaveTokens = true;
                     
-                    options.Scope.Add("A");
+                    options.Scope.Add("profile");
                     options.Scope.Add("email");
                     options.ResponseType = "code";
                     options.UsePkce = true;
@@ -62,6 +69,7 @@ namespace OAuthTest
                 app.UseHsts();
             }
 
+            app.UseHttpLogging();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

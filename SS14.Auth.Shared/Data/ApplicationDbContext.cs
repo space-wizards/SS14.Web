@@ -108,6 +108,7 @@ namespace SS14.Auth.Shared.Data
         public DbSet<BurnerEmail> BurnerEmails { get; set; }
         public DbSet<Patron> Patrons { get; set; }
         public DbSet<PatreonWebhookLog> PatreonWebhookLogs { get; set; }
+        public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
 
         // IS4 configuration.
         public DbSet<Client> Clients { get; set; }

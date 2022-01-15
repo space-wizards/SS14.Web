@@ -135,3 +135,26 @@ body {
   border-color: hsl(353, 60%, 19%);
   color: #f8d7da;
 }
+
+/* LIST GROUP STUFF */
+
+.list-group-item {
+  background-color: #212126;
+}
+
+.list-group-item-success {
+  background-color: hsl(134, 61%, 17%);
+  color: #d4edda;
+}
+
+/* CONSENT PAGE STUFF */
+
+.consent-wrap {
+  filter: drop-shadow(-1px 6px 3px rgba(20, 0, 0, 0.5));
+}
+
+.consent-contents {
+  background: #212126;
+  padding: 10px;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}

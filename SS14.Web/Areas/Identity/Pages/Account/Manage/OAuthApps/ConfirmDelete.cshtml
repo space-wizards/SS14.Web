@@ -1,0 +1,24 @@
+﻿@page "{client}"
+@model SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps.ConfirmDelete
+
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = $"Delete OAuth app {Model.App.Client.ClientName}?";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2>@ViewData["Title"]</h2>
+            <hr/>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form method="post">
+                <button asp-page-handler="Delete" class="btn btn-danger" type="submit">Yes, delete it</button>
+            </form>
+        </div>
+    </div>
+</div>
+

@@ -14,8 +14,8 @@ namespace SS14.Web.Areas.Admin.Pages.Clients
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public IEnumerable<DbClient> Clients { get; set; }
-        
+        public IEnumerable<(DbClient, UserOAuthClient)> Clients { get; set; }
+
         public Index(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
@@ -23,7 +23,15 @@ namespace SS14.Web.Areas.Admin.Pages.Clients
 
         public async Task OnGetAsync()
         {
-            Clients = await _dbContext.Clients.OrderBy(c => c.Created).ToListAsync();
+            // This is a left join
+            var query = from c in _dbContext.Clients
+                join uc in _dbContext.UserOAuthClients.Include(c => c.SpaceUser)
+                    on c.Id equals uc.ClientId into grouping
+                from uc in grouping.DefaultIfEmpty()
+                orderby c.Created
+                select new { c, uc };
+            
+            Clients = (await query.ToListAsync()).Select(c => (c.c, c.uc));
         }
 
         public async Task<IActionResult> OnPostNewClientAsync()
@@ -32,7 +40,7 @@ namespace SS14.Web.Areas.Admin.Pages.Clients
             {
                 ClientId = Guid.NewGuid().ToString(),
             };
-            
+
             // ReSharper disable once MethodHasAsyncOverload
             _dbContext.Clients.Add(client);
             await _dbContext.SaveChangesAsync();

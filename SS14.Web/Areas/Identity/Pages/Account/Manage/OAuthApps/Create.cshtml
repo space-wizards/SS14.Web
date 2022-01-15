@@ -1,0 +1,42 @@
+﻿@page
+@model SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps.Create
+
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Create OAuth App";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2>@ViewData["Title"]</h2>
+            <hr/>
+        </div>
+    </div>
+    <div class="row">
+        <form class="col-md-6" method="post">
+            <div class="form-group">
+                <label asp-for="Input.Name"></label>
+                <input asp-for="Input.Name" class="form-control"/>
+                <span asp-validation-for="Input.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.CallbackUrl"></label>
+                <input asp-for="Input.CallbackUrl" class="form-control"/>
+                <span asp-validation-for="Input.CallbackUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.HomepageUrl"></label>
+                <input asp-for="Input.HomepageUrl" class="form-control"/>
+                <span asp-validation-for="Input.HomepageUrl" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a asp-page="../Developer" class="btn btn-link">Cancel</a>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

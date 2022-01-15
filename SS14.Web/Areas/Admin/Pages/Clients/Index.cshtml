@@ -25,15 +25,22 @@
     <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Registering user</th>
         <th></th>
     </tr>
     </thead>
     <tbody>
-        @foreach (var client in Model.Clients)
+        @foreach (var (client, userClient) in Model.Clients)
         {
             <tr>
                 <td>@client.ClientId</td>
                 <td>@client.ClientName</td>
+                <td>
+                    @if (userClient?.SpaceUser is { } user)
+                    {
+                        <a asp-page="../Users/ViewUser" asp-route-id="@user.Id">@user.UserName</a>
+                    }
+                </td>
                 <td>
                     <a asp-page="./Client" asp-route-id="@client.Id">View</a>
                 </td>

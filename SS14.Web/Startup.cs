@@ -95,7 +95,10 @@ namespace SS14.Web
             }
 
 
-            var builder = services.AddIdentityServer()
+            var builder = services.AddIdentityServer(options =>
+                {
+                    options.UserInteraction.ConsentUrl = "/Identity/Account/Consent";
+                })
                 .AddAspNetIdentity<SpaceUser>()
                 .AddOperationalStore<ApplicationDbContext>()
                 .AddConfigurationStore<ApplicationDbContext>()
