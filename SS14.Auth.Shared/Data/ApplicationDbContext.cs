@@ -69,6 +69,10 @@ namespace SS14.Auth.Shared.Data
                 .HasIndex(p => p.SpaceUserId)
                 .IsUnique();
 
+            builder.Entity<UserOAuthClient>()
+                .HasIndex(p => new { p.ClientId })
+                .IsUnique();
+
             var cfgStoreOptions = new ConfigurationStoreOptions
             {
                 IdentityResource = new TableConfiguration("IdentityResources", "IS4"),
