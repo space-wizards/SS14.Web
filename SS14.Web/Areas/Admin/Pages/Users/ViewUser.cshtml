@@ -61,6 +61,7 @@
 <h5 class="mt-5">Actions</h5>
 
 <a asp-page="./ConfirmDelete" asp-route-id="@Model.SpaceUser.Id" class="btn btn-danger">Delete</a>
+<a asp-page="./EditPassword" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary">Edit Password</a>
 <form method="post">
     <button id="resend-confirmation-button" type="submit" asp-page-handler="ResendConfirmation" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary btn-sm">Resend Confirmation Email</button>
 </form>
