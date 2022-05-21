@@ -52,7 +52,8 @@ namespace SS14.Web.Areas.Admin.Pages.Users
             var userQuery = _userManager.Users;
             if (!string.IsNullOrEmpty(searchString))
             {
-                var normalized = searchString.ToUpperInvariant();
+                var search = searchString.Trim();
+                var normalized = search.ToUpperInvariant();
                 userQuery = userQuery.Where(u =>
                     u.NormalizedEmail.Contains(normalized) || u.NormalizedUserName.Contains(normalized));
             }
