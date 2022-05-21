@@ -14,6 +14,7 @@ using Serilog.Sinks.Loki.Labels;
 using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
+using SS14.Auth.Shared.MutexDb;
 using SS14.Auth.Shared.Sessions;
 
 namespace SS14.Auth.Shared
@@ -22,6 +23,16 @@ namespace SS14.Auth.Shared
     {
         public static void AddShared(IServiceCollection services, IConfiguration config)
         {
+            // Configure.
+            services.Configure<LimitOptions>(config.GetSection("Limits"));
+            services.Configure<MutexOptions>(config.GetSection("Mutex"));
+            services.Configure<PatreonConfiguration>(config.GetSection("Patreon"));
+            services.Configure<SecurityStampValidatorOptions>(options =>
+            {
+                // The fact that this isn't default absolutely baffles me.
+                options.ValidationInterval = TimeSpan.FromSeconds(5);
+            });
+            
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(
                     config.GetConnectionString("DefaultConnection")));
@@ -50,15 +61,16 @@ namespace SS14.Auth.Shared
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.AddTransient<IEmailSender, EmailSender>();
             if (string.IsNullOrEmpty(config.GetValue<string>("Email:Host")))
             {
                 // Dummy emails.
-                services.AddSingleton<IEmailSender, DummyEmailSender>();
+                services.AddSingleton<IRawEmailSender, DummyEmailSender>();
             }
             else
             {
                 services.Configure<SmtpEmailOptions>(config.GetSection("Email"));
-                services.AddSingleton<IEmailSender, SmtpEmailSender>();
+                services.AddSingleton<IRawEmailSender, SmtpEmailSender>();
             }
 
             services.AddScoped<SessionManager>();
@@ -67,15 +79,8 @@ namespace SS14.Auth.Shared
             services.AddTransient(_ => RandomNumberGenerator.Create());
 
             services.TryAddSingleton<ISystemClock, SystemClock>();
-            
-            var patreonCfg = config.GetSection("Patreon");
-            services.Configure<PatreonConfiguration>(patreonCfg);
 
-            services.Configure<SecurityStampValidatorOptions>(options =>
-            {
-                // The fact that this isn't default absolutely baffles me.
-                options.ValidationInterval = TimeSpan.FromSeconds(5);
-            });
+            services.AddTransient<MutexDatabase>();
         }
         
         public static void SetupLoki(LoggerConfiguration log, IConfiguration cfg, string appName)

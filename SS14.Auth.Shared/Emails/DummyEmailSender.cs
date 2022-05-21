@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace SS14.Auth.Shared.Emails
 {
-    public class DummyEmailSender : IEmailSender
+    public class DummyEmailSender : IRawEmailSender
     {
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {

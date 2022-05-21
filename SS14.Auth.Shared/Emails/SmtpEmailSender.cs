@@ -5,7 +5,7 @@ using MimeKit;
 
 namespace SS14.Auth.Shared.Emails
 {
-    public class SmtpEmailSender : IEmailSender
+    public class SmtpEmailSender : IRawEmailSender
     {
         private readonly SmtpEmailOptions _options;
 
