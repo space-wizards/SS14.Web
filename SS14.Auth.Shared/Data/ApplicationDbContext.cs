@@ -69,6 +69,14 @@ namespace SS14.Auth.Shared.Data
                 .HasIndex(p => p.SpaceUserId)
                 .IsUnique();
 
+            builder.Entity<Discord>()
+                .HasIndex(p => p.DiscordId)
+                .IsUnique();
+
+            builder.Entity<Discord>()
+                .HasIndex(p => p.SpaceUserId)
+                .IsUnique();
+
             builder.Entity<UserOAuthClient>()
                 .HasIndex(p => new { p.ClientId })
                 .IsUnique();
@@ -111,6 +119,7 @@ namespace SS14.Auth.Shared.Data
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
         public DbSet<BurnerEmail> BurnerEmails { get; set; }
         public DbSet<Patron> Patrons { get; set; }
+        public DbSet<Discord> Discords { get; set; }
         public DbSet<PatreonWebhookLog> PatreonWebhookLogs { get; set; }
         public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
 

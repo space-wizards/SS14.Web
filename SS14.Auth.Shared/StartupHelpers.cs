@@ -27,6 +27,7 @@ namespace SS14.Auth.Shared
             services.Configure<LimitOptions>(config.GetSection("Limits"));
             services.Configure<MutexOptions>(config.GetSection("Mutex"));
             services.Configure<PatreonConfiguration>(config.GetSection("Patreon"));
+            services.Configure<DiscordConfiguration>(config.GetSection("Discord"));
             services.Configure<SecurityStampValidatorOptions>(options =>
             {
                 // The fact that this isn't default absolutely baffles me.

@@ -61,6 +61,7 @@ namespace SS14.Web
             services.AddRazorPages();
 
             services.AddScoped<PatreonConnectionHandler>();
+            services.AddScoped<DiscordConnectionHandler>();
 
             var patreonSection = Configuration.GetSection("Patreon");
             var patreonCfg = patreonSection.Get<PatreonConfiguration>();
@@ -94,6 +95,21 @@ namespace SS14.Web
                     });
             }
 
+            var discordCfg = Configuration.GetSection("Discord").Get<DiscordConfiguration>();
+            if (discordCfg?.ClientId != null && discordCfg?.ClientSecret != null)
+            {
+                services.AddAuthentication()
+                    .AddDiscord("Discord", null!, options =>
+                    {
+                        options.ClientId = discordCfg.ClientId;
+                        options.ClientSecret = discordCfg.ClientSecret;
+                        options.Events.OnTicketReceived += context =>
+                        {
+                            var handler = context.HttpContext.RequestServices.GetService<DiscordConnectionHandler>();
+                            return handler!.HookReceivedTicket(context);
+                        };
+                    });
+            }
 
             var builder = services.AddIdentityServer(options =>
                 {

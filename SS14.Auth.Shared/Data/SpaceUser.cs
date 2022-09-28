@@ -11,5 +11,6 @@ namespace SS14.Auth.Shared.Data
         public List<AuthHash> AuthHashes { get; set; } = new List<AuthHash>();
         
         public Patron Patron { get; set; }
+        public Discord Discord { get; set; }
     }
 }
