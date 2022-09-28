@@ -37,6 +37,14 @@ namespace SS14.Auth.Controllers
             var user = await _userManager.FindByIdAsync(userId.ToString());
             return await DoResponse(user);
         }
+        
+        [HttpGet("discord")]
+        [HttpHead("discord")]
+        public async Task<IActionResult> QueryByDiscordId(string discordId)
+        {
+            var user = await _discordDataManager.GetUserByDiscordId(discordId);
+            return await DoResponse(user);
+        }
 
         internal static async Task<QueryUserResponse> BuildUserResponse(
             PatreonDataManager patreonDataManager,
