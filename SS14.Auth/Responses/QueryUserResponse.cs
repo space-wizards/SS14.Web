@@ -6,6 +6,7 @@ namespace SS14.Auth.Responses
         string UserName,
         Guid UserId,
         string? PatronTier,
+        string? DiscordId,
         DateTimeOffset CreatedTime)
     {
     }

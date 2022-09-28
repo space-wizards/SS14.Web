@@ -76,6 +76,7 @@ namespace SS14.Auth.Shared
 
             services.AddScoped<SessionManager>();
             services.AddScoped<PatreonDataManager>();
+            services.AddScoped<DiscordDataManager>();
 
             services.AddTransient(_ => RandomNumberGenerator.Create());
 

@@ -13,11 +13,13 @@ namespace SS14.Auth.Controllers
     {
         private readonly UserManager<SpaceUser> _userManager;
         private readonly PatreonDataManager _patreonDataManager;
+        private readonly DiscordDataManager _discordDataManager;
 
-        public QueryApiController(UserManager<SpaceUser> userManager, PatreonDataManager patreonDataManager)
+        public QueryApiController(UserManager<SpaceUser> userManager, PatreonDataManager patreonDataManager, DiscordDataManager discordDataManager)
         {
             _userManager = userManager;
             _patreonDataManager = patreonDataManager;
+            _discordDataManager = discordDataManager;
         }
 
         [HttpGet("name")]
@@ -38,11 +40,13 @@ namespace SS14.Auth.Controllers
 
         internal static async Task<QueryUserResponse> BuildUserResponse(
             PatreonDataManager patreonDataManager,
+            DiscordDataManager discordDataManager,
             SpaceUser user)
         {
             var patronTier = await patreonDataManager.GetPatreonTierAsync(user);
+            var discordId = await discordDataManager.GetUserDiscordId(user);
 
-            return new QueryUserResponse(user.UserName, user.Id, patronTier, user.CreatedTime);
+            return new QueryUserResponse(user.UserName, user.Id, patronTier, discordId, user.CreatedTime);
         }
 
         private async Task<IActionResult> DoResponse(SpaceUser? user)
@@ -50,7 +54,7 @@ namespace SS14.Auth.Controllers
             if (user == null)
                 return NotFound();
             
-            return Ok(await BuildUserResponse(_patreonDataManager, user));
+            return Ok(await BuildUserResponse(_patreonDataManager, _discordDataManager, user));
         }
     }
 }
