@@ -1,5 +1,7 @@
 # Space Station 14 Web Services
 
+**These are backend services hosted by Space Wizards for all of Space Station 14 and Robust. You do not need need to host these yourself in any case (except if you feel like contributing, I guess).**
+
 This repo contains various frontend and backend web services used by **Space Station 14**.
 
 List of the projects in question:
