@@ -1,18 +1,17 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SS14.Auth.Shared.Data
+namespace SS14.Auth.Shared.Data;
+
+public class LoginSession
 {
-    public class LoginSession
-    {
-        public int LoginSessionId { get; set; }
+    public int LoginSessionId { get; set; }
 
-        public Guid SpaceUserId { get; set; }
-        public SpaceUser SpaceUser { get; set; }
+    public Guid SpaceUserId { get; set; }
+    public SpaceUser SpaceUser { get; set; }
 
-        public DateTimeOffset Expires { get; set; }
+    public DateTimeOffset Expires { get; set; }
 
-        [Required]
-        public byte[] Token { get; set; }
-    }
+    [Required]
+    public byte[] Token { get; set; }
 }

@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authentication;
 
-namespace SS14.Auth.Shared.Auth
+namespace SS14.Auth.Shared.Auth;
+
+public class SS14AuthOptions : AuthenticationSchemeOptions
 {
-    public class SS14AuthOptions : AuthenticationSchemeOptions
-    {
         
-    }
 }

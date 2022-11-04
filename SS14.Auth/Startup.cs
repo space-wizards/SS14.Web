@@ -8,56 +8,55 @@ using Microsoft.Extensions.Hosting;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Auth;
 
-namespace SS14.Auth
+namespace SS14.Auth;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IConfiguration configuration)
     {
-        public Startup(IConfiguration configuration)
+        Configuration = configuration;
+    }
+
+    public IConfiguration Configuration { get; }
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddControllers();
+
+        services.AddAuthorization(options =>
         {
-            Configuration = configuration;
+            options.AddPolicy("AuthHub", new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .AddAuthenticationSchemes("AuthHub")
+                .Build());
+        });
+
+        services.AddAuthentication()
+            .AddScheme<SS14AuthOptions, SS14AuthHandler>("SS14Auth", _ => {});
+
+        StartupHelpers.AddShared(services, Configuration);
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
         }
 
-        public IConfiguration Configuration { get; }
+        // app.UseHttpsRedirection();
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            services.AddControllers();
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("AuthHub", new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .AddAuthenticationSchemes("AuthHub")
-                    .Build());
-            });
+        app.UseRouting();
 
-            services.AddAuthentication()
-                .AddScheme<SS14AuthOptions, SS14AuthHandler>("SS14Auth", _ => {});
+        app.UseAuthorization();
 
-            StartupHelpers.AddShared(services, Configuration);
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            // app.UseHttpsRedirection();
-
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-        }
+        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
 }

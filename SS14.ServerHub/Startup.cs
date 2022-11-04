@@ -15,54 +15,53 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SS14.ServerHub.Data;
 
-namespace SS14.ServerHub
+namespace SS14.ServerHub;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IConfiguration configuration)
     {
-        public Startup(IConfiguration configuration)
+        Configuration = configuration;
+    }
+
+    public IConfiguration Configuration { get; }
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddControllers();
+
+        services.AddDbContext<HubDbContext>(options =>
         {
-            Configuration = configuration;
+            options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
+        });
+
+        services.AddHttpClient("ServerStatusCheck",
+            client => client.DefaultRequestHeaders.Add("User-Agent", "SS14.ServerHub/1.0 Status Checker"));
+
+        services.AddOptions<HubOptions>()
+            .Bind(Configuration.GetSection(HubOptions.Position));
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
         }
 
-        public IConfiguration Configuration { get; }
+        // app.UseHttpsRedirection();
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            services.AddControllers();
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
 
-            services.AddDbContext<HubDbContext>(options =>
-            {
-                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
-            });
+        app.UseRouting();
 
-            services.AddHttpClient("ServerStatusCheck",
-                client => client.DefaultRequestHeaders.Add("User-Agent", "SS14.ServerHub/1.0 Status Checker"));
+        app.UseAuthorization();
 
-            services.AddOptions<HubOptions>()
-                .Bind(Configuration.GetSection(HubOptions.Position));
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            // app.UseHttpsRedirection();
-
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints => endpoints.MapControllers());
-        }
+        app.UseEndpoints(endpoints => endpoints.MapControllers());
     }
 }

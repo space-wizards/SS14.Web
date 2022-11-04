@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace SS14.Auth.Responses
+namespace SS14.Auth.Responses;
+
+public sealed record QueryUserResponse(
+    string UserName,
+    Guid UserId,
+    string? PatronTier,
+    DateTimeOffset CreatedTime)
 {
-    public sealed record QueryUserResponse(
-        string UserName,
-        Guid UserId,
-        string? PatronTier,
-        DateTimeOffset CreatedTime)
-    {
-    }
 }
