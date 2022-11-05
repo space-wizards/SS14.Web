@@ -21,4 +21,4 @@ Serilog:
 
 AllowedHosts: "*"
 
-WebBaseUrl: "http://localhost:5001/"
+WebBaseUrl: "https://localhost:5001/"
