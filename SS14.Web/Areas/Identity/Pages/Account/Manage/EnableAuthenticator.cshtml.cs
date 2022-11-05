@@ -19,17 +19,20 @@ public class EnableAuthenticatorModel : PageModel
     private readonly UserManager<SpaceUser> _userManager;
     private readonly ILogger<EnableAuthenticatorModel> _logger;
     private readonly UrlEncoder _urlEncoder;
+    private readonly SignInManager<SpaceUser> _signInManager;
 
     private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
     public EnableAuthenticatorModel(
         UserManager<SpaceUser> userManager,
         ILogger<EnableAuthenticatorModel> logger,
-        UrlEncoder urlEncoder)
+        UrlEncoder urlEncoder,
+        SignInManager<SpaceUser> signInManager)
     {
         _userManager = userManager;
         _logger = logger;
         _urlEncoder = urlEncoder;
+        _signInManager = signInManager;
     }
 
     public string SharedKey { get; set; }
@@ -99,6 +102,7 @@ public class EnableAuthenticatorModel : PageModel
         _logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
 
         StatusMessage = "Your authenticator app has been verified.";
+        await _signInManager.RefreshSignInAsync(user);
 
         if (await _userManager.CountRecoveryCodesAsync(user) == 0)
         {
@@ -124,8 +128,7 @@ public class EnableAuthenticatorModel : PageModel
 
         SharedKey = FormatKey(unformattedKey);
 
-        var email = await _userManager.GetEmailAsync(user);
-        AuthenticatorUri = GenerateQrCodeUri(email, unformattedKey);
+        AuthenticatorUri = GenerateQrCodeUri(user.UserName, unformattedKey);
     }
 
     private string FormatKey(string unformattedKey)
@@ -145,12 +148,12 @@ public class EnableAuthenticatorModel : PageModel
         return result.ToString().ToLowerInvariant();
     }
 
-    private string GenerateQrCodeUri(string email, string unformattedKey)
+    private string GenerateQrCodeUri(string userName, string unformattedKey)
     {
         return string.Format(
             AuthenticatorUriFormat,
-            _urlEncoder.Encode("SS14.Web"),
-            _urlEncoder.Encode(email),
+            _urlEncoder.Encode("Space Station 14"),
+            _urlEncoder.Encode(userName),
             unformattedKey);
     }
 }

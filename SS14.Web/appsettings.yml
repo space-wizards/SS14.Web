@@ -1,12 +1,12 @@
 Serilog:
   Using: [ "Serilog.Sinks.Console", "Serilog.Sinks.Loki" ]
   MinimumLevel:
-    Default: Information
+    Default: Verbose
     Override:
       SS14: Debug
-      Microsoft: "Warning"
-      Microsoft.Hosting.Lifetime: "Information"
-      Microsoft.AspNetCore: Warning
+      Microsoft: "Verbose"
+      Microsoft.Hosting.Lifetime: "Verbose"
+      Microsoft.AspNetCore: Verbose
 
   WriteTo:
     - Name: Console

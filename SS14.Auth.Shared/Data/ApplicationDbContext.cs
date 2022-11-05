@@ -43,8 +43,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .Ignore(p => p.PhoneNumber)
             .Ignore(p => p.PhoneNumberConfirmed)
             // 2FA disabled for now because I'd have to modify the launcher.
-            .Ignore(p => p.TwoFactorEnabled)
-            // I don't (currently) care about any of this lockout stuff.
             .Ignore(p => p.LockoutEnd)
             .Ignore(p => p.LockoutEnabled)
             .Ignore(p => p.AccessFailedCount);
