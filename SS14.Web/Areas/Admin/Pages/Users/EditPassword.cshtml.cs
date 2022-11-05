@@ -10,7 +10,8 @@ namespace SS14.Web.Areas.Admin.Pages.Users;
 
 public class EditPassword : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
+    private readonly ApplicationDbContext _dbContext;
 
     public SpaceUser SpaceUser { get; set; }
 
@@ -25,9 +26,10 @@ public class EditPassword : PageModel
         public string Password { get; set; }   
     }
 
-    public EditPassword(UserManager<SpaceUser> userManager)
+    public EditPassword(SpaceUserManager userManager, ApplicationDbContext dbContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
     }
     
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -42,19 +44,25 @@ public class EditPassword : PageModel
 
     public async Task<IActionResult> OnPostSaveAsync(Guid id)
     {
+        var actor = await _userManager.GetUserAsync(User);
         SpaceUser = await _userManager.FindByIdAsync(id.ToString());
         if (SpaceUser == null)
             return NotFound("That user does not exist!");
-
-       
+        
         if (!ModelState.IsValid)
             return Page();
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
         // Yes you need to do this insanity to change a database column.
         // Truly Microsoft's finest over here.
         var token = await _userManager.GeneratePasswordResetTokenAsync(SpaceUser);
         var result = await _userManager.ResetPasswordAsync(SpaceUser, token, Input.Password);
 
+        _userManager.LogPasswordChanged(SpaceUser, actor);
+        
+        await tx.CommitAsync();
+        
         if (result.Succeeded)
         {
             TempData["StatusMessage"] = "Password updated!";

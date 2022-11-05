@@ -14,7 +14,7 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class ManagePatreon : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly ILogger<ManagePatreon> _logger;
     private readonly ApplicationDbContext _db;
     private readonly IOptions<PatreonConfiguration> _cfg;
@@ -23,7 +23,7 @@ public class ManagePatreon : PageModel
     public string PatreonTier { get; private set; }
 
     public ManagePatreon(
-        UserManager<SpaceUser> userManager,
+        SpaceUserManager userManager,
         ILogger<ManagePatreon> logger,
         ApplicationDbContext db,
         IOptions<PatreonConfiguration> cfg)
@@ -73,6 +73,8 @@ public class ManagePatreon : PageModel
         if (patron != null)
         {
             _db.Patrons.Remove(patron);
+            _userManager.LogPatreonUnlinked(user, user);
+            
             await _db.SaveChangesAsync();
         }
 

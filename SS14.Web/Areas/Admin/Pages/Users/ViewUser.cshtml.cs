@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
@@ -19,6 +18,7 @@ public class ViewUser : PageModel
     private readonly IEmailSender _emailSender;
     private readonly SessionManager _sessionManager;
     private readonly PatreonDataManager _patreonDataManager;
+    private readonly ApplicationDbContext _dbContext;
 
     public SpaceUser SpaceUser { get; set; }
 
@@ -41,12 +41,18 @@ public class ViewUser : PageModel
         [Display(Name = "Is Hub Admin?")] public bool HubAdmin { get; set; }
     }
 
-    public ViewUser(SpaceUserManager userManager, IEmailSender emailSender, SessionManager sessionManager, PatreonDataManager patreonDataManager)
+    public ViewUser(
+        SpaceUserManager userManager, 
+        IEmailSender emailSender,
+        SessionManager sessionManager,
+        PatreonDataManager patreonDataManager,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _emailSender = emailSender;
         _sessionManager = sessionManager;
         _patreonDataManager = patreonDataManager;
+        _dbContext = dbContext;
     }
 
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -65,6 +71,9 @@ public class ViewUser : PageModel
 
     public async Task<IActionResult> OnPostSaveAsync(Guid id)
     {
+        await using var tx = await _dbContext.Database.BeginTransactionAsync(); 
+        
+        var actor = await _userManager.GetUserAsync(User);
         SpaceUser = await _userManager.FindByIdAsync(id.ToString());
 
         if (SpaceUser == null)
@@ -78,18 +87,28 @@ public class ViewUser : PageModel
             return Page();
         }
 
-        SpaceUser.Email = Input.Email;
+        if (SpaceUser.Email != Input.Email)
+        {
+            _userManager.LogEmailChanged(SpaceUser, SpaceUser.Email, Input.Email, actor);    
+            SpaceUser.Email = Input.Email;
+        }
 
         if (SpaceUser.UserName != Input.Username)
         {
-            _userManager.LogNameChanged(SpaceUser, SpaceUser.UserName);    
+            _userManager.LogNameChanged(SpaceUser, SpaceUser.UserName, Input.Username, actor);    
+            SpaceUser.UserName = Input.Username;
         }
         
-        SpaceUser.UserName = Input.Username;
-        SpaceUser.EmailConfirmed = Input.EmailConfirmed;
-
+        if (SpaceUser.EmailConfirmed != Input.EmailConfirmed)
+        {
+            _userManager.LogEmailConfirmedChanged(SpaceUser, Input.EmailConfirmed, actor);    
+            SpaceUser.EmailConfirmed = Input.EmailConfirmed;
+        }
+        
         if (Input.HubAdmin != await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin))
         {
+            _userManager.LogHubAdminChanged(SpaceUser, Input.HubAdmin, actor);
+            
             if (Input.HubAdmin)
             {
                 await _userManager.AddToRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin);
@@ -103,6 +122,8 @@ public class ViewUser : PageModel
         }
 
         await _userManager.UpdateAsync(SpaceUser);
+
+        await tx.CommitAsync();
 
         StatusMessage = "Changes saved";
 

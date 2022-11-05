@@ -12,11 +12,13 @@ namespace SS14.Web.Areas.Identity.Pages.Account;
 [AllowAnonymous]
 public class ConfirmEmailModel : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
+    private readonly ApplicationDbContext _dbContext;
 
-    public ConfirmEmailModel(UserManager<SpaceUser> userManager)
+    public ConfirmEmailModel(SpaceUserManager userManager, ApplicationDbContext dbContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
     }
 
     [TempData]
@@ -29,6 +31,8 @@ public class ConfirmEmailModel : PageModel
             return RedirectToPage("/Index");
         }
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
@@ -38,6 +42,14 @@ public class ConfirmEmailModel : PageModel
         code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
 
         var result = await _userManager.ConfirmEmailAsync(user, code);
+
+        if (result.Succeeded)
+        {
+            _userManager.LogEmailConfirmedChanged(user, true, user);
+        }
+
+        await tx.CommitAsync();
+        
         StatusMessage = result.Succeeded ? "Thank you for confirming your email. You can now use your account." : "Error confirming your email.";
         return Page();
     }

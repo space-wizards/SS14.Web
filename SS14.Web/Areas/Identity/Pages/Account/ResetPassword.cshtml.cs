@@ -16,11 +16,13 @@ namespace SS14.Web.Areas.Identity.Pages.Account;
 [AllowAnonymous]
 public class ResetPasswordModel : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
+    private readonly ApplicationDbContext _dbContext;
 
-    public ResetPasswordModel(UserManager<SpaceUser> userManager)
+    public ResetPasswordModel(SpaceUserManager userManager, ApplicationDbContext dbContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
     }
 
     [BindProperty]
@@ -68,6 +70,8 @@ public class ResetPasswordModel : PageModel
             return Page();
         }
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
         var user = await _userManager.FindByEmailAsync(Input.Email);
         if (user == null)
         {
@@ -76,6 +80,14 @@ public class ResetPasswordModel : PageModel
         }
 
         var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
+
+        if (result.Succeeded)
+        {
+            _userManager.LogPasswordChanged(user, user);
+        }
+        
+        await tx.CommitAsync();
+        
         if (result.Succeeded)
         {
             return RedirectToPage("./ResetPasswordConfirmation");

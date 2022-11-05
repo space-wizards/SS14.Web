@@ -15,13 +15,18 @@ namespace SS14.Web.Areas.Identity.Pages.Account;
 [AllowAnonymous]
 public class ConfirmEmailChangeModel : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly ApplicationDbContext _dbContext;
 
-    public ConfirmEmailChangeModel(UserManager<SpaceUser> userManager, SignInManager<SpaceUser> signInManager)
+    public ConfirmEmailChangeModel(
+        SpaceUserManager userManager,
+        SignInManager<SpaceUser> signInManager,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _dbContext = dbContext;
     }
 
     [TempData]
@@ -34,6 +39,8 @@ public class ConfirmEmailChangeModel : PageModel
             return RedirectToPage("/Index");
         }
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
@@ -41,12 +48,17 @@ public class ConfirmEmailChangeModel : PageModel
         }
 
         code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        var oldEmail = user.Email;
         var result = await _userManager.ChangeEmailAsync(user, email, code);
         if (!result.Succeeded)
         {
             StatusMessage = "Error changing email.";
             return Page();
         }
+
+        _userManager.LogEmailChanged(user, oldEmail, email, user);
+        
+        await tx.CommitAsync();
 
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Thank you for confirming your email change.";

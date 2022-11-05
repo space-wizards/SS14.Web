@@ -19,12 +19,12 @@ public sealed class PatreonConnectionHandler
 {
     private const string ClaimPatreonReward = "PatreonReward";
 
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _db;
     private readonly IOptions<PatreonConfiguration> _patreonCfg;
 
     public PatreonConnectionHandler(
-        UserManager<SpaceUser> userManager,
+        SpaceUserManager userManager,
         ApplicationDbContext db,
         IOptions<PatreonConfiguration> patreonCfg)
     {
@@ -64,7 +64,9 @@ public sealed class PatreonConnectionHandler
         {
             throw new InvalidOperationException("Unable to find user??");
         }
-            
+
+        await using var tx = await _db.Database.BeginTransactionAsync();
+        
         // Ok we have their patreon account and our user ID, time to add it to the database.
         var patreonId = context.Principal!.Claims.First(p => p.Type == ClaimTypes.NameIdentifier).Value;
         var existingPatron = await _db.Patrons.FirstOrDefaultAsync(a => a.PatreonId == patreonId);
@@ -92,8 +94,11 @@ public sealed class PatreonConnectionHandler
 
         // ReSharper disable once MethodHasAsyncOverload
         _db.Patrons.Add(newPatron);
+        
+        _userManager.LogPatreonLinked(user, user);
 
         await _db.SaveChangesAsync();
+        await tx.CommitAsync();
 
         if (context.ReturnUri != null)
         {

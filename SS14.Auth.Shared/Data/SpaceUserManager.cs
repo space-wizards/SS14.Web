@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,9 +14,11 @@ namespace SS14.Auth.Shared.Data;
 public sealed class SpaceUserManager : UserManager<SpaceUser>
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly ISystemClock _systemClock;
 
     public SpaceUserManager(
         ApplicationDbContext dbContext,
+        ISystemClock systemClock,
         IUserStore<SpaceUser> store,
         IOptions<IdentityOptions> optionsAccessor,
         IPasswordHasher<SpaceUser> passwordHasher,
@@ -28,8 +32,19 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
         logger)
     {
         _dbContext = dbContext;
+        _systemClock = systemClock;
     }
 
+    public override async Task<IdentityResult> CreateAsync(SpaceUser user)
+    {
+        var result = await base.CreateAsync(user);
+        if (!result.Succeeded)
+            return result;
+        
+        AccountLog(user, AccountLogType.Created, new AccountLogCreated());
+        return result;
+    }
+    
     public async Task<SpaceUser> FindByNameOrEmailAsync(string nameOrEmail)
     {
         var user = await FindByNameAsync(nameOrEmail);
@@ -41,13 +56,81 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
         return await FindByEmailAsync(nameOrEmail);
     }
 
-    public void LogNameChanged(SpaceUser user, string pastName)
+    public void LogNameChanged(
+        SpaceUser user,
+        string oldName,
+        string newName,
+        SpaceUser actor)
     {
         _dbContext.PastAccountNames.Add(new PastAccountName
         {
-            ChangeTime = DateTime.UtcNow,
-            PastName = pastName,
+            ChangeTime = _systemClock.UtcNow.UtcDateTime,
+            PastName = oldName,
             SpaceUser = user
+        });
+
+        AccountLog(
+            user,
+            AccountLogType.UserNameChanged,
+            new AccountLogUserNameChanged(newName, oldName, actor.Id));
+    }
+
+    public void LogEmailChanged(SpaceUser user, string oldEmail, string newEmail, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.EmailChanged,
+            new AccountLogEmailChanged(oldEmail, newEmail, actor.Id));
+    }
+    
+    public void LogPasswordChanged(SpaceUser user, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.PasswordChanged,
+            new AccountLogPasswordChanged(actor.Id));
+    }
+
+    public void LogHubAdminChanged(SpaceUser user, bool newHubAdmin, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.HubAdminChanged,
+            new AccountLogHubAdminChanged(newHubAdmin, actor.Id));
+    }
+    
+    public void LogEmailConfirmedChanged(SpaceUser user, bool newEmailConfirmed, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.EmailConfirmedChanged,
+            new AccountLogEmailConfirmedChanged(newEmailConfirmed, actor.Id));
+    }
+
+    public void LogPatreonLinked(SpaceUser user, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.PatreonLinked,
+            new AccountLogPatreonLinked(actor.Id));
+    }
+    
+    public void LogPatreonUnlinked(SpaceUser user, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.PatreonUnlinked,
+            new AccountLogPatreonUnlinked(actor.Id));
+    }
+
+    private void AccountLog(SpaceUser user, AccountLogType type, AccountLogEntry entry)
+    {
+        _dbContext.AccountLogs.Add(new AccountLog
+        {
+            SpaceUser = user,
+            Type = type,
+            Data = JsonSerializer.SerializeToDocument(entry, entry.GetType()),
+            Time = _systemClock.UtcNow.UtcDateTime,
         });
     }
 }
