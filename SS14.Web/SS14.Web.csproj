@@ -12,7 +12,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.1" />
         <PackageReference Include="NetEscapades.Configuration.Yaml" Version="2.1.0" />
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.1" Condition="'$(Configuration)' == 'Debug'"  />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.1" Condition="'$(Configuration)' == 'Debug'" />
     </ItemGroup>
     
     <ItemGroup>

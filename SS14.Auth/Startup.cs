@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SS14.Auth.Services;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Auth;
 
@@ -35,6 +36,8 @@ public class Startup
         services.AddAuthentication()
             .AddScheme<SS14AuthOptions, SS14AuthHandler>("SS14Auth", _ => {});
 
+        services.AddHostedService<EnsureRolesService>();
+        
         StartupHelpers.AddShared(services, Configuration);
     }
 

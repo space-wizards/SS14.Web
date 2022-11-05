@@ -11,7 +11,11 @@ namespace SS14.Auth.Shared.Data;
 [UsedImplicitly]
 public sealed class SpaceUserManager : UserManager<SpaceUser>
 {
-    public SpaceUserManager(IUserStore<SpaceUser> store,
+    private readonly ApplicationDbContext _dbContext;
+
+    public SpaceUserManager(
+        ApplicationDbContext dbContext,
+        IUserStore<SpaceUser> store,
         IOptions<IdentityOptions> optionsAccessor,
         IPasswordHasher<SpaceUser> passwordHasher,
         IEnumerable<IUserValidator<SpaceUser>> userValidators,
@@ -23,7 +27,7 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
         store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services,
         logger)
     {
-
+        _dbContext = dbContext;
     }
 
     public async Task<SpaceUser> FindByNameOrEmailAsync(string nameOrEmail)
@@ -35,5 +39,15 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
         }
 
         return await FindByEmailAsync(nameOrEmail);
+    }
+
+    public void LogNameChanged(SpaceUser user, string pastName)
+    {
+        _dbContext.PastAccountNames.Add(new PastAccountName
+        {
+            ChangeTime = DateTime.UtcNow,
+            PastName = pastName,
+            SpaceUser = user
+        });
     }
 }

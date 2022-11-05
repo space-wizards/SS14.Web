@@ -15,7 +15,7 @@ namespace SS14.Web.Areas.Admin.Pages.Users;
 
 public class ViewUser : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly IEmailSender _emailSender;
     private readonly SessionManager _sessionManager;
     private readonly PatreonDataManager _patreonDataManager;
@@ -41,7 +41,7 @@ public class ViewUser : PageModel
         [Display(Name = "Is Hub Admin?")] public bool HubAdmin { get; set; }
     }
 
-    public ViewUser(UserManager<SpaceUser> userManager, IEmailSender emailSender, SessionManager sessionManager, PatreonDataManager patreonDataManager)
+    public ViewUser(SpaceUserManager userManager, IEmailSender emailSender, SessionManager sessionManager, PatreonDataManager patreonDataManager)
     {
         _userManager = userManager;
         _emailSender = emailSender;
@@ -79,6 +79,12 @@ public class ViewUser : PageModel
         }
 
         SpaceUser.Email = Input.Email;
+
+        if (SpaceUser.UserName != Input.Username)
+        {
+            _userManager.LogNameChanged(SpaceUser, SpaceUser.UserName);    
+        }
+        
         SpaceUser.UserName = Input.Username;
         SpaceUser.EmailConfirmed = Input.EmailConfirmed;
 

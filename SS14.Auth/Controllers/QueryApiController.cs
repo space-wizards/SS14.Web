@@ -35,7 +35,7 @@ public class QueryApiController : ControllerBase
         var user = await _userManager.FindByIdAsync(userId.ToString());
         return await DoResponse(user);
     }
-
+    
     internal static async Task<QueryUserResponse> BuildUserResponse(
         PatreonDataManager patreonDataManager,
         SpaceUser user)
