@@ -40,6 +40,16 @@
         </div>
     </div>
 
+    <div class="form-group row">
+        <div class="col-sm-10 offset-sm-2">
+            <div class="form-check">
+                @* 2FA is only for display, it cannot be edited. *@
+                <input asp-for="Input.TfaEnabled" class="form-check-input" disabled="disabled"/>
+                <label asp-for="Input.TfaEnabled" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
     <fieldset class="form-group row">
         <legend class="col-form-label col-sm-2 float-sm-left pt-0">Permissions</legend>
         <div class="col-sm-10">
@@ -61,6 +71,7 @@
 <h5 class="mt-5">Actions</h5>
 
 <a asp-page="./ConfirmDelete" asp-route-id="@Model.SpaceUser.Id" class="btn btn-danger">Delete</a>
+<a asp-page="./ConfirmClearTfa" asp-route-id="@Model.SpaceUser.Id" class="btn btn-danger">Clear 2FA</a>
 <a asp-page="./EditPassword" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary">Edit Password</a>
 <form method="post">
     <button id="resend-confirmation-button" type="submit" asp-page-handler="ResendConfirmation" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary btn-sm">Resend Confirmation Email</button>
@@ -69,6 +80,7 @@
 <form method="post">
     <button id="logout-button" type="submit" asp-page-handler="Logout" asp-route-id="@Model.SpaceUser.Id" class="btn btn-primary btn-sm">Log out all sessions</button>
 </form>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>

@@ -39,6 +39,8 @@ public class ViewUser : PageModel
         [Display(Name = "Email Confirmed?")] public bool EmailConfirmed { get; set; }
 
         [Display(Name = "Is Hub Admin?")] public bool HubAdmin { get; set; }
+        
+        [Display(Name = "2FA enabled?")] public bool TfaEnabled { get; set; }
     }
 
     public ViewUser(
@@ -185,7 +187,8 @@ public class ViewUser : PageModel
             Email = SpaceUser.Email,
             EmailConfirmed = SpaceUser.EmailConfirmed,
             Username = SpaceUser.UserName,
-            HubAdmin = await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin)
+            HubAdmin = await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin),
+            TfaEnabled = SpaceUser.TwoFactorEnabled
         };
 
         PatronTier = await _patreonDataManager.GetPatreonTierAsync(SpaceUser);
