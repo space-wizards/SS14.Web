@@ -123,7 +123,7 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
             new AccountLogPatreonUnlinked(actor.Id));
     }
 
-    private void AccountLog(SpaceUser user, AccountLogType type, AccountLogEntry entry)
+    public void AccountLog(SpaceUser user, AccountLogType type, AccountLogEntry entry)
     {
         _dbContext.AccountLogs.Add(new AccountLog
         {

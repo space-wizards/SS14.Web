@@ -12,18 +12,21 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class Disable2faModel : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly ILogger<Disable2faModel> _logger;
+    private readonly ApplicationDbContext _dbContext;
 
     public Disable2faModel(
-        UserManager<SpaceUser> userManager,
+        SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager,
-        ILogger<Disable2faModel> logger)
+        ILogger<Disable2faModel> logger,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     [TempData]
@@ -53,12 +56,21 @@ public class Disable2faModel : PageModel
             return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
+        _userManager.AccountLog(
+            user,
+            AccountLogType.AuthenticatorDisabled,
+            new AccountLogAuthenticatorDisabled(user.Id));
+
         var disable2faResult = await _userManager.SetTwoFactorEnabledAsync(user, false);
         if (!disable2faResult.Succeeded)
         {
             throw new InvalidOperationException($"Unexpected error occurred disabling 2FA for user with ID '{_userManager.GetUserId(User)}'.");
         }
 
+        await tx.CommitAsync();
+        
         await _signInManager.RefreshSignInAsync(user);
         
         _logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", _userManager.GetUserId(User));

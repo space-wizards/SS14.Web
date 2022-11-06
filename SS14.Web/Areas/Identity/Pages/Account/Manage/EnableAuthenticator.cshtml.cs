@@ -16,23 +16,26 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class EnableAuthenticatorModel : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly ILogger<EnableAuthenticatorModel> _logger;
     private readonly UrlEncoder _urlEncoder;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly ApplicationDbContext _dbContext;
 
     private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
     public EnableAuthenticatorModel(
-        UserManager<SpaceUser> userManager,
+        SpaceUserManager userManager,
         ILogger<EnableAuthenticatorModel> logger,
         UrlEncoder urlEncoder,
-        SignInManager<SpaceUser> signInManager)
+        SignInManager<SpaceUser> signInManager,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _logger = logger;
         _urlEncoder = urlEncoder;
         _signInManager = signInManager;
+        _dbContext = dbContext;
     }
 
     public string SharedKey { get; set; }
@@ -84,6 +87,8 @@ public class EnableAuthenticatorModel : PageModel
             return Page();
         }
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
         // Strip spaces and hypens
         var verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
 
@@ -96,11 +101,16 @@ public class EnableAuthenticatorModel : PageModel
             await LoadSharedKeyAndQrCodeUriAsync(user);
             return Page();
         }
+        
+        _userManager.AccountLog(
+            user,
+            AccountLogType.AuthenticatorEnabled,
+            new AccountLogAuthenticatorEnabled(user.Id));
 
         await _userManager.SetTwoFactorEnabledAsync(user, true);
         var userId = await _userManager.GetUserIdAsync(user);
         _logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
-
+        
         StatusMessage = "Your authenticator app has been verified.";
         await _signInManager.RefreshSignInAsync(user);
 
@@ -108,10 +118,13 @@ public class EnableAuthenticatorModel : PageModel
         {
             var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
             RecoveryCodes = recoveryCodes.ToArray();
+        
+            await tx.CommitAsync();
             return RedirectToPage("./ShowRecoveryCodes");
         }
         else
         {
+            await tx.CommitAsync();
             return RedirectToPage("./TwoFactorAuthentication");
         }
     }

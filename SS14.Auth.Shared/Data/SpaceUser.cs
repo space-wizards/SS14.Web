@@ -79,6 +79,10 @@ public sealed record AccountLogHubAdminChanged(bool NewAdmin, Guid Actor) : Acco
 public sealed record AccountLogPasswordChanged(Guid Actor) : AccountLogEntry;
 public sealed record AccountLogPatreonLinked(Guid Actor) : AccountLogEntry;
 public sealed record AccountLogPatreonUnlinked(Guid Actor) : AccountLogEntry;
+public sealed record AccountLogAuthenticatorReset(Guid Actor) : AccountLogEntry;
+public sealed record AccountLogAuthenticatorEnabled(Guid Actor) : AccountLogEntry;
+public sealed record AccountLogAuthenticatorDisabled(Guid Actor) : AccountLogEntry;
+public sealed record AccountLogRecoveryCodesGenerated(Guid Actor) : AccountLogEntry;
 
 public enum AccountLogType
 {
@@ -90,4 +94,8 @@ public enum AccountLogType
     PasswordChanged,
     PatreonLinked,
     PatreonUnlinked,
+    AuthenticatorReset,
+    AuthenticatorEnabled,
+    AuthenticatorDisabled,
+    RecoveryCodesGenerated,
 }

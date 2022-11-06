@@ -12,17 +12,20 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class ResetAuthenticatorModel : PageModel
 {
-    UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly ApplicationDbContext _dbContext;
     ILogger<ResetAuthenticatorModel> _logger;
 
     public ResetAuthenticatorModel(
-        UserManager<SpaceUser> userManager,
+        SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager,
+        ApplicationDbContext dbContext,
         ILogger<ResetAuthenticatorModel> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -48,10 +51,19 @@ public class ResetAuthenticatorModel : PageModel
             return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
         await _userManager.SetTwoFactorEnabledAsync(user, false);
         await _userManager.ResetAuthenticatorKeyAsync(user);
         _logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", user.Id);
-            
+
+        _userManager.AccountLog(
+            user, 
+            AccountLogType.AuthenticatorReset,
+            new AccountLogAuthenticatorReset(user.Id));
+        
+        await tx.CommitAsync();
+        
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.";
 

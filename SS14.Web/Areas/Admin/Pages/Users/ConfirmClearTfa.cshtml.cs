@@ -9,10 +9,12 @@ namespace SS14.Web.Areas.Admin.Pages.Users;
 public class ConfirmClearTfa : PageModel
 {
     private readonly SpaceUserManager _userManager;
+    private readonly ApplicationDbContext _dbContext;
 
-    public ConfirmClearTfa(SpaceUserManager userManager)
+    public ConfirmClearTfa(SpaceUserManager userManager, ApplicationDbContext dbContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
     }
 
     public SpaceUser SpaceUser { get; set; }
@@ -39,9 +41,18 @@ public class ConfirmClearTfa : PageModel
             return NotFound("Unknown user");
         }
 
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
+        _userManager.AccountLog(
+            SpaceUser, 
+            AccountLogType.AuthenticatorReset,
+            new AccountLogAuthenticatorReset(actor.Id));
+        
         await _userManager.SetTwoFactorEnabledAsync(SpaceUser, false);
         await _userManager.ResetAuthenticatorKeyAsync(SpaceUser);
 
+        await tx.CommitAsync();
+        
         TempData["StatusMessage"] = "2FA cleared & disabled";
         return RedirectToPage("./Index");
     }
