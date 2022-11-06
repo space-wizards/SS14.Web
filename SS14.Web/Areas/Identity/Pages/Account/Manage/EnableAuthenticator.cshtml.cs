@@ -137,6 +137,8 @@ public class EnableAuthenticatorModel : PageModel
         {
             await _userManager.ResetAuthenticatorKeyAsync(user);
             unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
+            
+            await _signInManager.RefreshSignInAsync(user);
         }
 
         SharedKey = FormatKey(unformattedKey);
