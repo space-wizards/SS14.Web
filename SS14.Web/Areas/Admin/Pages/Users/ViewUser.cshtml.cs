@@ -146,7 +146,7 @@ public class ViewUser : PageModel
         var confirmLink = Url.Page(
             "/Account/ConfirmEmail",
             pageHandler: null,
-            values: new {userId = id, code = code},
+            values: new { area = "Identity", userId = id, code = code},
             protocol: Request.Scheme);
 
         try
