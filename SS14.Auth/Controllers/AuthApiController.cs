@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -68,32 +69,63 @@ public class AuthApiController : ControllerBase
             user = await _userManager.FindByIdAsync(request.UserId!.Value.ToString());
         }
 
-        if (user != null)
+        if (user == null)
         {
-            var emailUnconfirmed = _userManager.Options.SignIn.RequireConfirmedEmail &&
-                                   !await _userManager.IsEmailConfirmedAsync(user);
-
-            if (emailUnconfirmed)
-            {
-                return Unauthorized(new AuthenticateDenyResponse(new[]
-                {
-                    "The email address for this account still needs to be confirmed. " +
-                    "Please confirm your email address before trying to log in."
-                }));
-            }
-
-            var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
-
-            if (signInResult.Succeeded)
-            {
-                var (token, expireTime) =
-                    await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
-
-                return Ok(new AuthenticateResponse(token.AsBase64, user.UserName, user.Id, expireTime));
-            }
+            return Unauthorized(new AuthenticateDenyResponse(
+                new[] { "Invalid login credentials." },
+                AuthenticateDenyResponseCode.InvalidCredentials));
         }
 
-        return Unauthorized(new AuthenticateDenyResponse(new[] {"Invalid login credentials."}));
+        var emailUnconfirmed = _userManager.Options.SignIn.RequireConfirmedEmail &&
+                               !await _userManager.IsEmailConfirmedAsync(user);
+
+        if (emailUnconfirmed)
+        {
+            return Unauthorized(new AuthenticateDenyResponse(new[]
+            {
+                "The email address for this account still needs to be confirmed. " +
+                "Please confirm your email address before trying to log in."
+            }, AuthenticateDenyResponseCode.AccountUnconfirmed));
+        }
+
+        var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
+
+        if (!signInResult.Succeeded)
+        {
+            return Unauthorized(new AuthenticateDenyResponse(
+                new[] { "Invalid login credentials." },
+                AuthenticateDenyResponseCode.InvalidCredentials));
+        }
+
+        if (user.TwoFactorEnabled)
+        {
+            if (request.TfaCode == null)
+            {
+                // No 2FA code given, presumably the first login attempt.
+                return Unauthorized(new AuthenticateDenyResponse(
+                    new[] { "" },
+                    AuthenticateDenyResponseCode.TfaRequired));
+            }
+            
+            var verify = await _userManager.VerifyTwoFactorTokenAsync(
+                user, 
+                _userManager.Options.Tokens.AuthenticatorTokenProvider,
+                request.TfaCode);
+            
+            if (!verify)
+            {
+                return Unauthorized(new AuthenticateDenyResponse(
+                    new[] { "" },
+                    AuthenticateDenyResponseCode.TfaInvalid));
+            }
+            
+            // 2FA passed, we're good.
+        }
+        
+        var (token, expireTime) =
+            await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
+
+        return Ok(new AuthenticateResponse(token.AsBase64, user.UserName, user.Id, expireTime));
     }
 
     [HttpPost("register")]
@@ -211,16 +243,28 @@ public class AuthApiController : ControllerBase
     }
 }
 
-public sealed record AuthenticateRequest(string? Username, Guid? UserId, string Password)
-{
-}
+public sealed record AuthenticateRequest(
+    string? Username,
+    Guid? UserId,
+    string Password,
+    string? TfaCode = null);
 
 public sealed record AuthenticateResponse(string Token, string Username, Guid UserId, DateTimeOffset ExpireTime)
 {
 }
 
-public sealed record AuthenticateDenyResponse(string[] Errors)
+public sealed record AuthenticateDenyResponse(string[] Errors, AuthenticateDenyResponseCode Code);
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum AuthenticateDenyResponseCode
 {
+    // @formatter:off
+    None               = 0,
+    InvalidCredentials = 1,
+    AccountUnconfirmed = 2,
+    TfaRequired        = 3,
+    TfaInvalid         = 4,
+    // @formatter:on
 }
 
 public sealed record RegisterRequest(string Username, string Email, string Password)
