@@ -73,8 +73,8 @@ public class Disable2faModel : PageModel
         
         await _signInManager.RefreshSignInAsync(user);
         
-        _logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", _userManager.GetUserId(User));
-        StatusMessage = "2fa has been disabled. You can reenable 2fa when you setup an authenticator app";
+        _logger.LogInformation("User with ID '{UserId}' has disabled 2FA.", _userManager.GetUserId(User));
+        StatusMessage = "2FA has been disabled. You can re-enable 2FA when you setup an authenticator app";
         return RedirectToPage("./TwoFactorAuthentication");
     }
 }
