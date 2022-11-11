@@ -152,7 +152,14 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        app.UseSerilogRequestLogging();
+        app.UseSerilogRequestLogging(options =>
+        {
+            options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms to {ClientAddress}";
+            options.EnrichDiagnosticContext = (context, httpContext) =>
+            {
+                context.Set("ClientAddress", httpContext.Connection.RemoteIpAddress);
+            };
+        });
 
         if (env.IsDevelopment())
         {
