@@ -128,6 +128,8 @@ public class AuthApiController : ControllerBase
         return Ok(new AuthenticateResponse(token.AsBase64, user.UserName, user.Id, expireTime));
     }
 
+    // Launcher registration disabled due to spam risk.
+    /*
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -153,6 +155,7 @@ public class AuthApiController : ControllerBase
 
         return Ok(new RegisterResponse(status));
     }
+    */
 
     [HttpPost("resetPassword")]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
@@ -175,6 +178,8 @@ public class AuthApiController : ControllerBase
         return Ok();
     }
 
+    // Launcher resend confirmation disabled due to spam risk.
+    /*
     [HttpPost("resendConfirmation")]
     public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request)
     {
@@ -193,6 +198,7 @@ public class AuthApiController : ControllerBase
 
         return Ok();
     }
+    */
 
     [Authorize(AuthenticationSchemes = "SS14Auth")]
     [HttpGet("ping")]
