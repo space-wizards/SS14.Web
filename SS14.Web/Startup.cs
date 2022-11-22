@@ -16,6 +16,7 @@ using Serilog;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
+using SS14.Web.HCaptcha;
 
 namespace SS14.Web;
 
@@ -33,6 +34,8 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
+        HCaptchaService.RegisterServices(services, Configuration);
+
         services.AddDatabaseDeveloperPageExceptionFilter();
         StartupHelpers.AddShared(services, Configuration);
 

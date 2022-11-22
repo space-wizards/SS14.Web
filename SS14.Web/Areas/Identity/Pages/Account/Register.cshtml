@@ -38,6 +38,7 @@
                 <label asp-for="Input.AgeCheck" for="13CheckBox"></label>
                 <span asp-validation-for="Input.AgeCheck" class="text-danger"></span>
             </div>
+            <partial name="HCaptcha"/>
             <button type="submit" class="btn btn-primary" id="registerButton">Register</button>
         </form>
     </div>
@@ -93,4 +94,5 @@
         });
     </script>
     <partial name="_ValidationScriptsPartial"/>
+    <partial name="_HCaptchaScripts"/>
 }

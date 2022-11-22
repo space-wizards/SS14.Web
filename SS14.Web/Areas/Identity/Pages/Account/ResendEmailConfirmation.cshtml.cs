@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
+using SS14.Web.HCaptcha;
 
 namespace SS14.Web.Areas.Identity.Pages.Account;
 
@@ -17,15 +18,23 @@ public class ResendEmailConfirmationModel : PageModel
 {
     private readonly UserManager<SpaceUser> _userManager;
     private readonly IEmailSender _emailSender;
+    private readonly HCaptchaService _hCaptcha;
 
-    public ResendEmailConfirmationModel(UserManager<SpaceUser> userManager, IEmailSender emailSender)
+    public ResendEmailConfirmationModel(
+        UserManager<SpaceUser> userManager,
+        IEmailSender emailSender,
+        HCaptchaService hCaptcha)
     {
         _userManager = userManager;
         _emailSender = emailSender;
+        _hCaptcha = hCaptcha;
     }
 
     [BindProperty]
     public InputModel Input { get; set; }
+
+    [BindProperty(Name = "h-captcha-response")]
+    public string HCaptchaResponse { get; set; }
 
     public class InputModel
     {
@@ -44,6 +53,9 @@ public class ResendEmailConfirmationModel : PageModel
         {
             return Page();
         }
+        
+        if (!await _hCaptcha.ValidateHCaptcha(HCaptchaResponse, ModelState))
+            return Page();
 
         var email = Input.Email.Trim();
 

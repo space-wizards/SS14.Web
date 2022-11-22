@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
+using SS14.Web.HCaptcha;
 using SS14.Web.Helpers;
 using ISystemClock = Microsoft.Extensions.Internal.ISystemClock;
 
@@ -26,22 +28,28 @@ public class RegisterModel : PageModel
     private readonly ILogger<RegisterModel> _logger;
     private readonly IEmailSender _emailSender;
     private readonly ISystemClock _systemClock;
+    private readonly HCaptchaService _hCaptcha;
 
     public RegisterModel(
         UserManager<SpaceUser> userManager,
         SignInManager<SpaceUser> signInManager,
         ILogger<RegisterModel> logger,
         IEmailSender emailSender,
-        ISystemClock systemClock)
+        ISystemClock systemClock,
+        HCaptchaService hCaptcha)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
         _emailSender = emailSender;
         _systemClock = systemClock;
+        _hCaptcha = hCaptcha;
     }
 
     [BindProperty] public InputModel Input { get; set; }
+
+    [BindProperty(Name = "h-captcha-response")]
+    public string HCaptchaResponse { get; set; }
 
     public string ReturnUrl { get; set; }
 
@@ -89,39 +97,42 @@ public class RegisterModel : PageModel
 
         returnUrl ??= Url.Content("~/");
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
+            return Page();
+
+        if (!await _hCaptcha.ValidateHCaptcha(HCaptchaResponse, ModelState))
+            return Page();
+
+        var user = ModelShared.CreateNewUser(userName, email, _systemClock);
+        var result = await _userManager.CreateAsync(user, Input.Password);
+        if (result.Succeeded)
         {
-            var user = ModelShared.CreateNewUser(userName, email, _systemClock);
-            var result = await _userManager.CreateAsync(user, Input.Password);
-            if (result.Succeeded)
+            _logger.LogInformation("User created a new account with password.");
+
+            var confirmLink = await GenerateEmailConfirmLink(user, returnUrl);
+
+            await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
+
+            if (_userManager.Options.SignIn.RequireConfirmedAccount)
             {
-                _logger.LogInformation("User created a new account with password.");
-
-                var confirmLink = await GenerateEmailConfirmLink(user, returnUrl);
-
-                await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
-
-                if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                {
-                    return RedirectToPage("RegisterConfirmation", new {email = email, returnUrl = returnUrl});
-                }
-                else
-                {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnUrl);
-                }
+                return RedirectToPage("RegisterConfirmation", new { email = email, returnUrl = returnUrl });
             }
-
-            foreach (var error in result.Errors)
+            else
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return LocalRedirect(returnUrl);
             }
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
         }
 
         // If we got this far, something failed, redisplay form
         return Page();
     }
-        
+
     public async Task<string> GenerateEmailConfirmLink(
         SpaceUser user,
         string returnUrl = null)
