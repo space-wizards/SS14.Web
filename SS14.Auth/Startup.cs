@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Prometheus;
 using SS14.Auth.Services;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Auth;
@@ -58,8 +59,14 @@ public class Startup
 
         app.UseRouting();
 
+        app.UseHttpMetrics();
+        
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapMetrics();
+        });
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Prometheus;
 using SS14.ServerHub.Data;
 
 namespace SS14.ServerHub;
@@ -37,7 +38,8 @@ public class Startup
         });
 
         services.AddHttpClient("ServerStatusCheck",
-            client => client.DefaultRequestHeaders.Add("User-Agent", "SS14.ServerHub/1.0 Status Checker"));
+            client => client.DefaultRequestHeaders.Add("User-Agent", "SS14.ServerHub/1.0 Status Checker"))
+            .UseHttpClientMetrics();
 
         services.AddOptions<HubOptions>()
             .Bind(Configuration.GetSection(HubOptions.Position));
@@ -60,8 +62,14 @@ public class Startup
 
         app.UseRouting();
 
+        app.UseHttpMetrics();
+
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints => endpoints.MapControllers());
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapMetrics();
+        });
     }
 }

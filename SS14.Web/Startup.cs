@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 using Serilog;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Config;
@@ -199,6 +200,8 @@ public class Startup
 
         app.UseRouting();
 
+        app.UseHttpMetrics();
+
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -208,6 +211,7 @@ public class Startup
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             endpoints.MapRazorPages();
+            endpoints.MapMetrics();
         });
 
         app.UseIdentityServer();
