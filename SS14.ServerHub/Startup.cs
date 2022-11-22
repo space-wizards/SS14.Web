@@ -34,7 +34,8 @@ public class Startup
 
         services.AddDbContext<HubDbContext>(options =>
         {
-            options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
+            var connectionString = Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Must set DefaultCOnnection");
+            options.UseNpgsql(connectionString);
         });
 
         services.AddHttpClient("ServerStatusCheck",

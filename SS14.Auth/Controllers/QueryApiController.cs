@@ -42,7 +42,7 @@ public class QueryApiController : ControllerBase
     {
         var patronTier = await patreonDataManager.GetPatreonTierAsync(user);
 
-        return new QueryUserResponse(user.UserName, user.Id, patronTier, user.CreatedTime);
+        return new QueryUserResponse(user.UserName!, user.Id, patronTier, user.CreatedTime);
     }
 
     private async Task<IActionResult> DoResponse(SpaceUser? user)

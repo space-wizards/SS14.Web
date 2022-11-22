@@ -42,7 +42,7 @@ public class SessionApiController : ControllerBase
     [HttpPost("join")]
     public async Task<IActionResult> Join(JoinRequest request)
     {
-        var user = await _userManager.GetUserAsync(User);
+        var user = (await _userManager.GetUserAsync(User))!;
         var hash = Convert.FromBase64String(request.Hash);
         if (hash.Length != HashSize)
         {

@@ -32,7 +32,7 @@ public class AuthApiController : ControllerBase
     private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
 
-    private string WebBaseUrl => _cfg.GetValue<string>("WebBaseUrl");
+    private string WebBaseUrl => _cfg.GetValue<string>("WebBaseUrl") ?? "";
 
     public AuthApiController(SpaceUserManager userManager, SignInManager<SpaceUser> signInManager,
         SessionManager sessionManager, IEmailSender emailSender, ISystemClock systemClock, IConfiguration cfg)
@@ -57,7 +57,7 @@ public class AuthApiController : ControllerBase
         // Console.WriteLine(Request.Headers["SS14-Launcher-Fingerprint"]);
         // Console.WriteLine(Request.Headers["User-Agent"]);
 
-        SpaceUser user;
+        SpaceUser? user;
         if (request.Username != null)
         {
             user = await _userManager.FindByNameOrEmailAsync(request.Username);
@@ -125,7 +125,7 @@ public class AuthApiController : ControllerBase
         var (token, expireTime) =
             await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
 
-        return Ok(new AuthenticateResponse(token.AsBase64, user.UserName, user.Id, expireTime));
+        return Ok(new AuthenticateResponse(token.AsBase64, user.UserName!, user.Id, expireTime));
     }
 
     // Launcher registration disabled due to spam risk.
@@ -206,7 +206,7 @@ public class AuthApiController : ControllerBase
     {
         var user = await _userManager.GetUserAsync(User);
 
-        return Ok($"Hi, {user.UserName}");
+        return Ok($"Hi, {user!.UserName}");
     }
 
     [HttpPost("logout")]
