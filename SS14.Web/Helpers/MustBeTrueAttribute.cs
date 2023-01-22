@@ -1,12 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SS14.Web.Helpers
+namespace SS14.Web.Helpers;
+
+public class MustBeTrueAttribute : ValidationAttribute
 {
-    public class MustBeTrueAttribute : ValidationAttribute
+    public override bool IsValid(object value)
     {
-        public override bool IsValid(object value)
-        {
-            return value is bool b && b;
-        }
+        return value is bool b && b;
     }
 }

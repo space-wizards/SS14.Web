@@ -10,93 +10,94 @@ using Microsoft.Extensions.Options;
 using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
 
-namespace SS14.Web.Areas.Identity.Pages.Account.Manage
+namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
+
+public class ManagePatreon : PageModel
 {
-    public class ManagePatreon : PageModel
+    private readonly SpaceUserManager _userManager;
+    private readonly ILogger<ManagePatreon> _logger;
+    private readonly ApplicationDbContext _db;
+    private readonly IOptions<PatreonConfiguration> _cfg;
+
+    public bool PatreonLinked { get; private set; }
+    public string PatreonTier { get; private set; }
+
+    public ManagePatreon(
+        SpaceUserManager userManager,
+        ILogger<ManagePatreon> logger,
+        ApplicationDbContext db,
+        IOptions<PatreonConfiguration> cfg)
     {
-        private readonly UserManager<SpaceUser> _userManager;
-        private readonly ILogger<ManagePatreon> _logger;
-        private readonly ApplicationDbContext _db;
-        private readonly IOptions<PatreonConfiguration> _cfg;
+        _userManager = userManager;
+        _logger = logger;
+        _db = db;
+        _cfg = cfg;
+    }
 
-        public bool PatreonLinked { get; private set; }
-        public string PatreonTier { get; private set; }
-
-        public ManagePatreon(
-            UserManager<SpaceUser> userManager,
-            ILogger<ManagePatreon> logger,
-            ApplicationDbContext db,
-            IOptions<PatreonConfiguration> cfg)
+    public async Task<IActionResult> OnGet()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
         {
-            _userManager = userManager;
-            _logger = logger;
-            _db = db;
-            _cfg = cfg;
+            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
 
-        public async Task<IActionResult> OnGet()
+        var patron = await _db.Patrons.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id);
+
+        PatreonLinked = patron != null;
+
+        if (patron?.CurrentTier is { } t)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            if (_cfg.Value.TierNames.TryGetValue(t, out var name))
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                PatreonTier = name;
             }
-
-            var patron = await _db.Patrons.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id);
-
-            PatreonLinked = patron != null;
-
-            if (patron?.CurrentTier is { } t)
+            else
             {
-                if (_cfg.Value.TierNames.TryGetValue(t, out var name))
-                {
-                    PatreonTier = name;
-                }
-                else
-                {
-                    PatreonTier = t;
-                }
+                PatreonTier = t;
             }
-            return Page();
+        }
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostUnlinkPatreonAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
 
-        public async Task<IActionResult> OnPostUnlinkPatreonAsync()
+        var patron = await _db.Patrons.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id);
+
+        if (patron != null)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-            }
-
-            var patron = await _db.Patrons.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id);
-
-            if (patron != null)
-            {
-                _db.Patrons.Remove(patron);
-                await _db.SaveChangesAsync();
-            }
-
-            return RedirectToPage();
+            _db.Patrons.Remove(patron);
+            _userManager.LogPatreonUnlinked(user, user);
+            
+            await _db.SaveChangesAsync();
         }
 
-        public async Task<IActionResult> OnPostLinkPatreonAsync()
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostLinkPatreonAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
-            }
-
-            var redirect = Url.Page("./ManagePatreon");
-
-            return Challenge(new AuthenticationProperties
-            {
-                Items =
-                {
-                    ["SS14UserId"] = user.Id.ToString(),
-                },
-                RedirectUri = redirect
-            }, "Patreon");
+            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
+
+        var redirect = Url.Page("./ManagePatreon");
+
+        return Challenge(new AuthenticationProperties
+        {
+            Items =
+            {
+                ["SS14UserId"] = user.Id.ToString(),
+            },
+            RedirectUri = redirect
+        }, "Patreon");
     }
 }

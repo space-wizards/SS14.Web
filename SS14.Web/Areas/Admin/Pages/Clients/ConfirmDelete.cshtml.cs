@@ -5,47 +5,46 @@ using Microsoft.EntityFrameworkCore;
 using SS14.Auth.Shared.Data;
 using DbClient = IdentityServer4.EntityFramework.Entities.Client;
 
-namespace SS14.Web.Areas.Admin.Pages.Clients
+namespace SS14.Web.Areas.Admin.Pages.Clients;
+
+public class ConfirmDelete : PageModel
 {
-    public class ConfirmDelete : PageModel
+    private readonly ApplicationDbContext _dbContext;
+
+    public ConfirmDelete(ApplicationDbContext dbContext)
     {
-        private readonly ApplicationDbContext _dbContext;
+        _dbContext = dbContext;
+    }
 
-        public ConfirmDelete(ApplicationDbContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
-
-        public DbClient DbClient { get; set; }
-        public string Title => DbClient.ClientName ?? DbClient.ClientId;
+    public DbClient DbClient { get; set; }
+    public string Title => DbClient.ClientName ?? DbClient.ClientId;
  
-        public async Task<IActionResult> OnGetAsync(int id)
+    public async Task<IActionResult> OnGetAsync(int id)
+    {
+        DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
+
+        if (DbClient == null)
         {
-            DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
-
-            if (DbClient == null)
-            {
-                return NotFound("Unknown client");
-            }
-
-            return Page();
+            return NotFound("Unknown client");
         }
 
-        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostDeleteAsync(int id)
+    {
+        DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
+
+        if (DbClient == null)
         {
-            DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
-
-            if (DbClient == null)
-            {
-                return NotFound("Unknown client");
-            }
-
-            _dbContext.Clients.Remove(DbClient);
-
-            await _dbContext.SaveChangesAsync();
-
-            TempData["StatusMessage"] = "OAuth client deleted";
-            return RedirectToPage("./Index");
+            return NotFound("Unknown client");
         }
+
+        _dbContext.Clients.Remove(DbClient);
+
+        await _dbContext.SaveChangesAsync();
+
+        TempData["StatusMessage"] = "OAuth client deleted";
+        return RedirectToPage("./Index");
     }
 }

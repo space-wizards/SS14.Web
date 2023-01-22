@@ -158,3 +158,11 @@ body {
   padding: 10px;
   clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
 }
+
+/* QR code on 2FA setup screen */
+.two-fa-qr-code-wrap {
+  border-radius: 3px;
+  background-color: white;
+  padding: 6px;
+  display: inline-block;
+}

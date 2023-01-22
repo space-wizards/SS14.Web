@@ -7,39 +7,50 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using SS14.Auth.Shared.Data;
 
-namespace SS14.Web.Areas.Identity.Pages.Account
+namespace SS14.Web.Areas.Identity.Pages.Account;
+
+[AllowAnonymous]
+public class ConfirmEmailModel : PageModel
 {
-    [AllowAnonymous]
-    public class ConfirmEmailModel : PageModel
+    private readonly SpaceUserManager _userManager;
+    private readonly ApplicationDbContext _dbContext;
+
+    public ConfirmEmailModel(SpaceUserManager userManager, ApplicationDbContext dbContext)
     {
-        private readonly UserManager<SpaceUser> _userManager;
+        _userManager = userManager;
+        _dbContext = dbContext;
+    }
 
-        public ConfirmEmailModel(UserManager<SpaceUser> userManager)
+    [TempData]
+    public string StatusMessage { get; set; }
+
+    public async Task<IActionResult> OnGetAsync(string userId, string code)
+    {
+        if (userId == null || code == null)
         {
-            _userManager = userManager;
+            return RedirectToPage("/Index");
         }
 
-        [TempData]
-        public string StatusMessage { get; set; }
-
-        public async Task<IActionResult> OnGetAsync(string userId, string code)
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
         {
-            if (userId == null || code == null)
-            {
-                return RedirectToPage("/Index");
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID '{userId}'.");
-            }
-
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            StatusMessage = result.Succeeded ? "Thank you for confirming your email. You can now use your account." : "Error confirming your email.";
-            return Page();
+            return NotFound($"Unable to load user with ID '{userId}'.");
         }
+
+        code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+
+        var result = await _userManager.ConfirmEmailAsync(user, code);
+
+        if (result.Succeeded)
+        {
+            _userManager.LogEmailConfirmedChanged(user, true, user);
+        }
+
+        await tx.CommitAsync();
+        
+        StatusMessage = result.Succeeded ? "Thank you for confirming your email. You can now use your account." : "Error confirming your email.";
+        return Page();
     }
 }

@@ -1,14 +1,14 @@
 using System.Text.Json;
 using NUnit.Framework;
 
-namespace SS14.Web.Tests
+namespace SS14.Web.Tests;
+
+public class TestPatreonConnection
 {
-    public class TestPatreonConnection
-    {
-        [Test]
-        public void TestParseTiers()
-        {
-            const string json = @"
+  [Test]
+  public void TestParseTiers()
+  {
+    const string json = @"
 {
   ""data"": {
     ""attributes"": {},
@@ -48,10 +48,9 @@ namespace SS14.Web.Tests
     }
   ]
 }";
-            using var doc = JsonDocument.Parse(json);
-            var tiers = PatreonConnectionHandler.ParseTiers(doc.RootElement);
+    using var doc = JsonDocument.Parse(json);
+    var tiers = PatreonConnectionHandler.ParseTiers(doc.RootElement);
 
-            Assert.That(tiers, Is.EquivalentTo(new[] {"2"}));
-        }
-    }
+    Assert.That(tiers, Is.EquivalentTo(new[] {"2"}));
+  }
 }

@@ -21,10 +21,14 @@
             </p>
         </li>
         <li>
-            <p>Scan the QR Code or enter this key <kbd>@Model.SharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</p>
-            <div class="alert alert-info">Learn how to <a href="https://go.microsoft.com/fwlink/?Linkid=852423">enable QR code generation</a>.</div>
-            <div id="qrCode"></div>
+            <p>Scan the QR Code or enter this key <kbd style="user-select: all">@Model.SharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</p>
+            <div class="two-fa-qr-code-wrap">
+                <div id="qrCode"></div>
+            </div>
             <div id="qrCodeData" data-url="@Html.Raw(@Model.AuthenticatorUri)"></div>
+            <noscript>
+                QR code generation requires Javascript, sorry.
+            </noscript>
         </li>
         <li>
             <p>
@@ -50,4 +54,16 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/qrcodejs/qrcode.min.js"></script>
+    <script>
+    window.addEventListener("load", () => {
+      const uri = document.getElementById("qrCodeData").getAttribute('data-url');
+      new QRCode(document.getElementById("qrCode"),
+        {
+          text: uri,
+          width: 300,
+          height: 300
+        });
+    });
+    </script>
 }

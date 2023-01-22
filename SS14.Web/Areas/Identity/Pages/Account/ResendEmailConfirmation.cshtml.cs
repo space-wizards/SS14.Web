@@ -9,64 +9,75 @@ using Microsoft.AspNetCore.WebUtilities;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
+using SS14.Web.HCaptcha;
 
-namespace SS14.Web.Areas.Identity.Pages.Account
+namespace SS14.Web.Areas.Identity.Pages.Account;
+
+[AllowAnonymous]
+public class ResendEmailConfirmationModel : PageModel
 {
-    [AllowAnonymous]
-    public class ResendEmailConfirmationModel : PageModel
+    private readonly UserManager<SpaceUser> _userManager;
+    private readonly IEmailSender _emailSender;
+    private readonly HCaptchaService _hCaptcha;
+
+    public ResendEmailConfirmationModel(
+        UserManager<SpaceUser> userManager,
+        IEmailSender emailSender,
+        HCaptchaService hCaptcha)
     {
-        private readonly UserManager<SpaceUser> _userManager;
-        private readonly IEmailSender _emailSender;
+        _userManager = userManager;
+        _emailSender = emailSender;
+        _hCaptcha = hCaptcha;
+    }
 
-        public ResendEmailConfirmationModel(UserManager<SpaceUser> userManager, IEmailSender emailSender)
+    [BindProperty]
+    public InputModel Input { get; set; }
+
+    [BindProperty(Name = "h-captcha-response")]
+    public string HCaptchaResponse { get; set; }
+
+    public class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+    }
+
+    public void OnGet()
+    {
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!ModelState.IsValid)
         {
-            _userManager = userManager;
-            _emailSender = emailSender;
+            return Page();
         }
+        
+        if (!await _hCaptcha.ValidateHCaptcha(HCaptchaResponse, ModelState))
+            return Page();
 
-        [BindProperty]
-        public InputModel Input { get; set; }
+        var email = Input.Email.Trim();
 
-        public class InputModel
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
         {
-            [Required]
-            [EmailAddress]
-            public string Email { get; set; }
-        }
-
-        public void OnGet()
-        {
-        }
-
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
-
-            var email = Input.Email.Trim();
-
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
-                return Page();
-            }
-
-            var userId = await _userManager.GetUserIdAsync(user);
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var confirmLink = Url.Page(
-                "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new { userId = userId, code = code },
-                protocol: Request.Scheme);
-
-            await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
-
             ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
             return Page();
         }
+
+        var userId = await _userManager.GetUserIdAsync(user);
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var confirmLink = Url.Page(
+            "/Account/ConfirmEmail",
+            pageHandler: null,
+            values: new { userId = userId, code = code },
+            protocol: Request.Scheme);
+
+        await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
+
+        ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
+        return Page();
     }
 }

@@ -1,8 +1,7 @@
-﻿namespace SS14.Auth.Shared
+﻿namespace SS14.Auth.Shared;
+
+public static class AuthConstants
 {
-    public class AuthConstants
-    {
-        public const string PolicySysAdmin = "SysAdmin";
-        public const string RoleSysAdmin = "SysAdmin";
-    }
+    public const string PolicySysAdmin = "SysAdmin";
+    public const string RoleSysAdmin = "SysAdmin";
 }

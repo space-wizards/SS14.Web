@@ -1,0 +1,19 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Users.ConfirmClearTfa
+
+@{
+    ViewData["Title"] = $"Clear 2FA for {Model.SpaceUser.UserName}?";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Users</a></li>
+        <li class="breadcrumb-item "><a asp-page="./ViewUser" asp-route-id="@Model.SpaceUser.Id">@Model.SpaceUser.UserName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Confirm clear 2FA</li>
+    </ol>
+</nav>
+
+<form method="post">
+    <button id="clear-button" type="submit" asp-page-handler="Clear" asp-route-id="@Model.SpaceUser.Id" class="btn btn-danger">Clear 2FA</button>
+</form>

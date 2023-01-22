@@ -1,20 +1,19 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace SS14.Auth.Shared.Data
+namespace SS14.Auth.Shared.Data;
+
+public sealed class PatreonDataManager
 {
-    public sealed class PatreonDataManager
+    private readonly ApplicationDbContext _db;
+
+    public PatreonDataManager(ApplicationDbContext db)
     {
-        private readonly ApplicationDbContext _db;
+        _db = db;
+    }
 
-        public PatreonDataManager(ApplicationDbContext db)
-        {
-            _db = db;
-        }
-
-        public async Task<string> GetPatreonTierAsync(SpaceUser user)
-        {
-            return (await _db.Patrons.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id))?.CurrentTier;
-        }
+    public async Task<string> GetPatreonTierAsync(SpaceUser user)
+    {
+        return (await _db.Patrons.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id))?.CurrentTier;
     }
 }

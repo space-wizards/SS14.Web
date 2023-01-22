@@ -9,101 +9,100 @@ using Microsoft.IdentityModel.Tokens;
 using SS14.Auth.Responses;
 using SS14.Auth.Shared.Data;
 
-namespace SS14.Auth.Controllers
+namespace SS14.Auth.Controllers;
+
+[ApiController]
+[Route("/api/session")]
+public class SessionApiController : ControllerBase
 {
-    [ApiController]
-    [Route("/api/session")]
-    public class SessionApiController : ControllerBase
+    private static readonly TimeSpan JoinTimeout = TimeSpan.FromSeconds(20);
+    private const int HashSize = 32; // SHA-256
+
+    private readonly IConfiguration _configuration;
+    private readonly SpaceUserManager _userManager;
+    private readonly ApplicationDbContext _dbContext;
+    private readonly PatreonDataManager _patreonDataManager;
+    private readonly DiscordDataManager _discordDataManager;
+    private readonly ISystemClock _clock;
+
+    public SessionApiController(
+        IConfiguration configuration,
+        SpaceUserManager userManager,
+        ApplicationDbContext dbContext,
+        ISystemClock clock,
+        PatreonDataManager patreonDataManager,
+        DiscordDataManager discordDataManager)
     {
-        private static readonly TimeSpan JoinTimeout = TimeSpan.FromSeconds(20);
-        private const int HashSize = 32; // SHA-256
+        _configuration = configuration;
+        _userManager = userManager;
+        _dbContext = dbContext;
+        _clock = clock;
+        _patreonDataManager = patreonDataManager;
+        _discordDataManager = discordDataManager;
+    }
 
-        private readonly IConfiguration _configuration;
-        private readonly SpaceUserManager _userManager;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly PatreonDataManager _patreonDataManager;
-        private readonly DiscordDataManager _discordDataManager;
-        private readonly ISystemClock _clock;
-
-        public SessionApiController(
-            IConfiguration configuration,
-            SpaceUserManager userManager,
-            ApplicationDbContext dbContext,
-            ISystemClock clock,
-            PatreonDataManager patreonDataManager,
-            DiscordDataManager discordDataManager)
+    [Authorize(AuthenticationSchemes = "SS14Auth")]
+    [HttpPost("join")]
+    public async Task<IActionResult> Join(JoinRequest request)
+    {
+        var user = (await _userManager.GetUserAsync(User))!;
+        var hash = Convert.FromBase64String(request.Hash);
+        if (hash.Length != HashSize)
         {
-            _configuration = configuration;
-            _userManager = userManager;
-            _dbContext = dbContext;
-            _clock = clock;
-            _patreonDataManager = patreonDataManager;
-            _discordDataManager = discordDataManager;
+            return BadRequest();
         }
 
-        [Authorize(AuthenticationSchemes = "SS14Auth")]
-        [HttpPost("join")]
-        public async Task<IActionResult> Join(JoinRequest request)
+        if (await _dbContext.AuthHashes.AnyAsync(p => p.Hash == hash && p.SpaceUserId == user.Id))
         {
-            var user = await _userManager.GetUserAsync(User);
-            var hash = Convert.FromBase64String(request.Hash);
-            if (hash.Length != HashSize)
-            {
-                return BadRequest();
-            }
-
-            if (await _dbContext.AuthHashes.AnyAsync(p => p.Hash == hash && p.SpaceUserId == user.Id))
-            {
-                return BadRequest();
-            }
-
-            user.AuthHashes.Add(new AuthHash
-            {
-                Expires = _clock.UtcNow + JoinTimeout,
-                Hash = hash
-            });
-
-            await _dbContext.SaveChangesAsync();
-
-            return NoContent();
+            return BadRequest();
         }
 
-        [HttpGet("hasJoined")]
-        public async Task<IActionResult> HasJoined(Guid userId, string hash)
+        user.AuthHashes.Add(new AuthHash
         {
-            var hashBytes = Base64UrlEncoder.DecodeBytes(hash);
-            if (hashBytes.Length != HashSize)
-            {
-                return BadRequest();
-            }
+            Expires = _clock.UtcNow + JoinTimeout,
+            Hash = hash
+        });
 
-            var authHash = await _dbContext.AuthHashes
-                .Include(p => p.SpaceUser)
-                .SingleOrDefaultAsync(p => p.Hash == hashBytes && p.SpaceUserId == userId);
+        await _dbContext.SaveChangesAsync();
 
-            if (authHash == null || authHash.Expires < _clock.UtcNow)
-            {
-                return Ok(new HasJoinedResponse(false, null));
-            }
+        return NoContent();
+    }
 
-            var userResponse = await QueryApiController.BuildUserResponse(
-                _patreonDataManager, _discordDataManager, authHash.SpaceUser);
+    [HttpGet("hasJoined")]
+    public async Task<IActionResult> HasJoined(Guid userId, string hash)
+    {
+        var hashBytes = Base64UrlEncoder.DecodeBytes(hash);
+        if (hashBytes.Length != HashSize)
+        {
+            return BadRequest();
+        }
+
+        var authHash = await _dbContext.AuthHashes
+            .Include(p => p.SpaceUser)
+            .SingleOrDefaultAsync(p => p.Hash == hashBytes && p.SpaceUserId == userId);
+
+        if (authHash == null || authHash.Expires < _clock.UtcNow)
+        {
+            return Ok(new HasJoinedResponse(false, null));
+        }
+
+        var userResponse = await QueryApiController.BuildUserResponse(
+            _patreonDataManager, _discordDataManager, authHash.SpaceUser);
             
-            var resp = new HasJoinedResponse(true, userResponse);
+        var resp = new HasJoinedResponse(true, userResponse);
 
-            _dbContext.AuthHashes.Remove(authHash);
+        _dbContext.AuthHashes.Remove(authHash);
 
-            await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
 
-            return Ok(resp);
-        }
+        return Ok(resp);
+    }
 
-        public sealed record JoinRequest(string Hash)
-        {
-        }
+    public sealed record JoinRequest(string Hash)
+    {
+    }
 
-        public sealed record HasJoinedResponse(bool IsValid, QueryUserResponse? UserData)
-        {
-        }
+    public sealed record HasJoinedResponse(bool IsValid, QueryUserResponse? UserData)
+    {
     }
 }
