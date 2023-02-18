@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SS14.Web.Models;
@@ -27,6 +28,23 @@ public class HomeController : Controller
     public IActionResult Contact()
     {
         return Redirect("https://spacestation14.io/about/contact/");
+    }
+
+    public IActionResult MoveSession(string accessToken = null, string returnUrl = "/")
+    {
+        if (accessToken == null)
+        {
+            return BadRequest("A accessToken is required.");
+        }
+        
+        Response.Cookies.Append(".AspNetCore.Identity.Application", accessToken, new CookieOptions
+        {
+            Secure = true,
+            HttpOnly = true,
+            SameSite = SameSiteMode.None,
+        });
+
+        return LocalRedirect(returnUrl ?? "/");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
