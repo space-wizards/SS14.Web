@@ -3,10 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage
@@ -16,7 +13,6 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
         private readonly UserManager<SpaceUser> _userManager;
         private readonly ILogger<ManageDiscord> _logger;
         private readonly ApplicationDbContext _db;
-        private readonly IOptions<DiscordConfiguration> _cfg;
 
         public bool DiscordLinked { get; private set; }
 
@@ -38,9 +34,7 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            var discord = await _db.Discords.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id);
-
-            DiscordLinked = discord != null;
+            DiscordLinked = user.DiscordId != null;
 
             return Page();
         }
@@ -53,13 +47,8 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            var discord = await _db.Discords.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id);
-
-            if (discord != null)
-            {
-                _db.Discords.Remove(discord);
-                await _db.SaveChangesAsync();
-            }
+            user.DiscordId = null;
+            await _db.SaveChangesAsync();
 
             return RedirectToPage();
         }

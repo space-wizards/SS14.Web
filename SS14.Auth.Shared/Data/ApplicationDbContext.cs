@@ -70,14 +70,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
         builder.Entity<UserOAuthClient>()
             .HasIndex(p => new { p.ClientId })
             .IsUnique();
-        
-        builder.Entity<Discord>()
-            .HasIndex(p => p.DiscordId)
-            .IsUnique();
-
-        builder.Entity<Discord>()
-            .HasIndex(p => p.SpaceUserId)
-            .IsUnique();
 
         var cfgStoreOptions = new ConfigurationStoreOptions
         {
@@ -121,7 +113,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
     public DbSet<PastAccountName> PastAccountNames { get; set; }
     public DbSet<AccountLog> AccountLogs { get; set; }
-    public DbSet<Discord> Discords { get; set; }
     public DbSet<DiscordLoginSession> DiscordLoginSessions { get; set; }
 
     // IS4 configuration.

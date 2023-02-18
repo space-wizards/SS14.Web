@@ -52,9 +52,8 @@ public class QueryApiController : ControllerBase
         SpaceUser user)
     {
         var patronTier = await patreonDataManager.GetPatreonTierAsync(user);
-        var discordId = await discordDataManager.GetUserDiscordId(user);
         
-        return new QueryUserResponse(user.UserName!, user.Id, patronTier, discordId, user.CreatedTime);
+        return new QueryUserResponse(user.UserName!, user.Id, patronTier, user.DiscordId, user.CreatedTime);
     }
 
     private async Task<IActionResult> DoResponse(SpaceUser? user)

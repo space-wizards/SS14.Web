@@ -1070,32 +1070,6 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.ToTable("BurnerEmails");
                 });
 
-            modelBuilder.Entity("SS14.Auth.Shared.Data.Discord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DiscordId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("SpaceUserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DiscordId")
-                        .IsUnique();
-
-                    b.HasIndex("SpaceUserId")
-                        .IsUnique();
-
-                    b.ToTable("Discords");
-                });
-
             modelBuilder.Entity("SS14.Auth.Shared.Data.DiscordLoginSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1258,6 +1232,9 @@ namespace SS14.Auth.Shared.Data.Migrations
 
                     b.Property<DateTimeOffset>("CreatedTime")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiscordId")
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -1583,17 +1560,6 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Navigation("SpaceUser");
                 });
 
-            modelBuilder.Entity("SS14.Auth.Shared.Data.Discord", b =>
-                {
-                    b.HasOne("SS14.Auth.Shared.Data.SpaceUser", "SpaceUser")
-                        .WithOne("Discord")
-                        .HasForeignKey("SS14.Auth.Shared.Data.Discord", "SpaceUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SpaceUser");
-                });
-
             modelBuilder.Entity("SS14.Auth.Shared.Data.DiscordLoginSession", b =>
                 {
                     b.HasOne("SS14.Auth.Shared.Data.SpaceUser", "SpaceUser")
@@ -1708,8 +1674,6 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Navigation("AccountLogs");
 
                     b.Navigation("AuthHashes");
-
-                    b.Navigation("Discord");
 
                     b.Navigation("LoginSessions");
 

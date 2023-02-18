@@ -32,26 +32,14 @@ namespace SS14.Web
             }
             
             var discordId = context.Principal!.Claims.First(p => p.Type == ClaimTypes.NameIdentifier).Value;
-            var existingDiscord = await _db.Discords.FirstOrDefaultAsync(a => a.DiscordId == discordId);
-            if (existingDiscord != null)
-            {
-                // Relinking
-                _db.Discords.Remove(existingDiscord);
-            }
             
-            existingDiscord = await _db.Discords.FirstOrDefaultAsync(a => a.SpaceUserId == user.Id);
-            if (existingDiscord != null)
-            {
-                // Relinking
-                _db.Discords.Remove(existingDiscord);
-            }
+            // Relinking
+            var currentOwner = await _db.Users.FirstOrDefaultAsync(a => a.DiscordId == discordId);
+            if (currentOwner != null)
+                currentOwner.DiscordId = null;
 
-            var discordLink = new Discord
-            {
-                DiscordId = discordId,
-                SpaceUserId = user.Id
-            };
-            _db.Discords.Add(discordLink);
+            user.DiscordId = discordId;
+
             await _db.SaveChangesAsync();
 
             if (context.ReturnUri != null)

@@ -39,7 +39,7 @@ public class DiscordLinkController : ControllerBase
         if (user == null)
             return NotFound("Session not exist or expired");
 
-        if (user.Discord != null)
+        if (user.DiscordId != null)
             return BadRequest("⚠️ You already linked Discord with you account.\nAccount can be unlinked in account settings.");
 
         await _loginSessionManager.LinkDiscord(user, code);

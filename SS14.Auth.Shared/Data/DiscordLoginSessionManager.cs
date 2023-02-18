@@ -54,7 +54,6 @@ public sealed class DiscordLoginSessionManager
     {
         var session = await _db.DiscordLoginSessions
             .Include(p => p.SpaceUser)
-            .Include(p => p.SpaceUser.Discord)
             .SingleOrDefaultAsync(s => s.Id == sessionId);
         
         if (session == null)
@@ -76,10 +75,7 @@ public sealed class DiscordLoginSessionManager
     {
         var accessToken = await ExchangeDiscordCode(discordCode);
         var discordId = await GetDiscordId(accessToken);
-        user.Discord = new Discord
-        {
-            DiscordId = discordId,
-        };
+        user.DiscordId = discordId;
         await _db.SaveChangesAsync();
         _logger.LogInformation("User {UserId} linked to {DiscordId} Discord", user.Id, discordId);
     }

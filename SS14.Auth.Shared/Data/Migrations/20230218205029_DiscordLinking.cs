@@ -5,10 +5,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SS14.Auth.Shared.Data.Migrations
 {
-    public partial class DiscordLoginSession : Migration
+    public partial class DiscordLinking : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string>(
+                name: "DiscordId",
+                table: "AspNetUsers",
+                type: "text",
+                nullable: true);
+
             migrationBuilder.CreateTable(
                 name: "DiscordLoginSessions",
                 columns: table => new
@@ -38,6 +44,10 @@ namespace SS14.Auth.Shared.Data.Migrations
         {
             migrationBuilder.DropTable(
                 name: "DiscordLoginSessions");
+
+            migrationBuilder.DropColumn(
+                name: "DiscordId",
+                table: "AspNetUsers");
         }
     }
 }
