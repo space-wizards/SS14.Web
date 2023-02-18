@@ -76,7 +76,8 @@ public static class StartupHelpers
 
         services.AddScoped<SessionManager>();
         services.AddScoped<PatreonDataManager>();
-            services.AddScoped<DiscordDataManager>();
+        services.AddScoped<DiscordDataManager>();
+        services.AddScoped<DiscordLoginSessionManager>();
 
         services.AddTransient(_ => RandomNumberGenerator.Create());
 
