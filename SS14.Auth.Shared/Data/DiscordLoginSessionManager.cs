@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -97,8 +98,12 @@ public sealed class DiscordLoginSessionManager
         };
         var form = new FormUrlEncodedContent(exchangeParams);
         var resp = await _httpClient.PostAsync("https://discord.com/api/v10/oauth2/token", form);
-        var data = await resp.Content.ReadFromJsonAsync<DiscordExchangeResponse>();
         resp.EnsureSuccessStatusCode();
+
+        var data = await resp.Content.ReadFromJsonAsync<DiscordExchangeResponse>();
+        if (data == null)
+            throw new InvalidDataException("Response data cannot be null");
+        
         return data.AccessToken;
     }
 
@@ -108,7 +113,11 @@ public sealed class DiscordLoginSessionManager
         request.Headers.Add("Authorization", $"Bearer {accessToken}");
         var resp = await _httpClient.SendAsync(request);
         resp.EnsureSuccessStatusCode();
+
         var data = await resp.Content.ReadFromJsonAsync<DiscordMeResponse>();
+        if (data == null)
+            throw new InvalidDataException("Response data cannot be null");
+        
         return data.Id;
     }
     
