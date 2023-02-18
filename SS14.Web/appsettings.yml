@@ -23,3 +23,8 @@ ForwardProxies:
   - 127.0.0.1
 
 AllowedHosts: "*"
+
+Discord:
+  ClientId: ""
+  ClientSecret: ""
+  RedirectUri: "https://mysite.com/signin-discord"
