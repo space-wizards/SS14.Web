@@ -4,9 +4,3 @@ Logging:
     Microsoft: "Warning"
     Microsoft.Hosting.Lifetime: "Information"
 
-Servers:
-- Name: Foo
-  Address: Bar
-
-- Name: Syndicate Mothership
-  Address: Honk

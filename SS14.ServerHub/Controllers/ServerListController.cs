@@ -45,15 +45,12 @@ public class ServerListController : ControllerBase
     [HttpGet]
     public async Task<IEnumerable<ServerInfo>> Get()
     {
-        var infos = (IEnumerable<ServerInfo>?)_configuration.GetSection("Servers").Get<List<ServerInfo>?>() ??
-                    Array.Empty<ServerInfo>();
-
         var dbInfos = await _dbContext.AdvertisedServer
             .Where(s => s.Expires > DateTime.UtcNow)
             .Select(s => new ServerInfo("", s.Address))
             .ToArrayAsync();
 
-        return infos.Concat(dbInfos).DistinctBy(s => s.Address);
+        return dbInfos;
     }
 
     [HttpPost("advertise")]
