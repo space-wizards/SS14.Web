@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Net.Sockets;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SS14.ServerHub.Data;
+using SS14.ServerHub.Utility;
 
 namespace SS14.ServerHub.Controllers;
 
@@ -22,20 +23,17 @@ namespace SS14.ServerHub.Controllers;
 [Route("/api/servers")]
 public class ServerListController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
     private readonly ILogger<ServerListController> _logger;
     private readonly HubDbContext _dbContext;
     private readonly HttpClient _httpClient;
     private readonly IOptions<HubOptions> _options;
 
     public ServerListController(
-        IConfiguration configuration,
         ILogger<ServerListController> logger,
         HubDbContext dbContext,
         IHttpClientFactory httpClientFactory,
         IOptions<HubOptions> options)
     {
-        _configuration = configuration;
         _logger = logger;
         _dbContext = dbContext;
         _options = options;
@@ -47,7 +45,7 @@ public class ServerListController : ControllerBase
     {
         var dbInfos = await _dbContext.AdvertisedServer
             .Where(s => s.Expires > DateTime.UtcNow)
-            .Select(s => new ServerInfo("", s.Address))
+            .Select(s => new ServerInfo(s.Address, s.StatusData == null ? null : new RawJson(s.StatusData)))
             .ToArrayAsync();
 
         return dbInfos;
@@ -89,51 +87,75 @@ public class ServerListController : ControllerBase
                 return UnprocessableEntity("Server host name failed to resolve");
         }
 
-        // Validate that we can reach the server.
+        var (result, statusJson) = await QueryServerStatus(parsedAddress);
+        if (result != null)
+            return result;
+        
+        Debug.Assert(statusJson != null);
+
+        // Check if a server with this address already exists.
+        var addressEntity =
+            await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Address == advertise.Address);
+
+        var newExpireTime = DateTime.UtcNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes);
+        if (addressEntity == null)
+        {
+            addressEntity = new AdvertisedServer
+            {
+                Address = advertise.Address,
+            };
+            _dbContext.AdvertisedServer.Add(addressEntity);
+        }
+
+        addressEntity.Expires = newExpireTime;
+        addressEntity.StatusData = statusJson;
+
+        await _dbContext.SaveChangesAsync();
+        return NoContent();
+    }
+
+    private async Task<(IActionResult? result, byte[]? statusJson)> QueryServerStatus(Uri uri)
+    {
         try
         {
+            var options = _options.Value;
             var timeout = TimeSpan.FromSeconds(options.AdvertisementStatusTestTimeoutSeconds);
             var cts = new CancellationTokenSource(timeout);
 
-            var response = await _httpClient.GetAsync(
-                Ss14UriHelper.GetServerStatusAddress(parsedAddress),
+            // Very advanced dance to be able to save the response while limiting it,
+            // and actually being able to clearly tell whether the response was too big.
+            var request = new HttpRequestMessage(HttpMethod.Get, Ss14UriHelper.GetServerStatusAddress(uri));
+            var response = await _httpClient.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
                 cts.Token);
 
             response.EnsureSuccessStatusCode();
-            var status = await response.Content.ReadFromJsonAsync<ServerStatus>(cancellationToken: cts.Token);
-            if (status == null)
+            var maxResponseSize = _options.Value.MaxStatusResponseSize;
+            var buffer = new byte[maxResponseSize * 1024];
+            var memoryStream = new MemoryStream(buffer);
+            var stream = await response.Content.ReadAsStreamAsync(cts.Token);
+            var success = await StreamHelper.CopyToLimitedAsync(stream, memoryStream, buffer.Length, cts.Token);
+            if (!success)
+            {
+                // Response body was larger than size limit.
+                return (UnprocessableEntity($"Status response data was too large (max: {maxResponseSize} KiB)"), null);
+            }
+            
+            var statusData = JsonSerializer.Deserialize<ServerStatus>(buffer.AsSpan(0, (int)memoryStream.Position));
+            if (statusData == null)
                 throw new InvalidDataException("Status cannot be null");
+            
+            if (string.IsNullOrWhiteSpace(statusData.Name))
+                return (UnprocessableEntity("Server name cannot be empty"), null);
 
-            if (string.IsNullOrWhiteSpace(status.Name))
-                return UnprocessableEntity("Server name cannot be empty");
+            return (null, buffer[..(int)memoryStream.Position]);
         }
         catch (Exception e)
         {
             _logger.LogInformation(e, "Failed to connect to advertising server");
-            return UnprocessableEntity("Unable to contact status address");
+            return (UnprocessableEntity("Unable to contact status address"), null);
         }
-
-        // Check if a server with this address already exists.
-        var existingAddress =
-            await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Address == advertise.Address);
-
-        var newExpireTime = DateTime.UtcNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes);
-        if (existingAddress != null)
-        {
-            // Update expiry time, do nothing else.
-            existingAddress.Expires = newExpireTime;
-        }
-        else
-        {
-            _dbContext.AdvertisedServer.Add(new AdvertisedServer
-            {
-                Address = advertise.Address,
-                Expires = newExpireTime,
-            });
-        }
-
-        await _dbContext.SaveChangesAsync();
-        return NoContent();
     }
 
     private async Task<BanCheckResult> CheckAddressBannedAsync(Uri uri)
@@ -195,15 +217,7 @@ public class ServerListController : ControllerBase
         FailedResolve
     }
 
-    public sealed record ServerInfo(string Name, string Address)
-    {
-        // Used when loading config.
-        // ReSharper disable once UnusedMember.Global
-        public ServerInfo() : this(default!, default!)
-        {
-        }
-    }
-
+    public sealed record ServerInfo(string Address, RawJson? StatusData);
     public sealed record ServerAdvertise(string Address);
 
     // ReSharper disable once ClassNeverInstantiated.Local
@@ -211,4 +225,23 @@ public class ServerListController : ControllerBase
         [property: JsonPropertyName("name")] string? Name,
         [property: JsonPropertyName("players")]
         int PlayerCount);
+
+    [JsonConverter(typeof(RawJsonConverter))]
+    public sealed record RawJson(byte[] Json)
+    {
+        public static implicit operator RawJson?(byte[]? a) => a == null ? null : new RawJson(a);
+    }
+
+    public sealed class RawJsonConverter : JsonConverter<RawJson>
+    {
+        public override RawJson Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(Utf8JsonWriter writer, RawJson value, JsonSerializerOptions options)
+        {
+            writer.WriteRawValue(value.Json, skipInputValidation: true);
+        }
+    }
 }

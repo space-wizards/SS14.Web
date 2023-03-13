@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SS14.ServerHub.Data;
 
@@ -15,4 +16,10 @@ public sealed class AdvertisedServer
     /// The time at which this advertisement will stop showing up.
     /// </summary>
     public DateTime Expires { get; set; } = default!;
+
+    /// <summary>
+    /// Last status data polled from the server.
+    /// </summary>
+    [Column(TypeName = "jsonb")]
+    public byte[]? StatusData { get; set; }
 }

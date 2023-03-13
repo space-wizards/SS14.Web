@@ -11,4 +11,9 @@ public sealed class HubOptions
     /// This is the timeout for that test.
     /// </summary>
     public float AdvertisementStatusTestTimeoutSeconds { get; set; } = 5;
+
+    /// <summary>
+    /// When fetching status from advertised servers, maximum size of response bodies in kilobytes.
+    /// </summary>
+    public int MaxStatusResponseSize = 2;
 }
