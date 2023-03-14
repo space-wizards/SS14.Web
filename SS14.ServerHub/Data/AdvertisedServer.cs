@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Net;
 
 namespace SS14.ServerHub.Data;
 
@@ -22,4 +23,9 @@ public sealed class AdvertisedServer
     /// </summary>
     [Column(TypeName = "jsonb")]
     public byte[]? StatusData { get; set; }
+    
+    /// <summary>
+    /// IP address of the client doing the advertise request. Not actually related to the advertised data.
+    /// </summary>
+    [Column(TypeName = "inet")] public IPAddress? AdvertiserAddress { get; set; }
 }

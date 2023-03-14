@@ -97,7 +97,8 @@ public class ServerListController : ControllerBase
         var addressEntity =
             await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Address == advertise.Address);
 
-        var newExpireTime = DateTime.UtcNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes);
+        var timeNow = DateTime.UtcNow;
+        var newExpireTime = timeNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes);
         if (addressEntity == null)
         {
             addressEntity = new AdvertisedServer
@@ -109,7 +110,16 @@ public class ServerListController : ControllerBase
 
         addressEntity.Expires = newExpireTime;
         addressEntity.StatusData = statusJson;
+        addressEntity.AdvertiserAddress = senderIp;
 
+        _dbContext.ServerStatusArchive.Add(new ServerStatusArchive
+        {
+            Time = timeNow,
+            AdvertisedServer = addressEntity,
+            AdvertiserAddress = senderIp,
+            StatusData = statusJson
+        });
+        
         await _dbContext.SaveChangesAsync();
         return NoContent();
     }

@@ -28,9 +28,17 @@ public sealed class HubDbContext : DbContext
         modelBuilder.Entity<AdvertisedServer>()
             .HasIndex(e => e.Address)
             .IsUnique();
+
+        modelBuilder.Entity<ServerStatusArchive>()
+            .HasKey(e => new { e.AdvertisedServerId, e.ServerStatusArchiveId });
+
+        modelBuilder.Entity<ServerStatusArchive>()
+            .Property(e => e.ServerStatusArchiveId)
+            .ValueGeneratedOnAdd();
     }
 
     public DbSet<AdvertisedServer> AdvertisedServer { get; set; } = default!;
     public DbSet<BannedAddress> BannedAddress { get; set; } = default!;
     public DbSet<BannedDomain> BannedDomain { get; set; } = default!;
+    public DbSet<ServerStatusArchive> ServerStatusArchive { get; set; } = default!;
 }
