@@ -25,6 +25,12 @@ public sealed class AdvertisedServer
     public byte[]? StatusData { get; set; }
     
     /// <summary>
+    /// Last info data polled from the server.
+    /// </summary>
+    [Column(TypeName = "jsonb")]
+    public byte[]? InfoData { get; set; }
+    
+    /// <summary>
     /// IP address of the client doing the advertise request. Not actually related to the advertised data.
     /// </summary>
     [Column(TypeName = "inet")] public IPAddress? AdvertiserAddress { get; set; }

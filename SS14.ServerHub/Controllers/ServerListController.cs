@@ -50,6 +50,20 @@ public class ServerListController : ControllerBase
 
         return dbInfos;
     }
+    
+    [HttpGet("info")]
+    public async Task<IActionResult> GetServerInfo(string url)
+    {
+        var dbInfo = await _dbContext.AdvertisedServer
+            .Where(s => s.Expires > DateTime.UtcNow)
+            .Where(s => s.Address == url)
+            .SingleOrDefaultAsync();
+
+        if (dbInfo == null)
+            return NotFound();
+        
+        return Ok((RawJson?) dbInfo.InfoData);
+    }
 
     [HttpPost("advertise")]
     public async Task<IActionResult> Advertise([FromBody] ServerAdvertise advertise)
@@ -87,7 +101,7 @@ public class ServerListController : ControllerBase
                 return UnprocessableEntity("Server host name failed to resolve");
         }
 
-        var (result, statusJson) = await QueryServerStatus(parsedAddress);
+        var (result, statusJson, infoJson) = await QueryServerStatus(parsedAddress);
         if (result != null)
             return result;
         
@@ -110,6 +124,7 @@ public class ServerListController : ControllerBase
 
         addressEntity.Expires = newExpireTime;
         addressEntity.StatusData = statusJson;
+        addressEntity.InfoData = infoJson;
         addressEntity.AdvertiserAddress = senderIp;
 
         _dbContext.ServerStatusArchive.Add(new ServerStatusArchive
@@ -124,7 +139,7 @@ public class ServerListController : ControllerBase
         return NoContent();
     }
 
-    private async Task<(IActionResult? result, byte[]? statusJson)> QueryServerStatus(Uri uri)
+    private async Task<(IActionResult? result, byte[]? statusJson, byte[]? infoJson)> QueryServerStatus(Uri uri)
     {
         try
         {
@@ -132,39 +147,58 @@ public class ServerListController : ControllerBase
             var timeout = TimeSpan.FromSeconds(options.AdvertisementStatusTestTimeoutSeconds);
             var cts = new CancellationTokenSource(timeout);
 
-            // Very advanced dance to be able to save the response while limiting it,
-            // and actually being able to clearly tell whether the response was too big.
-            var request = new HttpRequestMessage(HttpMethod.Get, Ss14UriHelper.GetServerStatusAddress(uri));
-            var response = await _httpClient.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead,
-                cts.Token);
-
-            response.EnsureSuccessStatusCode();
-            var maxResponseSize = _options.Value.MaxStatusResponseSize;
-            var buffer = new byte[maxResponseSize * 1024];
-            var memoryStream = new MemoryStream(buffer);
-            var stream = await response.Content.ReadAsStreamAsync(cts.Token);
-            var success = await StreamHelper.CopyToLimitedAsync(stream, memoryStream, buffer.Length, cts.Token);
-            if (!success)
+            // Fetch /status and ensure it's valid (at least a name).
+            var maxStatusSize = _options.Value.MaxStatusResponseSize;
+            byte[] statusResponse;
+            try
             {
-                // Response body was larger than size limit.
-                return (UnprocessableEntity($"Status response data was too large (max: {maxResponseSize} KiB)"), null);
+                statusResponse = await _httpClient.GetLimitedJsonResponseBody(
+                    Ss14UriHelper.GetServerStatusAddress(uri),
+                    maxStatusSize * 1024,
+                    cts.Token);
+            }
+            catch (HttpClientHelper.ResponseTooLargeException)
+            {
+                return (UnprocessableEntity($"/status response data was too large (max: {maxStatusSize} KiB)"), null, null);
             }
             
-            var statusData = JsonSerializer.Deserialize<ServerStatus>(buffer.AsSpan(0, (int)memoryStream.Position));
+            var statusData = JsonSerializer.Deserialize<ServerStatus>(statusResponse);
             if (statusData == null)
                 throw new InvalidDataException("Status cannot be null");
             
             if (string.IsNullOrWhiteSpace(statusData.Name))
-                return (UnprocessableEntity("Server name cannot be empty"), null);
+                return (UnprocessableEntity("Server name cannot be empty"), null, null);
 
-            return (null, buffer[..(int)memoryStream.Position]);
+            // Fetch /info and just pass it through (no validation except making sure the JSON is well-formed).
+            var maxInfoSize = _options.Value.MaxStatusResponseSize;
+            byte[] infoResponse;
+            try
+            {
+                infoResponse = await _httpClient.GetLimitedJsonResponseBody(
+                    Ss14UriHelper.GetServerInfoAddress(uri),
+                    maxInfoSize * 1024,
+                    cts.Token);
+            }
+            catch (HttpClientHelper.ResponseTooLargeException)
+            {
+                return (UnprocessableEntity($"/info response data was too large (max: {maxInfoSize} KiB)"), null, null);
+            }
+
+            try
+            {
+                JsonHelper.CheckJsonValid(infoResponse);
+            }
+            catch (JsonException)
+            {
+                return (UnprocessableEntity("/info response data was not valid JSON!"), null, null);
+            }
+
+            return (null, statusResponse, infoResponse);
         }
         catch (Exception e)
         {
             _logger.LogInformation(e, "Failed to connect to advertising server");
-            return (UnprocessableEntity("Unable to contact status address"), null);
+            return (UnprocessableEntity("Unable to contact status address"), null, null);
         }
     }
 
