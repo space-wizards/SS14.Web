@@ -170,7 +170,7 @@ public class ServerListController : ControllerBase
                 return (UnprocessableEntity("Server name cannot be empty"), null, null);
 
             // Fetch /info and just pass it through (no validation except making sure the JSON is well-formed).
-            var maxInfoSize = _options.Value.MaxStatusResponseSize;
+            var maxInfoSize = _options.Value.MaxInfoResponseSize;
             byte[] infoResponse;
             try
             {

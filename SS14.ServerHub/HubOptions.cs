@@ -20,5 +20,5 @@ public sealed class HubOptions
     /// <summary>
     /// When fetching <code>/info</code> from advertised servers, maximum size of response bodies in kilobytes.
     /// </summary>
-    public int MaxInfoResponseSize = 5;
+    public int MaxInfoResponseSize = 10;
 }
