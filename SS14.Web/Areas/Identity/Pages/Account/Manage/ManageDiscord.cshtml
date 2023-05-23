@@ -1,0 +1,33 @@
+﻿@page
+@model ManageDiscord
+
+@{
+    ViewData["Title"] = "Discord";
+    ViewData["ActivePage"] = ManageNavPages.ManageDiscord;
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="row">
+    <div class="col-md-9">
+        @if (Model.DiscordLinked)
+        {
+            <p>
+                Your Discord account is linked to your Space Station 14 account.<br/>
+            </p>
+
+            <form id="unlink-form" method="post">
+                <button id="unlink-discord" type="submit" asp-page-handler="UnlinkDiscord" class="btn btn-danger">Unlink Discord account</button>
+            </form>
+        }
+        else
+        {
+            <p>
+                You can link your Discord account with your Space Station 14 account here to allow servers verify you.
+            </p>
+            <form id="link-form" method="post">
+                <button id="link-discord" type="submit" asp-page-handler="LinkDiscord" class="btn btn-primary">Link Discord account</button>
+            </form>
+        }
+    </div>
+</div>

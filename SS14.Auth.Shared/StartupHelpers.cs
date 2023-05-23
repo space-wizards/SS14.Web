@@ -27,6 +27,7 @@ public static class StartupHelpers
         services.Configure<LimitOptions>(config.GetSection("Limits"));
         services.Configure<MutexOptions>(config.GetSection("Mutex"));
         services.Configure<PatreonConfiguration>(config.GetSection("Patreon"));
+        services.Configure<DiscordConfiguration>(config.GetSection("Discord"));
         services.Configure<SecurityStampValidatorOptions>(options =>
         {
             // The fact that this isn't default absolutely baffles me.
@@ -75,6 +76,8 @@ public static class StartupHelpers
 
         services.AddScoped<SessionManager>();
         services.AddScoped<PatreonDataManager>();
+        services.AddScoped<DiscordDataManager>();
+        services.AddScoped<DiscordLoginSessionManager>();
 
         services.AddTransient(_ => RandomNumberGenerator.Create());
 

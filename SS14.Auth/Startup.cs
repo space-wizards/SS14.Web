@@ -9,6 +9,7 @@ using Prometheus;
 using SS14.Auth.Services;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Auth;
+using SS14.Auth.Shared.Data;
 
 namespace SS14.Auth;
 
@@ -38,6 +39,7 @@ public class Startup
             .AddScheme<SS14AuthOptions, SS14AuthHandler>("SS14Auth", _ => {});
 
         services.AddHostedService<EnsureRolesService>();
+        services.AddHttpClient(nameof(DiscordLoginSessionManager));
         
         StartupHelpers.AddShared(services, Configuration);
     }

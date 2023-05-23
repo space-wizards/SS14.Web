@@ -14,6 +14,7 @@ public class SpaceUser : IdentityUser<Guid>
     public List<AuthHash> AuthHashes { get; set; } = new List<AuthHash>();
 
     public Patron Patron { get; set; }
+    public string DiscordId { get; set; }
 
     public List<PastAccountName> PastAccountNames { get; set; } = default!;
     public List<AccountLog> AccountLogs { get; set; } = default!;

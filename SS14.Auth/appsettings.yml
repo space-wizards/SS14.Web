@@ -22,3 +22,9 @@ Serilog:
 AllowedHosts: "*"
 
 WebBaseUrl: "https://localhost:5001/"
+
+Discord:
+  ClientId: ""
+  ClientSecret: ""
+  RedirectUri: "https://mysite.com/api/discord/callback"
+

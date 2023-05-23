@@ -16,6 +16,7 @@ public static class ManageNavPages
     public const string ExternalLogins = "ExternalLogins";
     public const string PersonalData = "PersonalData";
     public const string TwoFactorAuthentication = "TwoFactorAuthentication";
+    public const string ManageDiscord = "ManageDiscord";
     public const string ManagePatreon = "ManagePatreon";
     public const string Developer = "Developer";
 
@@ -43,6 +44,7 @@ public static class ManageNavPages
     public static string TwoFactorAuthenticationNavClass(ViewContext viewContext)
         => PageNavClass(viewContext, TwoFactorAuthentication);
 
+    public static string DiscordNavClass(ViewContext viewContext) => PageNavClass(viewContext, ManageDiscord);
     public static string PatreonNavClass(ViewContext viewContext) => PageNavClass(viewContext, ManagePatreon);
     public static string DeveloperNavClass(ViewContext viewContext) => PageNavClass(viewContext, Developer);
 

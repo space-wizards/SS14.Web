@@ -13,11 +13,13 @@ public class QueryApiController : ControllerBase
 {
     private readonly UserManager<SpaceUser> _userManager;
     private readonly PatreonDataManager _patreonDataManager;
+    private readonly DiscordDataManager _discordDataManager;
 
-    public QueryApiController(UserManager<SpaceUser> userManager, PatreonDataManager patreonDataManager)
+    public QueryApiController(UserManager<SpaceUser> userManager, PatreonDataManager patreonDataManager, DiscordDataManager discordDataManager)
     {
         _userManager = userManager;
         _patreonDataManager = patreonDataManager;
+        _discordDataManager = discordDataManager;
     }
 
     [HttpGet("name")]
@@ -36,13 +38,22 @@ public class QueryApiController : ControllerBase
         return await DoResponse(user);
     }
     
+    [HttpGet("discord")]
+    [HttpHead("discord")]
+    public async Task<IActionResult> QueryByDiscordId(string discordId)
+    {
+        var user = await _discordDataManager.GetUserByDiscordId(discordId);
+        return await DoResponse(user);
+    }
+    
     internal static async Task<QueryUserResponse> BuildUserResponse(
         PatreonDataManager patreonDataManager,
+        DiscordDataManager discordDataManager,
         SpaceUser user)
     {
         var patronTier = await patreonDataManager.GetPatreonTierAsync(user);
-
-        return new QueryUserResponse(user.UserName!, user.Id, patronTier, user.CreatedTime);
+        
+        return new QueryUserResponse(user.UserName!, user.Id, patronTier, user.DiscordId, user.CreatedTime);
     }
 
     private async Task<IActionResult> DoResponse(SpaceUser? user)
@@ -50,6 +61,6 @@ public class QueryApiController : ControllerBase
         if (user == null)
             return NotFound();
             
-        return Ok(await BuildUserResponse(_patreonDataManager, user));
+        return Ok(await BuildUserResponse(_patreonDataManager, _discordDataManager, user));
     }
 }

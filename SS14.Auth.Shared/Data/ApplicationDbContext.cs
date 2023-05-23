@@ -113,6 +113,7 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
     public DbSet<PastAccountName> PastAccountNames { get; set; }
     public DbSet<AccountLog> AccountLogs { get; set; }
+    public DbSet<DiscordLoginSession> DiscordLoginSessions { get; set; }
 
     // IS4 configuration.
     public DbSet<Client> Clients { get; set; }

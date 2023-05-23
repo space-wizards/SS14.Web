@@ -6,6 +6,7 @@ public sealed record QueryUserResponse(
     string UserName,
     Guid UserId,
     string? PatronTier,
+    string? DiscordId,
     DateTimeOffset CreatedTime)
 {
 }

@@ -22,6 +22,7 @@ public class SessionApiController : ControllerBase
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _dbContext;
     private readonly PatreonDataManager _patreonDataManager;
+    private readonly DiscordDataManager _discordDataManager;
     private readonly ISystemClock _clock;
 
     public SessionApiController(
@@ -29,13 +30,15 @@ public class SessionApiController : ControllerBase
         SpaceUserManager userManager,
         ApplicationDbContext dbContext,
         ISystemClock clock,
-        PatreonDataManager patreonDataManager)
+        PatreonDataManager patreonDataManager,
+        DiscordDataManager discordDataManager)
     {
         _configuration = configuration;
         _userManager = userManager;
         _dbContext = dbContext;
         _clock = clock;
         _patreonDataManager = patreonDataManager;
+        _discordDataManager = discordDataManager;
     }
 
     [Authorize(AuthenticationSchemes = "SS14Auth")]
@@ -84,7 +87,7 @@ public class SessionApiController : ControllerBase
         }
 
         var userResponse = await QueryApiController.BuildUserResponse(
-            _patreonDataManager, authHash.SpaceUser);
+            _patreonDataManager, _discordDataManager, authHash.SpaceUser);
             
         var resp = new HasJoinedResponse(true, userResponse);
 
