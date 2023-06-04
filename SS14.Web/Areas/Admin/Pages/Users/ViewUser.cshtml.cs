@@ -44,7 +44,7 @@ public class ViewUser : PageModel
         
         [Display(Name = "Locked?")]
         public bool AdminLocked { get; set; }
-        
+
         [Display(Name = "Administrative notes")]
         public string AdminNotes { get; set; }
     }
@@ -84,6 +84,9 @@ public class ViewUser : PageModel
         var actor = await _userManager.GetUserAsync(User);
         SpaceUser = await _userManager.FindByIdAsync(id.ToString());
 
+        // Field becomes null if empty.
+        Input.AdminNotes ??= "";
+        
         if (SpaceUser == null)
         {
             return NotFound("That user does not exist!");
