@@ -34,6 +34,12 @@ public sealed class HCaptchaService
 
     public async Task<bool> ValidateHCaptcha(string response, ModelStateDictionary modelState)
     {
+        if (_options.Value.SiteKey == "")
+        {
+            // hCaptcha disabled.
+            return true;
+        }
+        
         if (string.IsNullOrEmpty(response))
         {
             modelState.AddModelError("", "Please confirm the captcha");

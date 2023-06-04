@@ -2,4 +2,7 @@
 @using SS14.Web.HCaptcha
 @inject IOptions<HCaptchaOptions> Options
 
-<div class="h-captcha" data-sitekey="@(Options.Value.SiteKey)"></div>
+@if (Options.Value.SiteKey != "")
+{
+    <div class="h-captcha" data-sitekey="@(Options.Value.SiteKey)"></div>
+}
