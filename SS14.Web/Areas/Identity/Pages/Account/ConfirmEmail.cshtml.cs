@@ -46,8 +46,10 @@ public class ConfirmEmailModel : PageModel
         if (result.Succeeded)
         {
             _userManager.LogEmailConfirmedChanged(user, true, user);
-        }
 
+            await _dbContext.SaveChangesAsync();
+        }
+        
         await tx.CommitAsync();
         
         StatusMessage = result.Succeeded ? "Thank you for confirming your email. You can now use your account." : "Error confirming your email.";

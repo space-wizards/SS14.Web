@@ -90,6 +90,13 @@ public class AuthApiController : ControllerBase
 
         var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, true);
 
+        if (signInResult is SpaceSignInResult { IsAdminLocked: true })
+        {
+            return Unauthorized(new AuthenticateDenyResponse(
+                new[] { "Account locked by administrator." },
+                AuthenticateDenyResponseCode.AccountLocked));
+        }
+
         if (!signInResult.Succeeded)
         {
             return Unauthorized(new AuthenticateDenyResponse(
@@ -270,6 +277,7 @@ public enum AuthenticateDenyResponseCode
     AccountUnconfirmed = 2,
     TfaRequired        = 3,
     TfaInvalid         = 4,
+    AccountLocked      = 5,
     // @formatter:on
 }
 

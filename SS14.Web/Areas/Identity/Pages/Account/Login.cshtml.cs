@@ -100,6 +100,12 @@ public class LoginModel : PageModel
                 return LocalRedirect(returnUrl);
             }
 
+            if (result is SpaceSignInResult { IsAdminLocked: true })
+            {
+                _logger.LogWarning("User account locked by admin.");
+                return RedirectToPage("./AdminLocked");
+            }
+
             if (result.RequiresTwoFactor)
             {
                 return RedirectToPage("./LoginWith2fa", new {ReturnUrl = returnUrl, RememberMe = Input.RememberMe});

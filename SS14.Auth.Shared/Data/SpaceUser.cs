@@ -10,9 +10,21 @@ namespace SS14.Auth.Shared.Data;
 public class SpaceUser : IdentityUser<Guid>
 {
     public DateTimeOffset CreatedTime { get; set; }
+    
+    /// <summary>
+    /// Account has been locked by an administrator and cannot be logged into anymore.
+    /// </summary>
+    public bool AdminLocked { get; set; }
+    
+    /// <summary>
+    /// Note set by hub administrator.
+    /// </summary>
+    [Required]
+    public string AdminNotes { get; set; } = "";
+    
     public List<LoginSession> LoginSessions { get; set; } = new List<LoginSession>();
     public List<AuthHash> AuthHashes { get; set; } = new List<AuthHash>();
-
+    
     public Patron Patron { get; set; }
 
     public List<PastAccountName> PastAccountNames { get; set; } = default!;
@@ -84,18 +96,23 @@ public sealed record AccountLogAuthenticatorEnabled(Guid Actor) : AccountLogEntr
 public sealed record AccountLogAuthenticatorDisabled(Guid Actor) : AccountLogEntry;
 public sealed record AccountLogRecoveryCodesGenerated(Guid Actor) : AccountLogEntry;
 
+public sealed record AccountLogAdminNotesChanged(string NewNotes, Guid Actor) : AccountLogEntry;
+public sealed record AccountLogAdminLockedChanged(bool NewLocked, Guid Actor) : AccountLogEntry;
+
 public enum AccountLogType
 {
-    Created,
-    EmailConfirmedChanged,
-    EmailChanged,
-    UserNameChanged,
-    HubAdminChanged,
-    PasswordChanged,
-    PatreonLinked,
-    PatreonUnlinked,
-    AuthenticatorReset,
-    AuthenticatorEnabled,
-    AuthenticatorDisabled,
-    RecoveryCodesGenerated,
+    Created = 0,
+    EmailConfirmedChanged = 1,
+    EmailChanged = 2,
+    UserNameChanged = 3,
+    HubAdminChanged = 4,
+    PasswordChanged = 5,
+    PatreonLinked = 6,
+    PatreonUnlinked = 7,
+    AuthenticatorReset = 8,
+    AuthenticatorEnabled = 9,
+    AuthenticatorDisabled = 10,
+    RecoveryCodesGenerated = 11,
+    AdminNotesChanged = 12,
+    AdminLockedChanged = 13,
 }

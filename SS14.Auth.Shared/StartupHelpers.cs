@@ -43,6 +43,7 @@ public static class StartupHelpers
 
         services.AddScoped<IUserValidator<SpaceUser>, SS14UserValidator>();
         services.AddScoped<UserManager<SpaceUser>, SpaceUserManager>();
+        services.AddScoped<SignInManager<SpaceUser>, SpaceSignInManager>();
         services.AddScoped<SpaceUserManager>();
         services.AddIdentity<SpaceUser, SpaceRole>(o =>
             {

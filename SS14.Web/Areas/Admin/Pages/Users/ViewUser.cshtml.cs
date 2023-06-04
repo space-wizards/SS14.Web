@@ -41,6 +41,12 @@ public class ViewUser : PageModel
         [Display(Name = "Is Hub Admin?")] public bool HubAdmin { get; set; }
         
         [Display(Name = "2FA enabled?")] public bool TfaEnabled { get; set; }
+        
+        [Display(Name = "Locked?")]
+        public bool AdminLocked { get; set; }
+        
+        [Display(Name = "Administrative notes")]
+        public string AdminNotes { get; set; }
     }
 
     public ViewUser(
@@ -106,7 +112,19 @@ public class ViewUser : PageModel
             _userManager.LogEmailConfirmedChanged(SpaceUser, Input.EmailConfirmed, actor);    
             SpaceUser.EmailConfirmed = Input.EmailConfirmed;
         }
+
+        if (SpaceUser.AdminNotes != Input.AdminNotes)
+        {
+            _userManager.LogAdminNotesChanged(SpaceUser, Input.AdminNotes, actor);    
+            SpaceUser.AdminNotes = Input.AdminNotes;
+        }
         
+        if (SpaceUser.AdminLocked != Input.AdminLocked)
+        {
+            _userManager.LogAdminLockedChanged(SpaceUser, Input.AdminLocked, actor);    
+            SpaceUser.AdminLocked = Input.AdminLocked;
+        }
+
         if (Input.HubAdmin != await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin))
         {
             _userManager.LogHubAdminChanged(SpaceUser, Input.HubAdmin, actor);
@@ -140,7 +158,7 @@ public class ViewUser : PageModel
         {
             return NotFound("That user does not exist!");
         }
-            
+        
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(SpaceUser);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var confirmLink = Url.Page(
@@ -188,7 +206,9 @@ public class ViewUser : PageModel
             EmailConfirmed = SpaceUser.EmailConfirmed,
             Username = SpaceUser.UserName,
             HubAdmin = await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin),
-            TfaEnabled = SpaceUser.TwoFactorEnabled
+            TfaEnabled = SpaceUser.TwoFactorEnabled,
+            AdminLocked = SpaceUser.AdminLocked,
+            AdminNotes = SpaceUser.AdminNotes
         };
 
         PatronTier = await _patreonDataManager.GetPatreonTierAsync(SpaceUser);

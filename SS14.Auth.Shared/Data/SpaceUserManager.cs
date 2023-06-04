@@ -123,6 +123,22 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
             new AccountLogPatreonUnlinked(actor.Id));
     }
 
+    public void LogAdminNotesChanged(SpaceUser user, string newNotes, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.AdminNotesChanged,
+            new AccountLogAdminNotesChanged(newNotes, actor.Id));
+    }
+    
+    public void LogAdminLockedChanged(SpaceUser user, bool newLocked, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.AdminLockedChanged,
+            new AccountLogAdminLockedChanged(newLocked, actor.Id));
+    }
+
     public void AccountLog(SpaceUser user, AccountLogType type, AccountLogEntry entry)
     {
         _dbContext.AccountLogs.Add(new AccountLog

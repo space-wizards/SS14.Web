@@ -9,7 +9,7 @@ import os
 import psycopg2
 from uuid import UUID
 
-LATEST_DB_MIGRATION = "20221105161403_TwoFactorAuthentication"
+LATEST_DB_MIGRATION = "20230604204603_AccountAdminAdditions"
 
 def main():
     parser = argparse.ArgumentParser()
@@ -112,7 +112,7 @@ SELECT
     COALESCE(json_agg(to_jsonb(data)), '[]') #>> '{}'
 FROM (
     SELECT
-        "Id", "Email", "UserName", "CreatedTime", "EmailConfirmed", "NormalizedEmail", "TwoFactorEnabled", "NormalizedUserName"
+        "Id", "Email", "UserName", "CreatedTime", "EmailConfirmed", "NormalizedEmail", "TwoFactorEnabled", "NormalizedUserName", "AdminLocked", "AdminNotes"
     FROM
         "AspNetUsers" a
     WHERE
