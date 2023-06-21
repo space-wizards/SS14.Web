@@ -35,10 +35,14 @@ public sealed class HubDbContext : DbContext
         modelBuilder.Entity<ServerStatusArchive>()
             .Property(e => e.ServerStatusArchiveId)
             .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<UniqueServerName>()
+            .HasKey(e => new { e.AdvertisedServerId, e.Name });
     }
 
     public DbSet<AdvertisedServer> AdvertisedServer { get; set; } = default!;
     public DbSet<BannedAddress> BannedAddress { get; set; } = default!;
     public DbSet<BannedDomain> BannedDomain { get; set; } = default!;
     public DbSet<ServerStatusArchive> ServerStatusArchive { get; set; } = default!;
+    public DbSet<UniqueServerName> UniqueServerName { get; set; } = default!;
 }
