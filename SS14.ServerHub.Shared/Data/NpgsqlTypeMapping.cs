@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
-namespace SS14.ServerHub.Data;
+namespace SS14.ServerHub.Shared.Data;
 
 #pragma warning disable EF1001
 

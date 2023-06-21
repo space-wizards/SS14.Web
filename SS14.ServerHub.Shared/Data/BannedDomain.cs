@@ -1,4 +1,4 @@
-﻿namespace SS14.ServerHub.Data;
+﻿namespace SS14.ServerHub.Shared.Data;
 
 /// <summary>
 /// Represents a banned domain name (and all its subdomains).

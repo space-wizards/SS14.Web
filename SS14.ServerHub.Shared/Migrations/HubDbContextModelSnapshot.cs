@@ -3,20 +3,18 @@ using System;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using SS14.ServerHub.Data;
+using SS14.ServerHub.Shared.Data;
 
 #nullable disable
 
 namespace SS14.ServerHub.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20211225180212_Bans")]
-    partial class Bans
+    partial class HubDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,8 +35,17 @@ namespace SS14.ServerHub.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<IPAddress>("AdvertiserAddress")
+                        .HasColumnType("inet");
+
                     b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("InfoData")
+                        .HasColumnType("jsonb");
+
+                    b.Property<byte[]>("StatusData")
+                        .HasColumnType("jsonb");
 
                     b.HasKey("AdvertisedServerId");
 
@@ -89,6 +96,43 @@ namespace SS14.ServerHub.Migrations
                     b.HasKey("BannedDomainId");
 
                     b.ToTable("BannedDomain");
+                });
+
+            modelBuilder.Entity("SS14.ServerHub.Data.ServerStatusArchive", b =>
+                {
+                    b.Property<int>("AdvertisedServerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ServerStatusArchiveId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServerStatusArchiveId"));
+
+                    b.Property<IPAddress>("AdvertiserAddress")
+                        .HasColumnType("inet");
+
+                    b.Property<byte[]>("StatusData")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("AdvertisedServerId", "ServerStatusArchiveId");
+
+                    b.ToTable("ServerStatusArchive");
+                });
+
+            modelBuilder.Entity("SS14.ServerHub.Data.ServerStatusArchive", b =>
+                {
+                    b.HasOne("SS14.ServerHub.Data.AdvertisedServer", "AdvertisedServer")
+                        .WithMany()
+                        .HasForeignKey("AdvertisedServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdvertisedServer");
                 });
 #pragma warning restore 612, 618
         }

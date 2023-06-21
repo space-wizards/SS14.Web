@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SS14.ServerHub.Data;
+using SS14.ServerHub.Shared.Data;
 using SS14.ServerHub.Utility;
 
 namespace SS14.ServerHub.Controllers;

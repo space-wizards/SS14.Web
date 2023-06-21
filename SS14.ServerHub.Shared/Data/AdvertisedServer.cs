@@ -1,8 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 
-namespace SS14.ServerHub.Data;
+namespace SS14.ServerHub.Shared.Data;
 
 public sealed class AdvertisedServer
 {

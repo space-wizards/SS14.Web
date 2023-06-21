@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Net;
 
-namespace SS14.ServerHub.Data;
+namespace SS14.ServerHub.Shared.Data;
 
 /// <summary>
 /// Represents a banned IP address range.

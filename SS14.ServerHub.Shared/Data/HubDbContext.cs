@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace SS14.ServerHub.Data;
+namespace SS14.ServerHub.Shared.Data;
 
 public sealed class HubDbContext : DbContext
 {

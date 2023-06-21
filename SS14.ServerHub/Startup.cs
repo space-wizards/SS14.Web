@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Prometheus;
-using SS14.ServerHub.Data;
+using SS14.ServerHub.Shared.Data;
 
 namespace SS14.ServerHub;
 

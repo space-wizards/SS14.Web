@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using SS14.ServerHub.Data;
+using SS14.ServerHub.Shared.Data;
 
 #nullable disable
 
 namespace SS14.ServerHub.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20230314222609_ServerStatusArchive")]
-    partial class ServerStatusArchive
+    [Migration("20230408202047_InfoData")]
+    partial class InfoData
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -42,6 +42,9 @@ namespace SS14.ServerHub.Migrations
 
                     b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("InfoData")
+                        .HasColumnType("jsonb");
 
                     b.Property<byte[]>("StatusData")
                         .HasColumnType("jsonb");
