@@ -42,8 +42,20 @@ public class Startup
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy(AuthConstants.PolicySysAdmin,
-                policy => policy.RequireRole(AuthConstants.RoleSysAdmin));
+            options.AddPolicy(
+                AuthConstants.PolicyAnyHubAdmin, 
+                policy => policy.RequireRole(AuthConstants.RoleSysAdmin, AuthConstants.RoleServerHubAdmin)
+            );
+            
+            options.AddPolicy(
+                AuthConstants.PolicySysAdmin,
+                policy => policy.RequireRole(AuthConstants.RoleSysAdmin)
+            );
+            
+            options.AddPolicy(
+                AuthConstants.PolicyServerHubAdmin,
+                policy => policy.RequireRole(AuthConstants.RoleServerHubAdmin)
+            );
         });
 
         services.AddMvc()
@@ -51,7 +63,10 @@ public class Startup
             {
                 options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
                 options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
-                options.Conventions.AuthorizeAreaFolder("Admin", "/", AuthConstants.PolicySysAdmin);
+                options.Conventions.AuthorizeAreaFolder("Admin", "/", AuthConstants.PolicyAnyHubAdmin);
+                options.Conventions.AuthorizeAreaFolder("Admin", "/Clients", AuthConstants.PolicySysAdmin);
+                options.Conventions.AuthorizeAreaFolder("Admin", "/Users", AuthConstants.PolicySysAdmin);
+                options.Conventions.AuthorizeAreaFolder("Admin", "/Servers", AuthConstants.PolicyServerHubAdmin);
             });
 
         services.ConfigureApplicationCookie(options =>

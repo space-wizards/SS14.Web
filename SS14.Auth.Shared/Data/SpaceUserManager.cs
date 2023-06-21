@@ -91,14 +91,6 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
             new AccountLogPasswordChanged(actor.Id));
     }
 
-    public void LogHubAdminChanged(SpaceUser user, bool newHubAdmin, SpaceUser actor)
-    {
-        AccountLog(
-            user, 
-            AccountLogType.HubAdminChanged,
-            new AccountLogHubAdminChanged(newHubAdmin, actor.Id));
-    }
-    
     public void LogEmailConfirmedChanged(SpaceUser user, bool newEmailConfirmed, SpaceUser actor)
     {
         AccountLog(
@@ -137,6 +129,22 @@ public sealed class SpaceUserManager : UserManager<SpaceUser>
             user, 
             AccountLogType.AdminLockedChanged,
             new AccountLogAdminLockedChanged(newLocked, actor.Id));
+    }
+
+    public void LogAuthRoleAdded(SpaceUser user, Guid role, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.AuthRoleAdded,
+            new AccountLogAuthRoleAdded(role, actor.Id));
+    }
+    
+    public void LogAuthRoleRemoved(SpaceUser user, Guid role, SpaceUser actor)
+    {
+        AccountLog(
+            user, 
+            AccountLogType.AuthRoleRemoved,
+            new AccountLogAuthRoleRemoved(role, actor.Id));
     }
 
     public void AccountLog(SpaceUser user, AccountLogType type, AccountLogEntry entry)

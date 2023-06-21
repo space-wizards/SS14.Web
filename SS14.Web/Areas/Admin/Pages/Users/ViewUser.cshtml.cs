@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
@@ -19,6 +20,7 @@ public class ViewUser : PageModel
     private readonly SessionManager _sessionManager;
     private readonly PatreonDataManager _patreonDataManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly RoleManager<SpaceRole> _roleManager;
 
     public SpaceUser SpaceUser { get; set; }
 
@@ -38,7 +40,8 @@ public class ViewUser : PageModel
 
         [Display(Name = "Email Confirmed?")] public bool EmailConfirmed { get; set; }
 
-        [Display(Name = "Is Hub Admin?")] public bool HubAdmin { get; set; }
+        [Display(Name = "Is Auth Hub Admin?")] public bool HubAdmin { get; set; }
+        [Display(Name = "Is Server Hub Admin?")] public bool ServerHubAdmin { get; set; }
         
         [Display(Name = "2FA enabled?")] public bool TfaEnabled { get; set; }
         
@@ -54,13 +57,15 @@ public class ViewUser : PageModel
         IEmailSender emailSender,
         SessionManager sessionManager,
         PatreonDataManager patreonDataManager,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        RoleManager<SpaceRole> roleManager)
     {
         _userManager = userManager;
         _emailSender = emailSender;
         _sessionManager = sessionManager;
         _patreonDataManager = patreonDataManager;
         _dbContext = dbContext;
+        _roleManager = roleManager;
     }
 
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -128,21 +133,8 @@ public class ViewUser : PageModel
             SpaceUser.AdminLocked = Input.AdminLocked;
         }
 
-        if (Input.HubAdmin != await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin))
-        {
-            _userManager.LogHubAdminChanged(SpaceUser, Input.HubAdmin, actor);
-            
-            if (Input.HubAdmin)
-            {
-                await _userManager.AddToRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin);
-            }
-            else
-            {
-                await _userManager.RemoveFromRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin);
-            }
-
-            await _userManager.UpdateSecurityStampAsync(SpaceUser);
-        }
+        await CheckRole(Input.HubAdmin, AuthConstants.RoleSysAdmin);
+        await CheckRole(Input.ServerHubAdmin, AuthConstants.RoleServerHubAdmin);
 
         await _userManager.UpdateAsync(SpaceUser);
 
@@ -151,6 +143,28 @@ public class ViewUser : PageModel
         StatusMessage = "Changes saved";
 
         return RedirectToPage(new {id});
+
+        async Task CheckRole(bool set, string roleName)
+        {
+            if (set != await _userManager.IsInRoleAsync(SpaceUser, roleName))
+            {
+                var role = await _roleManager.FindByNameAsync(roleName);
+                var roleGuid = Guid.Parse(await _roleManager.GetRoleIdAsync(role));
+                
+                if (set)
+                {
+                    await _userManager.AddToRoleAsync(SpaceUser, roleName);
+                    _userManager.LogAuthRoleAdded(SpaceUser, roleGuid, actor);
+                }
+                else
+                {
+                    await _userManager.RemoveFromRoleAsync(SpaceUser, roleName);
+                    _userManager.LogAuthRoleRemoved(SpaceUser, roleGuid, actor);
+                }
+
+                await _userManager.UpdateSecurityStampAsync(SpaceUser);
+            }
+        }
     }
 
     public async Task<IActionResult> OnPostResendConfirmationAsync(Guid id)
@@ -209,6 +223,7 @@ public class ViewUser : PageModel
             EmailConfirmed = SpaceUser.EmailConfirmed,
             Username = SpaceUser.UserName,
             HubAdmin = await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleSysAdmin),
+            ServerHubAdmin = await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleServerHubAdmin),
             TfaEnabled = SpaceUser.TwoFactorEnabled,
             AdminLocked = SpaceUser.AdminLocked,
             AdminNotes = SpaceUser.AdminNotes

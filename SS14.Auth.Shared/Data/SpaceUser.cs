@@ -99,6 +99,9 @@ public sealed record AccountLogRecoveryCodesGenerated(Guid Actor) : AccountLogEn
 public sealed record AccountLogAdminNotesChanged(string NewNotes, Guid Actor) : AccountLogEntry;
 public sealed record AccountLogAdminLockedChanged(bool NewLocked, Guid Actor) : AccountLogEntry;
 
+public sealed record AccountLogAuthRoleAdded(Guid Role, Guid Actor) : AccountLogEntry;
+public sealed record AccountLogAuthRoleRemoved(Guid Role, Guid Actor) : AccountLogEntry;
+
 public enum AccountLogType
 {
     Created = 0,
@@ -115,4 +118,6 @@ public enum AccountLogType
     RecoveryCodesGenerated = 11,
     AdminNotesChanged = 12,
     AdminLockedChanged = 13,
+    AuthRoleAdded = 14,
+    AuthRoleRemoved = 15
 }

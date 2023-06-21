@@ -1,4 +1,6 @@
 ﻿@using SS14.Auth.Shared
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,7 +27,7 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Home" asp-action="MainWebsite">Main Website</a>
                     </li>
-                    @if (User.IsInRole(AuthConstants.RoleSysAdmin))
+                    @if ((await AuthorizationService.AuthorizeAsync(User, AuthConstants.PolicyAnyHubAdmin)).Succeeded)
                     {
                         <li class="nav-item">
                             <a class="nav-link" asp-area="Admin" asp-page="/Index">Hub Admin</a>

@@ -17,7 +17,8 @@ namespace SS14.Auth.Services;
 public sealed class EnsureRolesService : IHostedService
 {
     private static readonly string[] RolesToEnsure = {
-        AuthConstants.RoleSysAdmin
+        AuthConstants.RoleSysAdmin,
+        AuthConstants.RoleServerHubAdmin
     };
 
     private readonly IServiceProvider _serviceProvider;
@@ -40,14 +41,14 @@ public sealed class EnsureRolesService : IHostedService
 
         foreach (var roleName in RolesToEnsure)
         {
-            if (await roleManager.FindByNameAsync(AuthConstants.RoleSysAdmin) != null)
+            if (await roleManager.FindByNameAsync(roleName) != null)
                 continue;
             
             _logger.LogInformation("Creating role {Role} because it does not exist in the database yet", roleName);
 
             await roleManager.CreateAsync(new SpaceRole
             {
-                Name = AuthConstants.RoleSysAdmin
+                Name = roleName
             });
         }
 

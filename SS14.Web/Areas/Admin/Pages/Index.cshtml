@@ -1,5 +1,9 @@
 ﻿@page
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using SS14.Auth.Shared
 @model SS14.Web.Areas.Admin.Pages.Index
+@inject IAuthorizationService AuthorizationService
 
 @{
     ViewData["Title"] = "Hub Admin";
@@ -11,5 +15,13 @@
   </ol>
 </nav>
 
-<a asp-page="Users/Index" class="btn btn-primary">Users</a>
-<a asp-page="Clients/Index" class="btn btn-primary">OAuth Clients</a>
+@if ((await AuthorizationService.AuthorizeAsync(User, AuthConstants.PolicySysAdmin)).Succeeded)
+{
+    <a asp-page="Users/Index" class="btn btn-primary">Users</a>
+    <a asp-page="Clients/Index" class="btn btn-primary">OAuth Clients</a>
+}
+
+@if ((await AuthorizationService.AuthorizeAsync(User, AuthConstants.PolicyServerHubAdmin)).Succeeded)
+{
+    <a asp-page="Servers/Index" class="btn btn-primary">Servers</a>
+}
