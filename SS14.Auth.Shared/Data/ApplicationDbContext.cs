@@ -15,21 +15,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     IConfigurationDbContext,
     IPersistedGrantDbContext
 {
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (_initializedWithoutOptions)
-        {
-            optionsBuilder.UseNpgsql("foobar");
-        }
-    }
-
-    private readonly bool _initializedWithoutOptions;
-
-    public ApplicationDbContext()
-    {
-        _initializedWithoutOptions = true;
-    }
-
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
