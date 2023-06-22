@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,6 +18,7 @@ using Serilog;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
+using SS14.ServerHub.Shared.Data;
 using SS14.Web.HCaptcha;
 
 namespace SS14.Web;
@@ -39,6 +41,12 @@ public class Startup
 
         services.AddDatabaseDeveloperPageExceptionFilter();
         StartupHelpers.AddShared(services, Configuration);
+
+        services.AddDbContext<HubDbContext>(options =>
+        {
+            var connectionString = Configuration.GetConnectionString("HubConnection") ?? throw new InvalidOperationException("Must set HubConnection");
+            options.UseNpgsql(connectionString);
+        });
 
         services.AddAuthorization(options =>
         {

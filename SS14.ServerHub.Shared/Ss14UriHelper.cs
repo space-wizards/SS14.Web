@@ -1,8 +1,7 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 
-namespace SS14.ServerHub;
+namespace SS14.ServerHub.Shared;
 
 /// <summary>
 ///     Helpers for managing SS14 URIs like <c>ss14://</c>.

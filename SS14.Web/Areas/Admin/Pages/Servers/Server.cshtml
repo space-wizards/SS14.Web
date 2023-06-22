@@ -1,0 +1,91 @@
+﻿@page "{serverId}"
+@using SS14.ServerHub.Shared
+@using SS14.Web.Areas.Admin.Pages.Servers
+@model SS14.Web.Areas.Admin.Pages.Servers.Server
+
+
+@{
+    ViewData["Title"] = $"OAuth Client: {Model.Address}";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Servers</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Address</li>
+    </ol>
+</nav>
+
+<div class="container">
+    <h1>Server information for @Model.Address</h1>
+    <dl class="row">
+        <dt class="col-sm-2">ID:</dt>
+        <dd class="col-sm-10">@Model.ServerId</dd>
+        <dt class="col-sm-2">Address:</dt>
+        <dd class="col-sm-10 monotype">@Model.Address</dd>
+        <dt class="col-sm-2">HTTP URI:</dt>
+        <dd class="col-sm-10 monotype">@Ss14UriHelper.GetServerApiAddress(Ss14UriHelper.ParseSs14Uri(Model.Address))</dd>
+    </dl>
+</div>
+
+<div class="container">
+    <h1>Most Recent Status</h1>
+    <dl class="row">
+        <dt class="col-sm-2">Name:</dt>
+        <dd class="col-sm-10">@Model.Status.Name</dd>
+        <dt class="col-sm-2">Players:</dt>
+        <dd class="col-sm-10">@Model.Status.Players</dd>
+        <dt class="col-sm-2">Max Player Count:</dt>
+        <dd class="col-sm-10">@Model.Status.SoftMaxPlayers</dd>
+        <dt class="col-sm-2">Tags:</dt>
+        <dd class="col-sm-10 monotype">
+            @if (Model.Status.Tags != null)
+            {
+                foreach (var tag in Model.Status.Tags)
+                {
+                    @tag
+                    <br/>
+                } 
+            }
+        </dd>
+        <dt class="col-sm-2">Description:</dt>
+        <dd class="col-sm-10">@Model.Info.Desc</dd>
+        <dt class="col-sm-2">Links:</dt>
+        <dd class="col-sm-10">
+            @if (Model.Info.Links != null)
+            {
+                foreach (var link in Model.Info.Links)
+                {
+                    <a href="@link.Url">@link.Name</a><br/>
+                }   
+            }
+        </dd>
+        <dt class="col-sm-2">Auth Mode:</dt>
+        <dd class="col-sm-10">@Model.Info.Auth.Mode</dd>
+        <dt class="col-sm-2">Auth PK:</dt>
+        <dd class="col-sm-10 monotype">@Model.Info.Auth.PublicKey</dd>
+    </dl>
+</div>
+
+<div class="container">
+    <h1>Most recent names (@Server.CountNames)</h1>
+    <table class="table table-dark">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Last Seen (UTC)</th>
+            <th>First Seen (UTC)</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var name in Model.UniqueNames)
+        {
+            <tr>
+                <td>@name.Name</td>
+                <td>@name.LastSeen</td>
+                <td>@name.FirstSeen</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

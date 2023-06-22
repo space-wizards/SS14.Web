@@ -1,0 +1,42 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Servers.ListActive
+
+@{
+    ViewData["Title"] = "Active Servers";
+}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Servers</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Address</th>
+        <th>Name</th>
+        <th>Players</th>
+        <th>Max players</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var server in Model.Servers)
+    {
+        <tr>
+            <td>@server.Id</td>
+            <td>@server.Address</td>
+            <td>@server.StatusData.Name</td>
+            <td>@server.StatusData.Players</td>
+            <td>@server.StatusData.SoftMaxPlayers</td>
+            <td>
+                <a asp-page="./Server" asp-route-serverId="@server.Id">View</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+

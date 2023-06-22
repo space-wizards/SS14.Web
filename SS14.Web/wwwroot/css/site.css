@@ -29,6 +29,10 @@ a.navbar-brand {
   word-break: break-all;
 }
 
+.monotype {
+  font-family: var(--font-family-monospace);
+}
+
 /* Provide sufficient contrast against white background */
 a {
   color: #3678ce;
