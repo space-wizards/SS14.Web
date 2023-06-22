@@ -12,31 +12,32 @@
     </ol>
 </nav>
 
-<table class="table table-dark">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Address</th>
-        <th>Name</th>
-        <th>Players</th>
-        <th>Max players</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var server in Model.Servers)
-    {
+<div class="container">
+    <table class="table table-dark">
+        <thead>
         <tr>
-            <td>@server.Id</td>
-            <td>@server.Address</td>
-            <td>@server.StatusData.Name</td>
-            <td>@server.StatusData.Players</td>
-            <td>@server.StatusData.SoftMaxPlayers</td>
-            <td>
-                <a asp-page="./Server" asp-route-serverId="@server.Id">View</a>
-            </td>
+            <th>ID</th>
+            <th>Address</th>
+            <th>Name</th>
+            <th>Players</th>
+            <th>Max players</th>
+            <th></th>
         </tr>
-    }
-    </tbody>
-</table>
-
+        </thead>
+        <tbody>
+        @foreach (var server in Model.Servers)
+        {
+            <tr>
+                <td>@server.Id</td>
+                <td>@server.Address</td>
+                <td>@server.StatusData.Name</td>
+                <td>@server.StatusData.Players</td>
+                <td>@server.StatusData.SoftMaxPlayers</td>
+                <td>
+                    <a asp-page="./Server" asp-route-serverId="@server.Id">View</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

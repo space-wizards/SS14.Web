@@ -1,0 +1,70 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Servers.ListNames
+
+@{
+    ViewData["Title"] = "Server Names";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Servers</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<form asp-page="./ListNames" method="get" class="container">
+    <div class="form-group row">
+            <label class="col-md-1" for="searchBar">Search:</label>
+            <input type="text" id="searchBar" name="SearchString" value="@Model.CurrentFilter" class="form-control form-control-sm col-md-9" />
+            <input type="submit" value="Search" class="btn btn-primary col-md-1 btn-sm"/>
+            <a class="btn btn-danger btn-sm col-md-1" asp-page="./ListNames">Clear</a>
+    </div>
+</form>
+
+
+<div class="container">
+    <table class="table table-dark">
+        <thead>
+        <tr>
+            <th>Address</th>
+            <th>Name</th>
+            <th>Last Seen (UTC)</th>
+            <th>First Seen (UTC)</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var server in Model.ServerList.PaginatedItems)
+        {
+            <tr>
+                <td><a asp-page="./Server" asp-route-serverId="@server.AdvertisedServerId">
+                    @server.AdvertisedServer.Address
+                </a></td>
+                <td>@server.Name</td>
+                <td>@server.LastSeen</td>
+                <td>@server.FirstSeen</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@{
+    var prevDisabled = !Model.ServerList.HasPrevPage ? "disabled" : "";
+    var nextDisabled = !Model.ServerList.HasNextPage ? "disabled" : "";
+}
+
+<div class="container">
+    <a asp-page="./ListNames"
+       asp-route-pageIndex="@(Model.ServerList.PageIndex - 1)"
+       asp-route-currentFilter="@Model.CurrentFilter"
+       class="btn btn-primary @prevDisabled">
+        Previous
+    </a>
+    <a asp-page="./ListNames"
+       asp-route-pageIndex="@(Model.ServerList.PageIndex + 1)"
+       asp-route-currentFilter="@Model.CurrentFilter"
+       class="btn btn-primary @nextDisabled">
+        Next
+    </a>
+</div>
