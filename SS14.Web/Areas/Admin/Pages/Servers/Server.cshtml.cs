@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using SS14.ServerHub.Shared;
 using SS14.ServerHub.Shared.Data;
 
 namespace SS14.Web.Areas.Admin.Pages.Servers;
@@ -20,9 +21,11 @@ public class Server : PageModel
     public string Address { get; private set; } = "";
     public ServerStatusData Status { get; private set; }
     public ServerInfoData Info { get; private set; }
+    public bool Online { get; private set; }
 
-    public UniqueServerName[] UniqueNames { get; private set; } 
-    
+    public UniqueServerName[] UniqueNames { get; private set; }
+    public List<TrackedCommunity> MatchedCommunities { get; private set; } = new();
+
     public Server(HubDbContext hubDbContext)
     {
         _hubDbContext = hubDbContext;
@@ -34,6 +37,15 @@ public class Server : PageModel
         if (server == null)
             return NotFound("Server not found");
 
+        try
+        {
+            await CommunityMatcher.MatchCommunities(_hubDbContext, new Uri(server.Address), MatchedCommunities);
+        }
+        catch (CommunityMatcher.FailedResolveException)
+        {
+            // Meh.
+        }
+        
         UniqueNames = await _hubDbContext.UniqueServerName
             .Where(u => u.AdvertisedServerId == serverId)
             .OrderByDescending(u => u.LastSeen)
@@ -52,6 +64,7 @@ public class Server : PageModel
         
         ServerId = serverId;
         Address = server.Address;
+        Online = server.Expires > DateTime.UtcNow;
 
         return Page();
     }

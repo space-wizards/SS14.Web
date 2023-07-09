@@ -41,8 +41,9 @@ public sealed class HubDbContext : DbContext
     }
 
     public DbSet<AdvertisedServer> AdvertisedServer { get; set; } = default!;
-    public DbSet<BannedAddress> BannedAddress { get; set; } = default!;
-    public DbSet<BannedDomain> BannedDomain { get; set; } = default!;
+    public DbSet<TrackedCommunity> TrackedCommunity { get; set; } = default!;
+    public DbSet<TrackedCommunityAddress> TrackedCommunityAddress { get; set; } = default!;
+    public DbSet<TrackedCommunityDomain> TrackedCommunityDomain { get; set; } = default!;
     public DbSet<ServerStatusArchive> ServerStatusArchive { get; set; } = default!;
     public DbSet<UniqueServerName> UniqueServerName { get; set; } = default!;
 }

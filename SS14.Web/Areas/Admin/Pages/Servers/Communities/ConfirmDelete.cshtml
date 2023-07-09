@@ -1,0 +1,20 @@
+﻿@page "{id}"
+@model SS14.Web.Areas.Admin.Pages.Servers.Communities.ConfirmDelete
+
+@{
+    ViewData["Title"] = $"Delete Community {Model.Community.Name}?";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="../Index">Servers</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Communities</a></li>
+        <li class="breadcrumb-item"><a asp-page="./View" asp-route-id="@Model.Community.Id">Community @Model.Community.Name</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Delete?</li>
+    </ol>
+</nav>
+
+<form method="post">
+    <button id="delete-button" type="submit" asp-page-handler="Delete" asp-route-id="@Model.Community.Id" class="btn btn-danger">Delete</button>
+</form>

@@ -1,0 +1,72 @@
+﻿@page
+@using SS14.Web.Helpers
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using SS14.Web.Pages.Shared
+@model SS14.Web.Areas.Admin.Pages.Servers.Communities.Index
+
+@{
+    ViewData["Title"] = "Commmunities";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="../Index">Servers</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Communities</li>
+    </ol>
+</nav>
+
+@if (TempData.ContainsKey("StatusMessage"))
+{
+    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />   
+}
+
+<form asp-page-handler="NewCommunity" method="post">
+    <button type="submit" class="btn btn-success">New Community</button>
+</form>
+
+<form asp-page="./Index" method="get" class="container">
+    @FormHiddenRoutes.Make(Model.AllRouteData, "search")
+    <div class="form-group row">
+        <label class="col-md-3" for="searchBar">Search:</label>
+        <input type="text" id="searchBar" name="search" value="@Model.CurrentFilter" class="form-control form-control-sm col-md-7"/>
+        <input type="submit" value="Search" class="btn btn-primary col-md-1 btn-sm"/>
+        <a class="btn btn-danger btn-sm col-md-1" asp-page="./Index">Clear</a>
+    </div>
+</form>
+
+<partial name="Pagination" for="Pagination"/>
+
+<div class="container">
+    <table class="table table-dark mt-3">
+        <thead>
+        <tr>
+            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "name", "Name"))"/>
+            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "banned", "Banned?"))"/>
+            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "created", "Track Created"))"/>
+            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "updated", "Last Updated"))"/>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var community in Model.Pagination.List.PaginatedItems)
+        {
+            <tr>
+                <td>
+                    <a asp-page="./View" asp-route-id="@community.Id">@community.Name</a>
+                </td>
+                <td>
+                    <input type="checkbox" class="form-control" @(community.IsBanned ? "checked" : "") disabled>
+                </td>
+                <td>
+                    @community.Created
+                </td>
+                <td>
+                    @community.LastUpdated
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<partial name="Pagination" for="Pagination"/>

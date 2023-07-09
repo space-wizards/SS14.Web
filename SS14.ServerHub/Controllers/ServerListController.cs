@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -79,9 +78,9 @@ public class ServerListController : ControllerBase
             if (ban != null)
             {
                 _logger.LogInformation(
-                    "Advertise request sender {Address} is banned: {BanReason}",
+                    "Advertise request sender {Address} is banned (community: {CommunityName})",
                     senderIp,
-                    ban.Reason);
+                    ban.TrackedCommunity.Name);
 
                 return Unauthorized();
             }
@@ -97,7 +96,7 @@ public class ServerListController : ControllerBase
         switch (await CheckAddressBannedAsync(parsedAddress))
         {
             case BanCheckResult.Banned:
-                return Unauthorized();
+                return Unauthorized("Your server has been blocked from advertising on the hub. If you believe this to be in error, please contact us.");
             case BanCheckResult.FailedResolve:
                 return UnprocessableEntity("Server host name failed to resolve");
         }
@@ -205,54 +204,32 @@ public class ServerListController : ControllerBase
 
     private async Task<BanCheckResult> CheckAddressBannedAsync(Uri uri)
     {
-        var host = uri.Host;
-
-        if (!IPAddress.TryParse(host, out _))
-        {
-            // If a domain name, check for domain ban.
-
-            var domainBan = await _dbContext.BannedDomain
-                .FirstOrDefaultAsync(b => b.DomainName == host || EF.Functions.Like(host, "%." + b.DomainName));
-
-            if (domainBan != null)
-            {
-                _logger.LogInformation("{Host} is banned: {BanReason}", host, domainBan.Reason);
-                return BanCheckResult.Banned;
-            }
-        }
-
-        IPAddress[] addresses;
+        var matched = new List<TrackedCommunity>();
         try
         {
-            // If the host is an IP address, GetHostAddressesAsync returns it directly.
-            addresses = await Dns.GetHostAddressesAsync(host);
+            await CommunityMatcher.MatchCommunities(_dbContext, uri, matched);
         }
-        catch (SocketException e)
+        catch (CommunityMatcher.FailedResolveException e)
         {
-            // Failure to resolve or something. Could be a mistake or something, so don't report 401.
-            _logger.LogInformation(e, "{Host} is failed to resolve", host);
+            _logger.LogInformation(e, "{Host} failed to resolve", uri.Host);
             return BanCheckResult.FailedResolve;
         }
 
-        // Check EVERY address.
-        foreach (var checkAddress in addresses)
+        var banned = matched.SingleOrDefault(x => x.IsBanned);
+        if (banned != null)
         {
-            var addressBan = await CheckIpBannedAsync(checkAddress);
-
-            if (addressBan != null)
-            {
-                _logger.LogInformation("{Host} is banned: {BanReason}", host, addressBan.Reason);
-                return BanCheckResult.Banned;
-            }
+            _logger.LogInformation(
+                "{Host} is banned (community: {CommunityName})", uri.Host, banned.Name);
+            return BanCheckResult.Banned;
         }
-
+        
         return BanCheckResult.NotBanned;
     }
 
-    private async Task<BannedAddress?> CheckIpBannedAsync(IPAddress address)
+    private async Task<TrackedCommunityAddress?> CheckIpBannedAsync(IPAddress address)
     {
-        return await _dbContext.BannedAddress
-            .SingleOrDefaultAsync(b => EF.Functions.ContainsOrEqual(b.Address, address));
+        return await CommunityMatcher.CheckIP(_dbContext, address)
+            .SingleOrDefaultAsync(b => b.TrackedCommunity.IsBanned);
     }
 
     private enum BanCheckResult

@@ -1,0 +1,57 @@
+﻿@using SS14.Web.Helpers
+@model SS14.Web.Helpers.IPaginationState
+
+@functions
+{
+    async Task ShownCountButton(int count)
+    {
+        if (count == Model!.PerPage)
+        {
+            @count
+        }
+        else
+        {
+            var nullCount = Model.DefaultPerPage == count ? null : (int?) count;
+            <a asp-all-route-data="@Model.AllRouteData.ShallowClone()"
+               asp-route-perPage="@nullCount">
+                @count
+            </a>
+        }
+    }
+}
+
+@{
+    if (Model == null)
+        throw new ArgumentNullException();
+
+    var prevDisabled = !Model.HasPrevPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+    var nextPageIdx = Model.PageIndex + 1;
+    var prevPageIdx = Model.PageIndex == 1 ? null : (int?) Model.PageIndex - 1;
+}
+
+<div class="container">
+    <a asp-all-route-data="@Model.AllRouteData.ShallowClone()"
+       asp-route-pageIndex="@prevPageIdx"
+       class="btn btn-primary btn-sm @prevDisabled">
+        Previous
+    </a>
+    <a asp-all-route-data="@Model.AllRouteData.ShallowClone()"
+       asp-route-pageIndex="@nextPageIdx"
+       class="btn btn-primary btn-sm @nextDisabled">
+        Next
+    </a>
+
+    <span class="small">
+        Page: @(Model.PageIndex + 1)
+        Total: @Model.TotalCount
+        Shown:
+        @{ await ShownCountButton(100); }
+        |
+        @{ await ShownCountButton(250); }
+        |
+        @{ await ShownCountButton(500); }
+        |
+        @{ await ShownCountButton(1000); }
+    </span>
+</div>

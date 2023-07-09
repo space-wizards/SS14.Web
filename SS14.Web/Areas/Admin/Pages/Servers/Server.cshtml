@@ -5,7 +5,7 @@
 
 
 @{
-    ViewData["Title"] = $"OAuth Client: {Model.Address}";
+    ViewData["Title"] = $"Server: {Model.Address}";
 }
 
 <nav aria-label="breadcrumb">
@@ -25,6 +25,8 @@
         <dd class="col-sm-10 monotype">@Model.Address</dd>
         <dt class="col-sm-2">HTTP URI:</dt>
         <dd class="col-sm-10 monotype">@Ss14UriHelper.GetServerApiAddress(Ss14UriHelper.ParseSs14Uri(Model.Address))</dd>
+        <dt class="col-sm-2">Currently online?</dt>
+        <dd class="col-sm-10 monotype">@Model.Online</dd>
     </dl>
 </div>
 
@@ -65,6 +67,20 @@
         <dt class="col-sm-2">Auth PK:</dt>
         <dd class="col-sm-10 monotype">@Model.Info.Auth.PublicKey</dd>
     </dl>
+</div>
+
+<div class="container">
+    <h1>Matched Communities</h1>
+    <ul class="row">
+        @foreach (var community in Model.MatchedCommunities)
+        {
+            <li><a asp-page="Communities/View" asp-route-id="@community.Id">@community.Name</a></li>
+        }
+        @if (Model.MatchedCommunities.Count == 0)
+        {
+            <li><i>None</i></li>
+        }
+    </ul>
 </div>
 
 <div class="container">

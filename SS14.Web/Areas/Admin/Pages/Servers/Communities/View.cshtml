@@ -1,0 +1,112 @@
+﻿@page "{id}"
+@using SS14.Web.Helpers
+@model SS14.Web.Areas.Admin.Pages.Servers.Communities.View
+
+@{
+    ViewData["Title"] = $"Commmunity {Model.Community.Name}";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="../Index">Servers</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Communities</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Community @Model.Community.Name</li>
+    </ol>
+</nav>
+
+<partial name="_StatusMessage" model="Model.StatusMessage"/>
+
+<form method="post" class="container">
+    <div class="form-group row">
+        <label asp-for="Input.Name" class="col-sm-3 col-form-label"></label>
+        <input asp-for="Input.Name" class="form-control col-sm-9"/>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.Notes" class="col-sm-3 col-form-label"></label>
+        <textarea asp-for="Input.Notes" class="form-control col-sm-9"></textarea>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-sm-9 offset-sm-3">
+            <div class="form-check">
+                <input asp-for="Input.IsBanned" class="form-check-input"/>
+                <label asp-for="Input.IsBanned" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
+    <button id="save-button" type="submit" asp-page-handler="Save" asp-route-id="@Model.Community.Id" class="btn btn-primary btn-sm">Save</button>
+    
+</form>
+
+<h5 class="mt-5">Addresses</h5>
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>Address</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var address in Model.Community.Addresses)
+    {
+        <tr>
+            <td>@address.Address.FormatCidr()</td>
+            <td>
+                <form method="post">
+                    <button type="submit"
+                            asp-page-handler="DeleteAddress" asp-route-address="@address.Id" 
+                            class="btn btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>   
+    }
+    </tbody>
+</table>
+
+<form method="post" class="container">
+    <div class="form-group row">
+        <input asp-for="AddAddress.Address" class="form-control col-md-9">
+        <button type="submit" asp-route-id="@Model.Community.Id" asp-page-handler="AddAddress" class="btn btn-primary col-md-3">Add</button>
+    </div>
+</form>
+
+<h5 class="mt-5">Domains</h5>
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>Domain Name</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var domain in Model.Community.Domains)
+    {
+        <tr>
+            <td>@domain.DomainName</td>
+            <td>
+                <form method="post">
+                    <button type="submit"
+                            asp-page-handler="DeleteDomain" asp-route-domain="@domain.Id" 
+                            class="btn btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>   
+    }
+    </tbody>
+</table>
+
+<form method="post" class="container">
+    <div class="form-group row">
+        <input asp-for="AddDomain.Domain" class="form-control col-md-9">
+        <button type="submit" asp-route-id="@Model.Community.Id" asp-page-handler="AddDomain" class="btn btn-primary col-md-3">Add</button>
+    </div>
+</form>
+
+<h5 class="mt-5">Actions</h5>
+
+<a asp-page="./ConfirmDelete" asp-route-id="@Model.Community.Id" class="btn btn-danger">Delete</a>
