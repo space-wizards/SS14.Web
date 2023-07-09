@@ -1,9 +1,11 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 
-namespace SS14.Web.Helpers;
+namespace SS14.ServerHub.Shared.Helpers;
 
+/// <summary>
+/// Helper functions for working with IP addresses and CIDR-notation ranges.
+/// </summary>
 public static class IPHelper
 {
     public static bool TryParseIpOrCidr(string str, out (IPAddress, int) cidr)

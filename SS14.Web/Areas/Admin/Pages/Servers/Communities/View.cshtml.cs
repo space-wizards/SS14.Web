@@ -3,13 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SS14.ServerHub.Shared.Data;
-using SS14.Web.Helpers;
+using SS14.ServerHub.Shared.Helpers;
+using SS14.Web.Data;
 
 namespace SS14.Web.Areas.Admin.Pages.Servers.Communities;
 
 public sealed class View : PageModel
 {
     private readonly HubDbContext _dbContext;
+    private readonly HubAuditLogManager _hubAuditLog;
 
     [BindProperty] public InputModel Input { get; set; }
     [BindProperty] public AddAddressModel AddAddress { get; set; } = new();
@@ -36,9 +38,10 @@ public sealed class View : PageModel
         public bool IsBanned { get; set; }
     }
     
-    public View(HubDbContext dbContext)
+    public View(HubDbContext dbContext, HubAuditLogManager hubAuditLog)
     {
         _dbContext = dbContext;
+        _hubAuditLog = hubAuditLog;
     }
     
     public async Task<IActionResult> OnGetAsync(int id)
@@ -46,6 +49,7 @@ public sealed class View : PageModel
         Community = await _dbContext.TrackedCommunity
             .Include(c => c.Addresses)
             .Include(c => c.Domains)
+            .AsSplitQuery()
             .SingleOrDefaultAsync(u => u.Id == id);
         
         if (Community == null)
@@ -67,9 +71,26 @@ public sealed class View : PageModel
         if (Community == null)
             return NotFound("Community not found");
 
-        Community.Name = Input.Name ?? "";
-        Community.Notes = Input.Notes ?? "";
-        Community.IsBanned = Input.IsBanned;
+        var inputName = (Input.Name ?? "").Trim();
+        var inputNotes = Input.Notes ?? "";
+
+        if (Community.Name != inputName)
+        {
+            _hubAuditLog.Log(User, new HubAuditCommunityChangedName(Community, Community.Name, inputName));
+            Community.Name = inputName;
+        }
+
+        if (Community.Notes != inputNotes)
+        {
+            _hubAuditLog.Log(User, new HubAuditCommunityChangedNotes(Community, Community.Notes, inputNotes));
+            Community.Notes = inputNotes;
+        }
+
+        if (Community.IsBanned != Input.IsBanned)
+        {
+            _hubAuditLog.Log(User, new HubAuditCommunityChangedBanned(Community, Community.IsBanned, Input.IsBanned));
+            Community.IsBanned = Input.IsBanned;
+        }
 
         await _dbContext.SaveChangesAsync();
 
@@ -80,22 +101,32 @@ public sealed class View : PageModel
     
     public async Task<IActionResult> OnPostAddAddressAsync(int id)
     {
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
         Community = await _dbContext.TrackedCommunity.SingleOrDefaultAsync(c => c.Id == id);
         if (Community == null)
             return NotFound("Community not found");
 
-        if (!IPHelper.TryParseIpOrCidr(AddAddress.Address, out var cidr))
+        if (!IPHelper.TryParseIpOrCidr(AddAddress.Address ?? "", out var cidr))
         {
             StatusMessage = "Error: Invalid IP/CIDR";
             return RedirectToPage(new { id = Community.Id });
         }
 
-        _dbContext.TrackedCommunityAddress.Add(new TrackedCommunityAddress
+        var address = new TrackedCommunityAddress
         {
             Address = cidr, TrackedCommunityId = id
-        });
+        };
+        
+        _dbContext.TrackedCommunityAddress.Add(address);
 
         await _dbContext.SaveChangesAsync();
+
+        _hubAuditLog.Log(User, new HubAuditCommunityAddressAdd(Community, address));
+        
+        await _dbContext.SaveChangesAsync();
+
+        await tx.CommitAsync();
         
         StatusMessage = "Address added";
 
@@ -104,11 +135,15 @@ public sealed class View : PageModel
     
     public async Task<IActionResult> OnPostDeleteAddressAsync(int address)
     {
-        var addressEnt = await _dbContext.TrackedCommunityAddress.SingleOrDefaultAsync(c => c.Id == address);
+        var addressEnt = await _dbContext.TrackedCommunityAddress
+            .Include(c => c.TrackedCommunity)
+            .SingleOrDefaultAsync(c => c.Id == address);
+        
         if (addressEnt == null)
             return NotFound("Address not found");
 
         _dbContext.TrackedCommunityAddress.Remove(addressEnt);
+        _hubAuditLog.Log(User, new HubAuditCommunityAddressDelete(addressEnt.TrackedCommunity, addressEnt));
 
         await _dbContext.SaveChangesAsync();
 
@@ -119,6 +154,8 @@ public sealed class View : PageModel
         
     public async Task<IActionResult> OnPostAddDomainAsync(int id)
     {
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
         Community = await _dbContext.TrackedCommunity.SingleOrDefaultAsync(c => c.Id == id);
         if (Community == null)
             return NotFound("Community not found");
@@ -128,14 +165,21 @@ public sealed class View : PageModel
             StatusMessage = "Error: Invalid domain";
             return RedirectToPage(new { id = Community.Id });
         }
-        
-        _dbContext.TrackedCommunityDomain.Add(new TrackedCommunityDomain
+
+        var domainEnt = new TrackedCommunityDomain
         {
-            DomainName = AddDomain.Domain,
+            DomainName = AddDomain.Domain.Trim(),
             TrackedCommunityId = id
-        });
+        };
+        _dbContext.TrackedCommunityDomain.Add(domainEnt);
 
         await _dbContext.SaveChangesAsync();
+
+        _hubAuditLog.Log(User, new HubAuditCommunityDomainAdd(Community, domainEnt));
+        
+        await _dbContext.SaveChangesAsync();
+        
+        await tx.CommitAsync();
         
         StatusMessage = "Domain added";
 
@@ -144,11 +188,15 @@ public sealed class View : PageModel
     
     public async Task<IActionResult> OnPostDeleteDomainAsync(int domain)
     {
-        var domainEnt = await _dbContext.TrackedCommunityDomain.SingleOrDefaultAsync(c => c.Id == domain);
+        var domainEnt = await _dbContext.TrackedCommunityDomain
+            .Include(c => c.TrackedCommunity)
+            .SingleOrDefaultAsync(c => c.Id == domain);
+        
         if (domainEnt == null)
             return NotFound("Domain not found");
 
         _dbContext.TrackedCommunityDomain.Remove(domainEnt);
+        _hubAuditLog.Log(User, new HubAuditCommunityDomainDelete(domainEnt.TrackedCommunity, domainEnt));
 
         await _dbContext.SaveChangesAsync();
 

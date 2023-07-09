@@ -1,0 +1,59 @@
+﻿@page
+@using SS14.Auth.Shared.Data
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model SS14.Web.Areas.Admin.Pages.Servers.AuditLog
+@inject SpaceUserManager UserManager;
+
+@{
+    ViewData["Title"] = "Hub audit log";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-page="../Index">Hub Admin</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-page="./Index">Servers</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Audit Log</li>
+    </ol>
+</nav>
+
+<partial name="Pagination" for="Pagination"/>
+
+<table class="table table-dark mt-3">
+    <thead>
+    <tr>
+        <th>Actor</th>
+        <th>Time (UTC)</th>
+        <th>Log</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var (audit, entry) in Model.Pagination.Items)
+    {
+        <tr>
+            <td>
+                @{
+                    var user = await UserManager.FindByIdAsync(audit.Actor.ToString());
+                }
+                @if (user == null)
+                {
+                    @audit.Actor
+                }
+                else
+                {
+                    @user.UserName
+                }
+            </td>
+            <td>@audit.Time</td>
+            <td>
+                <partial name="_HubAuditEntry" model="@entry"/>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<partial name="Pagination" for="Pagination"/>

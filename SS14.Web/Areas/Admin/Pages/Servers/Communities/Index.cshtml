@@ -37,36 +37,34 @@
 
 <partial name="Pagination" for="Pagination"/>
 
-<div class="container">
-    <table class="table table-dark mt-3">
-        <thead>
+<table class="table table-dark mt-3">
+    <thead>
+    <tr>
+        <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "name", "Name"))"/>
+        <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "banned", "Banned?"))"/>
+        <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "created", "Track Created"))"/>
+        <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "updated", "Last Updated"))"/>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var community in Model.Pagination.List.PaginatedItems)
+    {
         <tr>
-            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "name", "Name"))"/>
-            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "banned", "Banned?"))"/>
-            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "created", "Track Created"))"/>
-            <partial name="SortTabHeader" model="@(new SortTabHeaderModel(Model.SortState, "updated", "Last Updated"))"/>
+            <td>
+                <a asp-page="./View" asp-route-id="@community.Id">@community.Name</a>
+            </td>
+            <td>
+                <input type="checkbox" class="form-control" @(community.IsBanned ? "checked" : "") disabled>
+            </td>
+            <td>
+                @community.Created
+            </td>
+            <td>
+                @community.LastUpdated
+            </td>
         </tr>
-        </thead>
-        <tbody>
-        @foreach (var community in Model.Pagination.List.PaginatedItems)
-        {
-            <tr>
-                <td>
-                    <a asp-page="./View" asp-route-id="@community.Id">@community.Name</a>
-                </td>
-                <td>
-                    <input type="checkbox" class="form-control" @(community.IsBanned ? "checked" : "") disabled>
-                </td>
-                <td>
-                    @community.Created
-                </td>
-                <td>
-                    @community.LastUpdated
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
+    }
+    </tbody>
+</table>
 
 <partial name="Pagination" for="Pagination"/>

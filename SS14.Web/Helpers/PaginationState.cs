@@ -29,6 +29,7 @@ public class PaginationState<T> : IPaginationState
     public PaginatedList<T> List = default!;
     public bool HasPrevPage => List.HasPrevPage;
     public bool HasNextPage => List.HasNextPage;
+    public T[] Items => List.PaginatedItems;
 
     public IDictionary<string, string?> AllRouteData { get; private set; } =
         ImmutableDictionary<string, string?>.Empty;

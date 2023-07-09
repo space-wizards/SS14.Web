@@ -38,6 +38,9 @@ public sealed class HubDbContext : DbContext
 
         modelBuilder.Entity<UniqueServerName>()
             .HasKey(e => new { e.AdvertisedServerId, e.Name });
+
+        modelBuilder.Entity<HubAudit>()
+            .HasIndex(e => e.Time);
     }
 
     public DbSet<AdvertisedServer> AdvertisedServer { get; set; } = default!;
@@ -46,4 +49,5 @@ public sealed class HubDbContext : DbContext
     public DbSet<TrackedCommunityDomain> TrackedCommunityDomain { get; set; } = default!;
     public DbSet<ServerStatusArchive> ServerStatusArchive { get; set; } = default!;
     public DbSet<UniqueServerName> UniqueServerName { get; set; } = default!;
+    public DbSet<HubAudit> HubAudit { get; set; } = default!;
 }

@@ -1,0 +1,76 @@
+﻿@using SS14.Auth.Shared.Data
+@using SS14.ServerHub.Shared.Data
+@inject SpaceUserManager UserManager;
+@model SS14.ServerHub.Shared.Data.HubAuditEntry
+
+@{
+    async Task Community(HubAuditCommunity community)
+    {
+        <a asp-page="./Communities/View" asp-route-id="@community.Id">
+            "@community.Name" (ID @community.Id) 
+        </a>
+    }
+    void CommunityAddress(HubAuditCommunityAddress address)
+    {
+        <span class="monotype">@address.Address</span> @:(ID @address.Id)
+    }
+    void CommunityDomain(HubAuditCommunityDomain domain)
+    {
+        <span class="monotype">@domain.DomainName</span> @:(ID @domain.Id)
+    }
+}
+
+@switch (Model)
+{
+    case HubAuditCommunityAddressAdd comAddrAdd:
+        @:<b>Added address</b>
+        CommunityAddress(comAddrAdd.Address);
+        @:to community 
+        await Community(comAddrAdd.Community);
+        break;
+    case HubAuditCommunityAddressDelete comAddrDel:
+        @:<b>Removed address</b>
+        CommunityAddress(comAddrDel.Address);
+        @:from community 
+        await Community(comAddrDel.Community);
+        break;
+    case HubAuditCommunityChangedBanned comChangeBanned:
+        @:<b>Changed banned</b> on 
+        await Community(comChangeBanned.Community);
+        @:from @comChangeBanned.OldBanned to @comChangeBanned.NewBanned
+        break;
+    case HubAuditCommunityChangedName comChangeName:
+        @:<b>Changed name</b> on 
+        await Community(comChangeName.Community);
+        @:from "@comChangeName.OldName" to "@comChangeName.NewName"
+        break;
+    case HubAuditCommunityChangedNotes comChangeNotes:
+        @:<b>Changed notes</b> on 
+        @* Don't want to deal with the formatting of multi-line text here... *@
+        await Community(comChangeNotes.Community);
+        break;
+    case HubAuditCommunityCreated comCreated:
+        @:<b>Created community</b>
+        await Community(comCreated.Community);
+        break;
+    case HubAuditCommunityDeleted comDeleted:
+        @:<b>Deleted community</b>
+        await Community(comDeleted.Community);
+        break;
+    case HubAuditCommunityDomainAdd comDomainAdd:
+        @:<b>Added domain</b>
+        CommunityDomain(comDomainAdd.Domain);
+        @:to community 
+        await Community(comDomainAdd.Community);
+        break;
+    case HubAuditCommunityDomainDelete comDomainDel:
+        @:<b>Removed domain</b>
+        CommunityDomain(comDomainDel.Domain);
+        @:from community 
+        await Community(comDomainDel.Community);
+        break;
+
+    default:
+        @Model.Type
+        break;
+}

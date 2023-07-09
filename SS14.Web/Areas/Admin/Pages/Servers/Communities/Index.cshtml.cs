@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SS14.ServerHub.Shared.Data;
+using SS14.Web.Data;
 using SS14.Web.Helpers;
 
 #nullable enable
@@ -16,6 +17,7 @@ namespace SS14.Web.Areas.Admin.Pages.Servers.Communities;
 public sealed class Index : PageModel
 {
     private readonly HubDbContext _dbContext;
+    private readonly HubAuditLogManager _hubAuditLog;
 
     public PaginationState<TrackedCommunity> Pagination { get; } = new(100);
     public SortState<TrackedCommunity> SortState { get; } = new();
@@ -23,9 +25,10 @@ public sealed class Index : PageModel
 
     public string? CurrentFilter { get; set; } = "";
 
-    public Index(HubDbContext dbContext)
+    public Index(HubDbContext dbContext, HubAuditLogManager hubAuditLog)
     {
         _dbContext = dbContext;
+        _hubAuditLog = hubAuditLog;
     }
     
     public async Task OnGetAsync(string? sort,
@@ -55,6 +58,8 @@ public sealed class Index : PageModel
 
     public async Task<IActionResult> OnPostNewCommunityAsync()
     {
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+        
         var community = new TrackedCommunity
         {
             Name = "change this",
@@ -63,8 +68,15 @@ public sealed class Index : PageModel
         
         // ReSharper disable once MethodHasAsyncOverload
         _dbContext.TrackedCommunity.Add(community);
+        
         await _dbContext.SaveChangesAsync();
 
+        _hubAuditLog.Log(User, new HubAuditCommunityCreated(community));
+        
+        await _dbContext.SaveChangesAsync();
+
+        await tx.CommitAsync();
+        
         return RedirectToPage("./View", new { id = community.Id });
     }
     
