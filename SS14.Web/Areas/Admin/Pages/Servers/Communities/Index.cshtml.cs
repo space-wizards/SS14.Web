@@ -59,11 +59,15 @@ public sealed class Index : PageModel
     public async Task<IActionResult> OnPostNewCommunityAsync()
     {
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
+        var now = DateTime.UtcNow;
         
         var community = new TrackedCommunity
         {
             Name = "change this",
-            Notes = ""
+            Notes = "",
+            Created = now,
+            LastUpdated = now 
         };
         
         // ReSharper disable once MethodHasAsyncOverload

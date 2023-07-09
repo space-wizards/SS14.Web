@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -74,23 +75,33 @@ public sealed class View : PageModel
         var inputName = (Input.Name ?? "").Trim();
         var inputNotes = Input.Notes ?? "";
 
+        var anyChange = false;
+        
         if (Community.Name != inputName)
         {
             _hubAuditLog.Log(User, new HubAuditCommunityChangedName(Community, Community.Name, inputName));
             Community.Name = inputName;
+            anyChange = true;
         }
 
         if (Community.Notes != inputNotes)
         {
             _hubAuditLog.Log(User, new HubAuditCommunityChangedNotes(Community, Community.Notes, inputNotes));
             Community.Notes = inputNotes;
+            anyChange = true;
         }
 
         if (Community.IsBanned != Input.IsBanned)
         {
             _hubAuditLog.Log(User, new HubAuditCommunityChangedBanned(Community, Community.IsBanned, Input.IsBanned));
             Community.IsBanned = Input.IsBanned;
+            anyChange = true;
         }
+
+        if (!anyChange)
+            return RedirectToPage(new { id = Community.Id });
+
+        Community.LastUpdated = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
 
@@ -119,6 +130,7 @@ public sealed class View : PageModel
         };
         
         _dbContext.TrackedCommunityAddress.Add(address);
+        Community.LastUpdated = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
 
@@ -144,6 +156,7 @@ public sealed class View : PageModel
 
         _dbContext.TrackedCommunityAddress.Remove(addressEnt);
         _hubAuditLog.Log(User, new HubAuditCommunityAddressDelete(addressEnt.TrackedCommunity, addressEnt));
+        addressEnt.TrackedCommunity.LastUpdated = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
 
@@ -172,6 +185,7 @@ public sealed class View : PageModel
             TrackedCommunityId = id
         };
         _dbContext.TrackedCommunityDomain.Add(domainEnt);
+        Community.LastUpdated = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
 
@@ -197,6 +211,7 @@ public sealed class View : PageModel
 
         _dbContext.TrackedCommunityDomain.Remove(domainEnt);
         _hubAuditLog.Log(User, new HubAuditCommunityDomainDelete(domainEnt.TrackedCommunity, domainEnt));
+        domainEnt.TrackedCommunity.LastUpdated = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
 
