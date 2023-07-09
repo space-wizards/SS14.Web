@@ -10,27 +10,28 @@
 <partial name="_StatusMessage" model="Model.StatusMessage"/>
 <div class="row">
     <div class="col-md-6">
-        <form id="profile-form" method="post">
+        <h5>Username</h5>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <form id="profile-form" method="post" asp-page-handler="Username">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Username"></label>
-                <input asp-for="Username" class="form-control" disabled/>
+                @if (Model.CanEditUsername)
+                {
+                    @:You can change your username once every @Model.UsernameChangeDelay days. Note that your past usernames can always be retrieved publicly, for administrative purposes.
+                }
+                else
+                {
+                    @:You changed your username recently, and must wait until @Model.NextUsernameChangeAllowed.ToString("D") before you can change it again.
+                }
             </div>
-            @*<div class="form-group">
-                <label asp-for="Input.PhoneNumber"></label>
-                <input asp-for="Input.PhoneNumber" class="form-control"/>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            <div class="form-group">
+                <input asp-for="Username" class="form-control" disabled="@(!Model.CanEditUsername)" />
             </div>
-            <button id="update-profile-button" type="submit" class="btn btn-primary">Save</button>*@
+            <button id="update-profile-button" type="submit" class="btn btn-primary" disabled="@(!Model.CanEditUsername)">Save</button>
         </form>
-        
-        @*Roles:
-        <ul>
-        @foreach (var role in Model.Roles)
-        {
-            <li>@role</li>
-        }
-        </ul>*@
     </div>
 </div>
 

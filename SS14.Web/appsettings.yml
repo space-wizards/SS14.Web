@@ -23,3 +23,6 @@ ForwardProxies:
   - 127.0.0.1
 
 AllowedHosts: "*"
+
+Account:
+  UsernameChangeDays: 30

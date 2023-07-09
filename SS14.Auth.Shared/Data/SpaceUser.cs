@@ -22,11 +22,16 @@ public class SpaceUser : IdentityUser<Guid>
     [Required]
     public string AdminNotes { get; set; } = "";
     
+    /// <summary>
+    /// Last time this user changed their user name.
+    /// </summary>
+    public DateTime? LastUsernameChange { get; set; }
+    
     public List<LoginSession> LoginSessions { get; set; } = new List<LoginSession>();
     public List<AuthHash> AuthHashes { get; set; } = new List<AuthHash>();
     
     public Patron Patron { get; set; }
-
+    
     public List<PastAccountName> PastAccountNames { get; set; } = default!;
     public List<AccountLog> AccountLogs { get; set; } = default!;
 }

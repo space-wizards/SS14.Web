@@ -1,63 +1,63 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public partial class IndexModel : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly IOptions<AccountOptions> _options;
+    private readonly ApplicationDbContext _dbContext;
+
+    public bool CanEditUsername { get; set; }
+    public int UsernameChangeDelay => _options.Value.UsernameChangeDays;
+    public DateTime NextUsernameChangeAllowed { get; set; }
 
     public IndexModel(
-        UserManager<SpaceUser> userManager,
-        SignInManager<SpaceUser> signInManager)
+        SpaceUserManager userManager,
+        SignInManager<SpaceUser> signInManager, 
+        IOptions<AccountOptions> options,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _options = options;
+        _dbContext = dbContext;
     }
 
-    public string Username { get; set; }
+    [BindProperty] public string Username { get; set; }
 
     [TempData]
     public string StatusMessage { get; set; }
 
-    /*
-    public IEnumerable<string> Roles { get; private set; }
-    */
-        
-    /*
-    [BindProperty]
-    public InputModel Input { get; set; }
-
-    public class InputModel
-    {
-        [Phone]
-        [Display(Name = "Phone number")]
-        public string PhoneNumber { get; set; }
-    }
-    */
-
     private async Task LoadAsync(SpaceUser user)
     {
         var userName = await _userManager.GetUserNameAsync(user);
-        //var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
         Username = userName;
-        /*
-        Roles = await _userManager.GetRolesAsync(user);
+        UpdateCanEditUsername(user);
+    }
 
-        */
-        /*Input = new InputModel
+    private void UpdateCanEditUsername(SpaceUser user)
+    {
+        if (user.LastUsernameChange is { } change)
         {
-            PhoneNumber = phoneNumber
-        };*/
+            var span = TimeSpan.FromDays(UsernameChangeDelay);
+            var now = DateTime.UtcNow;
+
+            CanEditUsername = change + span < now;
+            NextUsernameChangeAllowed = change + span;
+        }
+        else
+        {
+            CanEditUsername = true;
+        }
     }
 
     public async Task<IActionResult> OnGetAsync()
@@ -72,8 +72,7 @@ public partial class IndexModel : PageModel
         return Page();
     }
 
-    /*
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostUsernameAsync()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -86,20 +85,47 @@ public partial class IndexModel : PageModel
             await LoadAsync(user);
             return Page();
         }
-
-        var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-        if (Input.PhoneNumber != phoneNumber)
+        
+        Username = Username.Trim();
+        if (Username == user.UserName)
         {
-            var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-            if (!setPhoneResult.Succeeded)
-            {
-                StatusMessage = "Unexpected error when trying to set phone number.";
-                return RedirectToPage();
-            }
+            return RedirectToPage();
+        }
+        
+        UpdateCanEditUsername(user);
+        if (!CanEditUsername)
+        {
+            await LoadAsync(user);
+            return Page();
         }
 
+        var oldName = user.UserName;
+
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
+        var result = await _userManager.SetUserNameAsync(user, Username);
+        
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            await LoadAsync(user);
+            return Page();
+        }
+        
+        user.LastUsernameChange = DateTime.UtcNow;
+        
+        _userManager.LogNameChanged(user, oldName, user.UserName, user);
+        
         await _signInManager.RefreshSignInAsync(user);
-        StatusMessage = "Your profile has been updated";
+        StatusMessage = "Your username has been changed";
+        
+        await _dbContext.SaveChangesAsync();
+        await tx.CommitAsync();
+
         return RedirectToPage();
-    }*/
+    }
 }
