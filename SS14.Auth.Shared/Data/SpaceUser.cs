@@ -107,6 +107,8 @@ public sealed record AccountLogAdminLockedChanged(bool NewLocked, Guid Actor) : 
 public sealed record AccountLogAuthRoleAdded(Guid Role, Guid Actor) : AccountLogEntry;
 public sealed record AccountLogAuthRoleRemoved(Guid Role, Guid Actor) : AccountLogEntry;
 
+public sealed record AccountLogCreatedReserved(Guid Actor) : AccountLogEntry;
+
 public enum AccountLogType
 {
     Created = 0,
@@ -124,5 +126,6 @@ public enum AccountLogType
     AdminNotesChanged = 12,
     AdminLockedChanged = 13,
     AuthRoleAdded = 14,
-    AuthRoleRemoved = 15
+    AuthRoleRemoved = 15,
+    CreatedReserved = 16,
 }

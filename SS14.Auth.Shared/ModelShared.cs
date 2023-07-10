@@ -1,11 +1,6 @@
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Internal;
+using Microsoft.AspNetCore.Authentication;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 

@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
@@ -16,7 +15,6 @@ using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 using SS14.Web.HCaptcha;
 using SS14.Web.Helpers;
-using ISystemClock = Microsoft.Extensions.Internal.ISystemClock;
 
 namespace SS14.Web.Areas.Identity.Pages.Account;
 

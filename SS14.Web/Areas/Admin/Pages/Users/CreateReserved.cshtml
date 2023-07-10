@@ -1,0 +1,24 @@
+﻿@page
+@model SS14.Web.Areas.Admin.Pages.Users.CreateReserved
+
+@{
+    ViewData["Title"] = "Create reserved account";
+}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+    <li class="breadcrumb-item"><a asp-page="./Index">Users</a></li>
+    <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+  </ol>
+</nav>
+
+<form method="post" class="container">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group row">
+        <label asp-for="Input.Username" class="col-sm-2 col-form-label"></label>
+        <input asp-for="Input.Username" class="form-control col-sm-10"/>
+    </div>
+    
+    <button id="save-button" type="submit" class="btn btn-primary btn-sm">Create</button>
+</form>
