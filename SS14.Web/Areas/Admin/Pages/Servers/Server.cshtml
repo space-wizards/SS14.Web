@@ -50,22 +50,25 @@
                 } 
             }
         </dd>
-        <dt class="col-sm-2">Description:</dt>
-        <dd class="col-sm-10">@Model.Info.Desc</dd>
-        <dt class="col-sm-2">Links:</dt>
-        <dd class="col-sm-10">
-            @if (Model.Info.Links != null)
-            {
-                foreach (var link in Model.Info.Links)
+        @if (Model.Info != null)
+        {
+            <dt class="col-sm-2">Description:</dt>
+            <dd class="col-sm-10">@Model.Info.Desc</dd>
+            <dt class="col-sm-2">Links:</dt>
+            <dd class="col-sm-10">
+                @if (Model.Info.Links != null)
                 {
-                    <a href="@link.Url">@link.Name</a><br/>
-                }   
-            }
-        </dd>
-        <dt class="col-sm-2">Auth Mode:</dt>
-        <dd class="col-sm-10">@Model.Info.Auth.Mode</dd>
-        <dt class="col-sm-2">Auth PK:</dt>
-        <dd class="col-sm-10 monotype">@Model.Info.Auth.PublicKey</dd>
+                    foreach (var link in Model.Info.Links)
+                    {
+                        <a href="@link.Url">@link.Name</a><br/>
+                    }   
+                }
+            </dd>
+            <dt class="col-sm-2">Auth Mode:</dt>
+            <dd class="col-sm-10">@Model.Info.Auth.Mode</dd>
+            <dt class="col-sm-2">Auth PK:</dt>
+            <dd class="col-sm-10 monotype">@Model.Info.Auth.PublicKey</dd>
+        }
     </dl>
 </div>
 
