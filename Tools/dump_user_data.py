@@ -9,7 +9,7 @@ import os
 import psycopg2
 from uuid import UUID
 
-LATEST_DB_MIGRATION = "20230604204603_AccountAdminAdditions"
+LATEST_DB_MIGRATION = "20230709163936_UserNameChange"
 
 def main():
     parser = argparse.ArgumentParser()
@@ -112,7 +112,7 @@ SELECT
     COALESCE(json_agg(to_jsonb(data)), '[]') #>> '{}'
 FROM (
     SELECT
-        "Id", "Email", "UserName", "CreatedTime", "EmailConfirmed", "NormalizedEmail", "TwoFactorEnabled", "NormalizedUserName", "AdminLocked", "AdminNotes"
+        "Id", "Email", "UserName", "CreatedTime", "EmailConfirmed", "NormalizedEmail", "TwoFactorEnabled", "NormalizedUserName", "AdminLocked", "AdminNotes", "LastUsernameChange"
     FROM
         "AspNetUsers" a
     WHERE
