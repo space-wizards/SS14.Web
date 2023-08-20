@@ -44,6 +44,10 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .HasIndex(p => new {p.Domain})
             .IsUnique();
 
+        builder.Entity<WhitelistEmail>()
+            .HasIndex(p => new {p.Domain})
+            .IsUnique();
+
         builder.Entity<Patron>()
             .HasIndex(p => p.PatreonId)
             .IsUnique();
@@ -93,6 +97,7 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<AuthHash> AuthHashes { get; set; }
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     public DbSet<BurnerEmail> BurnerEmails { get; set; }
+    public DbSet<WhitelistEmail> WhitelistEmails { get; set; }
     public DbSet<Patron> Patrons { get; set; }
     public DbSet<PatreonWebhookLog> PatreonWebhookLogs { get; set; }
     public DbSet<UserOAuthClient> UserOAuthClients { get; set; }

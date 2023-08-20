@@ -53,6 +53,9 @@ public sealed class SS14UserValidator : UserValidator<SpaceUser>
             return;
         }
 
+        if (await _dbContext.WhitelistEmails.AnyAsync(p => p.Domain == domain))
+            return;
+
         if (await _dbContext.BurnerEmails.AnyAsync(p => p.Domain == domain))
         {
             errors.Add(Describer.InvalidEmail(email));
