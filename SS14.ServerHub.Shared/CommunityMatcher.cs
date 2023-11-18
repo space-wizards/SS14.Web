@@ -108,7 +108,7 @@ public static class CommunityMatcher
         var match = CheckStatusMatch(dbContext, statusJson);
         if (infoJson != null)
         {
-            match = match.Concat(CheckInfoMatch(dbContext, statusJson));
+            match = match.Concat(CheckInfoMatch(dbContext, infoJson));
         }
 
         var result = await match
