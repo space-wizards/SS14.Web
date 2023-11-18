@@ -1,5 +1,6 @@
 ﻿@page "{id}"
 @using SS14.ServerHub.Shared.Helpers
+@using SS14.ServerHub.Shared.Data
 @model SS14.Web.Areas.Admin.Pages.Servers.Communities.View
 
 @{
@@ -137,7 +138,8 @@
 
 <form method="post" class="container">
     <div class="form-group row">
-        <input asp-for="AddInfoMatch.Field" class="form-control col-md-2">
+        <select asp-for="AddInfoMatch.Field" asp-items="Html.GetEnumSelectList<InfoMatchField>()" class="form-control col-md-2">
+        </select>
         <input asp-for="AddInfoMatch.Path" class="form-control col-md-7">
         <button type="submit" asp-route-id="@Model.Community.Id" asp-page-handler="AddInfoMatch" class="btn btn-primary col-md-3">Add</button>
     </div>
