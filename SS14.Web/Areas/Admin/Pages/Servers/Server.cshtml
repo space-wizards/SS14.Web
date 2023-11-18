@@ -74,7 +74,7 @@
 
 <div class="container">
     <h1>Matched Communities</h1>
-    <ul class="row">
+    <ul>
         @foreach (var community in Model.MatchedCommunities)
         {
             <li><a asp-page="Communities/View" asp-route-id="@community.Id">@community.Name</a></li>
