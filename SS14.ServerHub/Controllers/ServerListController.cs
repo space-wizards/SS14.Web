@@ -104,8 +104,15 @@ public class ServerListController : ControllerBase
         var (result, statusJson, infoJson) = await QueryServerStatus(parsedAddress);
         if (result != null)
             return result;
-        
+
         Debug.Assert(statusJson != null);
+        Debug.Assert(infoJson != null);
+
+        switch (await CheckInfoBannedAsync(parsedAddress, statusJson, infoJson!))
+        {
+            case BanCheckResult.Banned:
+                return Unauthorized("Your server has been blocked from advertising on the hub. If you believe this to be in error, please contact us.");
+        }
 
         // Check if a server with this address already exists.
         var addressEntity =
@@ -215,14 +222,28 @@ public class ServerListController : ControllerBase
             return BanCheckResult.FailedResolve;
         }
 
-        var banned = matched.SingleOrDefault(x => x.IsBanned);
+        return CheckMatchedCommunitiesForBan(uri, matched);
+    }
+
+    private async Task<BanCheckResult> CheckInfoBannedAsync(Uri address, byte[] statusJson, byte[] infoJson)
+    {
+        var matched = new List<TrackedCommunity>();
+
+        await CommunityMatcher.MatchCommunitiesInfo(_dbContext, statusJson, infoJson, matched);
+
+        return CheckMatchedCommunitiesForBan(address, matched);
+    }
+
+    private BanCheckResult CheckMatchedCommunitiesForBan(Uri address, List<TrackedCommunity> matched)
+    {
+        var banned = matched.FirstOrDefault(x => x.IsBanned);
         if (banned != null)
         {
             _logger.LogInformation(
-                "{Host} is banned (community: {CommunityName})", uri.Host, banned.Name);
+                "{Host} is banned (community: {CommunityName})", address, banned.Name);
             return BanCheckResult.Banned;
         }
-        
+
         return BanCheckResult.NotBanned;
     }
 

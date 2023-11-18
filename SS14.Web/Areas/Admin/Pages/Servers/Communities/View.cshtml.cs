@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 using SS14.ServerHub.Shared.Data;
 using SS14.ServerHub.Shared.Helpers;
 using SS14.Web.Data;
@@ -17,6 +19,7 @@ public sealed class View : PageModel
     [BindProperty] public InputModel Input { get; set; }
     [BindProperty] public AddAddressModel AddAddress { get; set; } = new();
     [BindProperty] public AddDomainModel AddDomain { get; set; } = new();
+    [BindProperty] public AddInfoMatchModel AddInfoMatch { get; set; } = new();
 
     [TempData] public string StatusMessage { get; set; }
 
@@ -30,6 +33,12 @@ public sealed class View : PageModel
     public sealed class AddDomainModel
     {
         public string Domain { get; set; }
+    }
+
+    public sealed class AddInfoMatchModel
+    {
+        public InfoMatchField Field { get; set; }
+        public string Path { get; set; }
     }
 
     public sealed class InputModel
@@ -50,6 +59,7 @@ public sealed class View : PageModel
         Community = await _dbContext.TrackedCommunity
             .Include(c => c.Addresses)
             .Include(c => c.Domains)
+            .Include(c => c.InfoMatches)
             .AsSplitQuery()
             .SingleOrDefaultAsync(u => u.Id == id);
         
@@ -218,5 +228,95 @@ public sealed class View : PageModel
         StatusMessage = "Domain removed";
 
         return RedirectToPage(new { id = domainEnt.TrackedCommunityId });
+    }
+
+    //
+    // Info matches
+    //
+
+    public async Task<IActionResult> OnPostAddInfoMatchAsync(int id)
+    {
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
+        Community = await _dbContext.TrackedCommunity.SingleOrDefaultAsync(c => c.Id == id);
+        if (Community == null)
+            return NotFound("Community not found");
+
+        if (string.IsNullOrWhiteSpace(AddInfoMatch.Path))
+        {
+            StatusMessage = "Error: Path empty";
+            return RedirectToPage(new { id = Community.Id });
+        }
+
+        TrackedCommunityInfoMatch matchEnt;
+        try
+        {
+            matchEnt = await InsertInfoMatch(tx, AddInfoMatch.Path, AddInfoMatch.Field, id);
+        }
+        catch (NpgsqlException e) when (e.SqlState == PostgresErrorCodes.SyntaxError)
+        {
+            StatusMessage = $"Error: invalid path syntax: {e.Message}";
+            return RedirectToPage(new { id = Community.Id });
+        }
+
+        Community.LastUpdated = DateTime.UtcNow;
+
+        _hubAuditLog.Log(User, new HubAuditCommunityInfoMatchAdd(Community, matchEnt));
+
+        await _dbContext.SaveChangesAsync();
+
+        await tx.CommitAsync();
+
+        StatusMessage = "Info match added";
+
+        return RedirectToPage(new { id = Community.Id });
+    }
+
+    public async Task<IActionResult> OnPostDeleteInfoMatchAsync(int match)
+    {
+        var matchEnt = await _dbContext.TrackedCommunityInfoMatch
+            .Include(c => c.TrackedCommunity)
+            .SingleOrDefaultAsync(c => c.Id == match);
+
+        if (matchEnt == null)
+            return NotFound("Domain not found");
+
+        _dbContext.TrackedCommunityInfoMatch.Remove(matchEnt);
+        _hubAuditLog.Log(User, new HubAuditCommunityInfoMatchDelete(matchEnt.TrackedCommunity, matchEnt));
+        matchEnt.TrackedCommunity.LastUpdated = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        StatusMessage = "Info match removed";
+
+        return RedirectToPage(new { id = matchEnt.TrackedCommunityId });
+    }
+
+    private async Task<TrackedCommunityInfoMatch> InsertInfoMatch(
+        IDbContextTransaction transaction,
+        string path,
+        InfoMatchField field,
+        int trackedCommunity)
+    {
+        // We can't insert jsonpath values via EF Core, so have to do this manually.
+
+        var con = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
+        await using var cmd = new NpgsqlCommand("""
+            INSERT INTO "TrackedCommunityInfoMatch" ("Path", "Field", "TrackedCommunityId")
+            VALUES ($1::jsonpath, $2, $3)
+            RETURNING "Id";
+            """, con, (NpgsqlTransaction)transaction.GetDbTransaction())
+        {
+            Parameters =
+            {
+                new() { Value = path },
+                new() { Value = (int)field },
+                new() { Value = trackedCommunity },
+            }
+        };
+
+        var result = (int) (await cmd.ExecuteScalarAsync())!;
+
+        return await _dbContext.TrackedCommunityInfoMatch.SingleAsync(x => x.Id == result);
     }
 }

@@ -45,7 +45,16 @@ public class Server : PageModel
         {
             // Meh.
         }
-        
+
+        if (server.StatusData != null)
+        {
+            await CommunityMatcher.MatchCommunitiesInfo(
+                _hubDbContext,
+                server.StatusData,
+                server.InfoData,
+                MatchedCommunities);
+        }
+
         UniqueNames = await _hubDbContext.UniqueServerName
             .Where(u => u.AdvertisedServerId == serverId)
             .OrderByDescending(u => u.LastSeen)

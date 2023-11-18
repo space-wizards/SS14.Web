@@ -1,5 +1,4 @@
 ﻿@page "{id}"
-@using SS14.Web.Helpers
 @using SS14.ServerHub.Shared.Helpers
 @model SS14.Web.Areas.Admin.Pages.Servers.Communities.View
 
@@ -105,6 +104,42 @@
     <div class="form-group row">
         <input asp-for="AddDomain.Domain" class="form-control col-md-9">
         <button type="submit" asp-route-id="@Model.Community.Id" asp-page-handler="AddDomain" class="btn btn-primary col-md-3">Add</button>
+    </div>
+</form>
+
+<h5 class="mt-5">Info matches</h5>
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>Field</th>
+        <th>Path</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var match in Model.Community.InfoMatches)
+    {
+        <tr>
+            <td>@match.Field</td>
+            <td><code>@match.Path</code></td>
+            <td>
+                <form method="post">
+                    <button type="submit"
+                            asp-page-handler="DeleteInfoMatch" asp-route-match="@match.Id"
+                            class="btn btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<form method="post" class="container">
+    <div class="form-group row">
+        <input asp-for="AddInfoMatch.Field" class="form-control col-md-2">
+        <input asp-for="AddInfoMatch.Path" class="form-control col-md-7">
+        <button type="submit" asp-route-id="@Model.Community.Id" asp-page-handler="AddInfoMatch" class="btn btn-primary col-md-3">Add</button>
     </div>
 </form>
 

@@ -47,6 +47,7 @@ public sealed class HubDbContext : DbContext
     public DbSet<TrackedCommunity> TrackedCommunity { get; set; } = default!;
     public DbSet<TrackedCommunityAddress> TrackedCommunityAddress { get; set; } = default!;
     public DbSet<TrackedCommunityDomain> TrackedCommunityDomain { get; set; } = default!;
+    public DbSet<TrackedCommunityInfoMatch> TrackedCommunityInfoMatch { get; set; } = default!;
     public DbSet<ServerStatusArchive> ServerStatusArchive { get; set; } = default!;
     public DbSet<UniqueServerName> UniqueServerName { get; set; } = default!;
     public DbSet<HubAudit> HubAudit { get; set; } = default!;

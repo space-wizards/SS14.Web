@@ -22,6 +22,28 @@ public static class CommunityMatcher
             .Where(d => d.DomainName == domain || EF.Functions.Like(domain, "%." + d.DomainName));
     }
 
+    public static IQueryable<TrackedCommunityInfoMatch> CheckStatusMatch(HubDbContext dbContext, byte[] statusJson)
+    {
+        return dbContext.TrackedCommunityInfoMatch.FromSqlInterpolated($$"""
+            SELECT *
+            FROM public."TrackedCommunityInfoMatch"
+            WHERE
+                "Field" = {{(int) InfoMatchField.Status}}
+                AND jsonb_path_exists(convert_from({{statusJson}}, 'UTF8')::jsonb, "Path", '{}', true)
+            """);
+    }
+
+    public static IQueryable<TrackedCommunityInfoMatch> CheckInfoMatch(HubDbContext dbContext, byte[] infoJson)
+    {
+        return dbContext.TrackedCommunityInfoMatch.FromSqlInterpolated($$"""
+            SELECT *
+            FROM public."TrackedCommunityInfoMatch"
+            WHERE
+                "Field" = {{(int) InfoMatchField.Info}}
+                AND jsonb_path_exists(convert_from({{infoJson}}, 'UTF8')::jsonb, "Path", '{}', true)
+            """);
+    }
+
     /// <summary>
     /// Find all communities that match the given server address.
     /// </summary>
@@ -68,6 +90,33 @@ public static class CommunityMatcher
 
             communities.AddRange(addressBan);
         }
+    }
+
+    /// <summary>
+    /// Find all communities that match the given status metadata.
+    /// </summary>
+    /// <param name="dbContext">Database context to look up in.</param>
+    /// <param name="statusJson">Status data the server returned in <c>/status</c>.</param>
+    /// <param name="infoJson">Info data the server returned in <c>/info</c>.</param>
+    /// <param name="communities">List to write results into.</param>
+    public static async Task MatchCommunitiesInfo(
+        HubDbContext dbContext,
+        byte[] statusJson,
+        byte[]? infoJson,
+        List<TrackedCommunity> communities)
+    {
+        var match = CheckStatusMatch(dbContext, statusJson);
+        if (infoJson != null)
+        {
+            match = match.Concat(CheckInfoMatch(dbContext, statusJson));
+        }
+
+        var result = await match
+            .Include(b => b.TrackedCommunity)
+            .Select(b => b.TrackedCommunity)
+            .ToArrayAsync();
+
+        communities.AddRange(result);
     }
 
     public sealed class FailedResolveException : Exception

@@ -23,21 +23,28 @@ public class ListActive : PageModel
 
     public async Task OnGetAsync()
     {
-        var filtered = await _dbContext.AdvertisedServer
+        await DownloadEntriesForDisplay(_dbContext.AdvertisedServer, Servers);
+    }
+
+    public static async Task DownloadEntriesForDisplay(
+        IQueryable<AdvertisedServer> query,
+        List<ServerEntry> servers)
+    {
+        var filtered = await query
             .Where(x => x.Expires > DateTime.UtcNow)
             .ToListAsync();
 
         foreach (var server in filtered)
         {
             var statusData = JsonSerializer.Deserialize<ServerStatusData>(server.StatusData);
-            Servers.Add(new ServerEntry(
+            servers.Add(new ServerEntry(
                 server.AdvertisedServerId,
                 server.Address,
                 statusData
             ));
         }
 
-        Servers.Sort((a, b) => -a.StatusData.Players.CompareTo(b.StatusData.Players));
+        servers.Sort((a, b) => -a.StatusData.Players.CompareTo(b.StatusData.Players));
     }
 }
 

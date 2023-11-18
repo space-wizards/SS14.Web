@@ -103,7 +103,7 @@ public enum HubAuditType
     [EntryType(typeof(HubAuditCommunityAddressDelete))]
     CommunityAddressDelete = 102,
 
-    // 201-300: community address management
+    // 201-300: community domain management
 
     /// <summary>
     /// A domain was added to a tracked community by an admin.
@@ -115,7 +115,21 @@ public enum HubAuditType
     /// A domain was removed from a tracked community by an admin.
     /// </summary>
     [EntryType(typeof(HubAuditCommunityDomainDelete))]
-    CommunityDomainDelete = 202
+    CommunityDomainDelete = 202,
+
+    // 301-400: community domain management
+
+    /// <summary>
+    /// An info match was added to a tracked community by an admin.
+    /// </summary>
+    [EntryType(typeof(HubAuditCommunityInfoMatchAdd))]
+    CommunityInfoMatchAdd = 301,
+
+    /// <summary>
+    /// An info match was removed from a tracked community by an admin.
+    /// </summary>
+    [EntryType(typeof(HubAuditCommunityInfoMatchDelete))]
+    CommunityInfoMatchDelete = 302
 }
 
 // ReSharper disable NotAccessedPositionalProperty.Global
@@ -154,6 +168,17 @@ public sealed record HubAuditCommunityDomain(int Id, string DomainName)
             throw new ArgumentException("Invalid ID");
 
         return new HubAuditCommunityDomain(domain.Id, domain.DomainName);
+    }
+}
+
+public sealed record HubAuditCommunityInfoMatch(int Id, InfoMatchField Field, string Path)
+{
+    public static implicit operator HubAuditCommunityInfoMatch(TrackedCommunityInfoMatch infoMatch)
+    {
+        if (infoMatch.Id == 0)
+            throw new ArgumentException("Invalid ID");
+
+        return new HubAuditCommunityInfoMatch(infoMatch.Id, infoMatch.Field, infoMatch.Path);
     }
 }
 // ReSharper restore NotAccessedPositionalProperty.Global
@@ -207,4 +232,6 @@ public sealed record HubAuditCommunityAddressAdd(HubAuditCommunity Community, Hu
 public sealed record HubAuditCommunityAddressDelete(HubAuditCommunity Community, HubAuditCommunityAddress Address) : HubAuditEntry;
 public sealed record HubAuditCommunityDomainAdd(HubAuditCommunity Community, HubAuditCommunityDomain Domain) : HubAuditEntry;
 public sealed record HubAuditCommunityDomainDelete(HubAuditCommunity Community, HubAuditCommunityDomain Domain) : HubAuditEntry;
+public sealed record HubAuditCommunityInfoMatchAdd(HubAuditCommunity Community, HubAuditCommunityInfoMatch InfoMatch) : HubAuditEntry;
+public sealed record HubAuditCommunityInfoMatchDelete(HubAuditCommunity Community, HubAuditCommunityInfoMatch InfoMatch) : HubAuditEntry;
 // ReSharper restore NotAccessedPositionalProperty.Global

@@ -38,4 +38,5 @@ public sealed class TrackedCommunity
     // Navigation properties
     public List<TrackedCommunityAddress> Addresses { get; set; } = default!;
     public List<TrackedCommunityDomain> Domains { get; set; } = default!;
+    public List<TrackedCommunityInfoMatch> InfoMatches { get; set; } = default!;
 }

@@ -1,0 +1,78 @@
+﻿@page
+@using SS14.ServerHub.Shared.Data
+@model SS14.Web.Areas.Admin.Pages.Servers.TestInfoMatch
+
+@{
+    ViewData["Title"] = "Test Info Match Syntax";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Servers</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<partial name="_StatusMessage" model="Model.StatusMessage"/>
+
+<div class="container">
+    <h2>How does this work?</h2>
+
+    <p>
+        Info matches test against a server's info and status data with the PostgreSQL <code>jsonb_path_exists()</code> function.
+        This allows flexible matching behavior about everything of a server. See <a href="https://www.postgresql.org/docs/13/functions-json.html#FUNCTIONS-SQLJSON-PATH">their documentation</a> for path syntax.
+    </p>
+
+    <p>
+        This page matches your query against the live servers. You know, for testing.
+    </p>
+
+    <h2>Examples</h2>
+
+    <dl>
+        <dt>Match displayed name</dt>
+        <dd>(field: status) <code>$.name ? (@@ like_regex "servername" flag "i")</code></dd>
+    </dl>
+</div>
+
+<form asp-page="./TestInfoMatch" method="get" class="container">
+    <div class="form-group row">
+        <label class="col-md-1" for="searchBar">Match:</label>
+        <input type="text" id="searchBar" name="path" value="@Model.CurrentPath" class="form-control form-control-sm col-md-8" />
+        <select class="form-control form-control-sm col-md-2" name="field">
+            <option selected="@(Model.CurrentField == InfoMatchField.Status)" value="@InfoMatchField.Status">Status</option>
+            <option selected="@(Model.CurrentField == InfoMatchField.Info)" value="@InfoMatchField.Info">Info</option>
+        </select>
+        <input type="submit" value="Search" class="btn btn-primary col-md-1 btn-sm"/>
+    </div>
+</form>
+
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Address</th>
+        <th>Name</th>
+        <th>Players</th>
+        <th>Max players</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var server in Model.Servers)
+    {
+        <tr>
+            <td>@server.Id</td>
+            <td>@server.Address</td>
+            <td>@server.StatusData.Name</td>
+            <td>@server.StatusData.Players</td>
+            <td>@server.StatusData.SoftMaxPlayers</td>
+            <td>
+                <a asp-page="./Server" asp-route-serverId="@server.Id">View</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

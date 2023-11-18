@@ -18,6 +18,10 @@
     {
         <span class="monotype">@domain.DomainName</span> @:(ID @domain.Id)
     }
+    void CommunityInfoMatch(HubAuditCommunityInfoMatch match)
+    {
+        <span class="monotype">@match.Path</span> @:on field <span class="monotype">@match.Field</span> (ID @match.Id)
+    }
 }
 
 @switch (Model)
@@ -68,6 +72,18 @@
         CommunityDomain(comDomainDel.Domain);
         @:from community 
         await Community(comDomainDel.Community);
+        break;
+    case HubAuditCommunityInfoMatchAdd comInfoMatchAdd:
+        @:<b>Added info match</b>
+        CommunityInfoMatch(comInfoMatchAdd.InfoMatch);
+        @:to community
+        await Community(comInfoMatchAdd.Community);
+        break;
+    case HubAuditCommunityInfoMatchDelete comInfoMatchDel:
+        @:<b>Removed info match</b>
+        CommunityInfoMatch(comInfoMatchDel.InfoMatch);
+        @:from community
+        await Community(comInfoMatchDel.Community);
         break;
 
     default:
