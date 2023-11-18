@@ -181,8 +181,10 @@ public class ServerListController : ControllerBase
             byte[] infoResponse;
             try
             {
+                var uriBuilder = new UriBuilder(Ss14UriHelper.GetServerInfoAddress(uri));
+                uriBuilder.Query = "?can_skip_build";
                 infoResponse = await _httpClient.GetLimitedJsonResponseBody(
-                    Ss14UriHelper.GetServerInfoAddress(uri),
+                    new Uri(uriBuilder.ToString()),
                     maxInfoSize * 1024,
                     cts.Token);
             }
