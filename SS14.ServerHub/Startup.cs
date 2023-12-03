@@ -44,8 +44,7 @@ public class Startup
                 client.DefaultRequestHeaders.Add("User-Agent", "SS14.ServerHub/1.0 Status Checker");
                 var hubOptions = Configuration.GetSection(HubOptions.Position).Get<HubOptions>() ?? new HubOptions();
                 client.MaxResponseContentBufferSize = hubOptions.MaxStatusResponseSize * 1024;
-            })
-            .UseHttpClientMetrics();
+            });
 
         services.AddOptions<HubOptions>()
             .Bind(Configuration.GetSection(HubOptions.Position));
