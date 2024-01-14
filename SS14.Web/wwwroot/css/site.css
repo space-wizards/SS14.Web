@@ -170,3 +170,7 @@ body {
   padding: 6px;
   display: inline-block;
 }
+
+.text-secondary, .text-muted {
+  color: #9eaab5 !important;
+}
