@@ -11,6 +11,7 @@ Serilog:
   WriteTo:
     - Name: Console
       Args:
+        Theme: Serilog.Sinks.SystemConsole.Themes.AnsiConsoleThemes::Code, Serilog.Sinks.Console
         OutputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}] {Message:lj}{NewLine}{Exception}"
 
   Enrich: [ "FromLogContext" ]
