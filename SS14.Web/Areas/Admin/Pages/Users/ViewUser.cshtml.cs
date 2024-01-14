@@ -136,7 +136,10 @@ public class ViewUser : PageModel
         await CheckRole(Input.HubAdmin, AuthConstants.RoleSysAdmin);
         await CheckRole(Input.ServerHubAdmin, AuthConstants.RoleServerHubAdmin);
 
-        await _userManager.UpdateAsync(SpaceUser);
+        // Can't use UpdateAsync() because it validates email which might not work.
+        await _userManager.UpdateNormalizedEmailAsync(SpaceUser);
+        await _userManager.UpdateNormalizedUserNameAsync(SpaceUser);
+        await _dbContext.SaveChangesAsync();
 
         await tx.CommitAsync();
 
