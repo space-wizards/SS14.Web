@@ -121,7 +121,7 @@ public partial class IndexModel : PageModel
         _userManager.LogNameChanged(user, oldName, user.UserName, user);
         
         await _signInManager.RefreshSignInAsync(user);
-        StatusMessage = "Your username has been changed";
+        StatusMessage = "Your username has been changed. Note that it may take some time to visibly update in some places, such as the launcher.";
         
         await _dbContext.SaveChangesAsync();
         await tx.CommitAsync();
