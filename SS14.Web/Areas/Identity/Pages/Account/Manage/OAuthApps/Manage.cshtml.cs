@@ -44,6 +44,10 @@ public class Manage : PageModel
         [Required]
         [DisplayName("Require PKCE")]
         public bool RequirePkce { get; set; }
+        
+        [Required]
+        [DisplayName("Allow PS256 signing")]
+        public bool AllowPS256 { get; set; } = true;
     }
 
     public Manage(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager)
@@ -62,7 +66,8 @@ public class Manage : PageModel
             Name = App.Client.ClientName,
             CallbackUrl = App.Client.RedirectUris.FirstOrDefault()?.RedirectUri ?? "",
             HomepageUrl = App.Client.ClientUri,
-            RequirePkce = App.Client.RequirePkce
+            RequirePkce = App.Client.RequirePkce,
+            AllowPS256 = App.Client.AllowedIdentityTokenSigningAlgorithms?.Contains("PS256") ?? false
         };
 
         return Page();
@@ -77,6 +82,7 @@ public class Manage : PageModel
         App.Client.RedirectUris = new List<ClientRedirectUri> { new() { RedirectUri = Input.CallbackUrl } };
         App.Client.ClientUri = Input.HomepageUrl;
         App.Client.RequirePkce = Input.RequirePkce;
+        App.Client.AllowedIdentityTokenSigningAlgorithms = Input.AllowPS256 ? "PS256" : null;
 
         await _dbContext.SaveChangesAsync();
 
