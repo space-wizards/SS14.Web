@@ -15,7 +15,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.0" />
+        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.4.0" />
         <PackageReference Include="MimeKit" Version="3.0.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.2" />
         <PackageReference Include="Robust.Shared.AuthLib" Version="0.1.2" />
