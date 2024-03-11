@@ -62,6 +62,7 @@ public class Create : PageModel
                 new() { Scope = "profile" },
                 new() { Scope = "email" }
             },
+            AllowedIdentityTokenSigningAlgorithms = "PS256",
             RedirectUris = new List<ClientRedirectUri>
             {
                 new() { RedirectUri = Input.CallbackUrl }
