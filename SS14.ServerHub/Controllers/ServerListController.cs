@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -40,6 +41,7 @@ public class ServerListController : ControllerBase
         _httpClient = httpClientFactory.CreateClient("ServerStatusCheck");
     }
 
+    [EnableCors(CorsPolicies.PolicyHubPublic)]
     [HttpGet]
     public async Task<IEnumerable<ServerInfo>> Get()
     {
@@ -51,6 +53,7 @@ public class ServerListController : ControllerBase
         return dbInfos;
     }
     
+    [EnableCors(CorsPolicies.PolicyHubPublic)]
     [HttpGet("info")]
     public async Task<IActionResult> GetServerInfo(string url)
     {

@@ -32,6 +32,14 @@ public class Startup
     {
         services.AddControllers();
 
+        services.AddCors(options =>
+        {
+            options.AddPolicy(CorsPolicies.PolicyHubPublic, builder =>
+            {
+                builder.AllowAnyOrigin();
+            });
+        });
+
         services.AddDbContext<HubDbContext>(options =>
         {
             var connectionString = Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Must set DefaultConnection");
@@ -66,6 +74,8 @@ public class Startup
         });
 
         app.UseRouting();
+
+        app.UseCors();
 
         app.UseHttpMetrics();
 
