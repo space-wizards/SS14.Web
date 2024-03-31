@@ -21,4 +21,9 @@ public sealed class ServerStatusArchive
     public IPAddress? AdvertiserAddress { get; set; } 
     
     public AdvertisedServer AdvertisedServer { get; set; } = default!;
+
+    /// <summary>
+    /// Corresponds to <see cref="Data.AdvertisedServer.InferredTags"/>.
+    /// </summary>
+    public string[] InferredTags { get; set; } = Array.Empty<string>();
 }

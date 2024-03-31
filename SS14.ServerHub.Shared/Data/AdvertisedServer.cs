@@ -33,4 +33,9 @@ public sealed class AdvertisedServer
     /// IP address of the client doing the advertise request. Not actually related to the advertised data.
     /// </summary>
     [Column(TypeName = "inet")] public IPAddress? AdvertiserAddress { get; set; }
+
+    /// <summary>
+    /// Extra tags inferred from the server information.
+    /// </summary>
+    public string[] InferredTags { get; set; } = Array.Empty<string>();
 }

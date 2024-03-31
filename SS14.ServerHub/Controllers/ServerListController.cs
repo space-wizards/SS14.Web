@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SS14.ServerHub.ServerData;
 using SS14.ServerHub.Shared;
 using SS14.ServerHub.Shared.Data;
 using SS14.ServerHub.Utility;
@@ -47,7 +48,7 @@ public class ServerListController : ControllerBase
     {
         var dbInfos = await _dbContext.AdvertisedServer
             .Where(s => s.Expires > DateTime.UtcNow)
-            .Select(s => new ServerInfo(s.Address, s.StatusData == null ? null : new RawJson(s.StatusData)))
+            .Select(s => new ServerInfo(s.Address, s.StatusData == null ? null : new RawJson(s.StatusData), s.InferredTags))
             .ToArrayAsync();
 
         return dbInfos;
@@ -117,6 +118,8 @@ public class ServerListController : ControllerBase
                 return Unauthorized("Your server has been blocked from advertising on the hub. If you believe this to be in error, please contact us.");
         }
 
+        var inferredTags = InferTags(statusJson);
+
         // Check if a server with this address already exists.
         var addressEntity =
             await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Address == advertise.Address);
@@ -136,13 +139,15 @@ public class ServerListController : ControllerBase
         addressEntity.StatusData = statusJson;
         addressEntity.InfoData = infoJson;
         addressEntity.AdvertiserAddress = senderIp;
+        addressEntity.InferredTags = inferredTags;
 
         _dbContext.ServerStatusArchive.Add(new ServerStatusArchive
         {
             Time = timeNow,
             AdvertisedServer = addressEntity,
             AdvertiserAddress = senderIp,
-            StatusData = statusJson
+            StatusData = statusJson,
+            InferredTags = inferredTags
         });
         
         await _dbContext.SaveChangesAsync();
@@ -258,6 +263,13 @@ public class ServerListController : ControllerBase
             .SingleOrDefaultAsync(b => b.TrackedCommunity.IsBanned);
     }
 
+    private static string[] InferTags(byte[] statusDataJson)
+    {
+        var statusData = JsonSerializer.Deserialize<ServerStatus>(statusDataJson)!;
+
+        return ServerTagInfer.InferTags(statusData.Name!, statusData.Tags ?? Array.Empty<string>());
+    }
+
     private enum BanCheckResult
     {
         Banned,
@@ -265,14 +277,16 @@ public class ServerListController : ControllerBase
         FailedResolve
     }
 
-    public sealed record ServerInfo(string Address, RawJson? StatusData);
+    public sealed record ServerInfo(string Address, RawJson? StatusData, string[] InferredTags);
     public sealed record ServerAdvertise(string Address);
 
     // ReSharper disable once ClassNeverInstantiated.Local
     private sealed record ServerStatus(
         [property: JsonPropertyName("name")] string? Name,
         [property: JsonPropertyName("players")]
-        int PlayerCount);
+        int PlayerCount,
+        [property: JsonPropertyName("tags")]
+        string[]? Tags);
 
     [JsonConverter(typeof(RawJsonConverter))]
     public sealed record RawJson(byte[] Json)
