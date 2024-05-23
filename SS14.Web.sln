@@ -9,6 +9,10 @@ ProjectSection(SolutionItems) = preProject
 	.gitattributes = .gitattributes
 	LICENSE.txt = LICENSE.txt
 	README.md = README.md
+	hub.Dockerfile = hub.Dockerfile
+	deploy.sh = deploy.sh
+	build.sh = build.sh
+	.dockerignore = .dockerignore
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{569B190C-2FE6-44FA-B282-E0E7ACE64226}"
