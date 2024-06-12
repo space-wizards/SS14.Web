@@ -9,6 +9,7 @@ using Prometheus;
 using SS14.Auth.Services;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Auth;
+using SS14.WebEverythingShared;
 
 namespace SS14.Auth;
 
@@ -52,10 +53,7 @@ public class Startup
 
         // app.UseHttpsRedirection();
 
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
-        {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-        });
+        MoreStartupHelpers.AddForwardedSupport(app, Configuration);
 
         app.UseRouting();
 

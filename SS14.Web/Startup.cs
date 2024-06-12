@@ -21,6 +21,7 @@ using SS14.Auth.Shared.Data;
 using SS14.ServerHub.Shared.Data;
 using SS14.Web.Data;
 using SS14.Web.HCaptcha;
+using SS14.WebEverythingShared;
 
 namespace SS14.Web;
 
@@ -204,17 +205,7 @@ public class Startup
             app.UseHsts();
         }
 
-        var forwardedHeadersOptions = new ForwardedHeadersOptions
-        {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        };
-
-        foreach (var ip in Configuration.GetSection("ForwardProxies").Get<string[]>())
-        {
-            forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(ip));
-        }
-
-        app.UseForwardedHeaders(forwardedHeadersOptions);
+        MoreStartupHelpers.AddForwardedSupport(app, Configuration);
 
         var pathBase = Configuration.GetValue<string>("PathBase");
         if (!string.IsNullOrEmpty(pathBase))

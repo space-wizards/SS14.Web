@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Prometheus;
 using SS14.ServerHub.Shared.Data;
+using SS14.WebEverythingShared;
 
 namespace SS14.ServerHub;
 
@@ -68,10 +69,7 @@ public class Startup
 
         // app.UseHttpsRedirection();
 
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
-        {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-        });
+        MoreStartupHelpers.AddForwardedSupport(app, Configuration);
 
         app.UseRouting();
 
