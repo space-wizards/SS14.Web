@@ -21,6 +21,7 @@ public class ViewUser : PageModel
     private readonly PatreonDataManager _patreonDataManager;
     private readonly ApplicationDbContext _dbContext;
     private readonly RoleManager<SpaceRole> _roleManager;
+    private readonly AccountLogManager _accountLogManager;
 
     public SpaceUser SpaceUser { get; set; }
 
@@ -58,7 +59,8 @@ public class ViewUser : PageModel
         SessionManager sessionManager,
         PatreonDataManager patreonDataManager,
         ApplicationDbContext dbContext,
-        RoleManager<SpaceRole> roleManager)
+        RoleManager<SpaceRole> roleManager,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _emailSender = emailSender;
@@ -66,6 +68,7 @@ public class ViewUser : PageModel
         _patreonDataManager = patreonDataManager;
         _dbContext = dbContext;
         _roleManager = roleManager;
+        _accountLogManager = accountLogManager;
     }
 
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -105,31 +108,31 @@ public class ViewUser : PageModel
 
         if (SpaceUser.Email != Input.Email)
         {
-            _userManager.LogEmailChanged(SpaceUser, SpaceUser.Email, Input.Email, actor);    
+            await _accountLogManager.Log(SpaceUser, new AccountLogEmailChanged(SpaceUser.Email, Input.Email));
             SpaceUser.Email = Input.Email;
         }
 
         if (SpaceUser.UserName != Input.Username)
         {
-            _userManager.LogNameChanged(SpaceUser, SpaceUser.UserName, Input.Username, actor);    
+            await _accountLogManager.LogNameChanged(SpaceUser, SpaceUser.UserName, Input.Username);
             SpaceUser.UserName = Input.Username;
         }
         
         if (SpaceUser.EmailConfirmed != Input.EmailConfirmed)
         {
-            _userManager.LogEmailConfirmedChanged(SpaceUser, Input.EmailConfirmed, actor);    
+            await _accountLogManager.Log(SpaceUser, new AccountLogEmailConfirmedChanged(Input.EmailConfirmed));
             SpaceUser.EmailConfirmed = Input.EmailConfirmed;
         }
 
         if (SpaceUser.AdminNotes != Input.AdminNotes)
         {
-            _userManager.LogAdminNotesChanged(SpaceUser, Input.AdminNotes, actor);    
+            await _accountLogManager.Log(SpaceUser, new AccountLogAdminNotesChanged(Input.AdminNotes));
             SpaceUser.AdminNotes = Input.AdminNotes;
         }
         
         if (SpaceUser.AdminLocked != Input.AdminLocked)
         {
-            _userManager.LogAdminLockedChanged(SpaceUser, Input.AdminLocked, actor);    
+            await _accountLogManager.Log(SpaceUser, new AccountLogAdminLockedChanged(Input.AdminLocked));
             SpaceUser.AdminLocked = Input.AdminLocked;
         }
 
@@ -157,12 +160,12 @@ public class ViewUser : PageModel
                 if (set)
                 {
                     await _userManager.AddToRoleAsync(SpaceUser, roleName);
-                    _userManager.LogAuthRoleAdded(SpaceUser, roleGuid, actor);
+                    await _accountLogManager.Log(SpaceUser, new AccountLogAuthRoleAdded(roleGuid));
                 }
                 else
                 {
                     await _userManager.RemoveFromRoleAsync(SpaceUser, roleName);
-                    _userManager.LogAuthRoleRemoved(SpaceUser, roleGuid, actor);
+                    await _accountLogManager.Log(SpaceUser, new AccountLogAuthRoleRemoved(roleGuid));
                 }
 
                 await _userManager.UpdateSecurityStampAsync(SpaceUser);

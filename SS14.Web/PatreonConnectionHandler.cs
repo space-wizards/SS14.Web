@@ -22,15 +22,18 @@ public sealed class PatreonConnectionHandler
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _db;
     private readonly IOptions<PatreonConfiguration> _patreonCfg;
+    private readonly AccountLogManager _accountLogManager;
 
     public PatreonConnectionHandler(
         SpaceUserManager userManager,
         ApplicationDbContext db,
-        IOptions<PatreonConfiguration> patreonCfg)
+        IOptions<PatreonConfiguration> patreonCfg,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _db = db;
         _patreonCfg = patreonCfg;
+        _accountLogManager = accountLogManager;
     }
 
     public Task HookCreatingTicket(OAuthCreatingTicketContext context)
@@ -94,8 +97,11 @@ public sealed class PatreonConnectionHandler
 
         // ReSharper disable once MethodHasAsyncOverload
         _db.Patrons.Add(newPatron);
-        
-        _userManager.LogPatreonLinked(user, user);
+
+        await _accountLogManager.LogAndSave(
+            user,
+            new AccountLogPatreonLinked(),
+            _accountLogManager.ActorWithIP(user));
 
         await _db.SaveChangesAsync();
         await tx.CommitAsync();

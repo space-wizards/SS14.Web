@@ -18,15 +18,18 @@ public class ConfirmEmailChangeModel : PageModel
     private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
     public ConfirmEmailChangeModel(
         SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
 
     [TempData]
@@ -56,8 +59,11 @@ public class ConfirmEmailChangeModel : PageModel
             return Page();
         }
 
-        _userManager.LogEmailChanged(user, oldEmail, email, user);
-        
+        await _accountLogManager.LogAndSave(
+            user,
+            new AccountLogEmailChanged(oldEmail, email),
+            _accountLogManager.ActorWithIP(user));
+
         await tx.CommitAsync();
 
         await _signInManager.RefreshSignInAsync(user);

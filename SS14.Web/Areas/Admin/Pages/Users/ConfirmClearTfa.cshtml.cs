@@ -10,11 +10,13 @@ public class ConfirmClearTfa : PageModel
 {
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
-    public ConfirmClearTfa(SpaceUserManager userManager, ApplicationDbContext dbContext)
+    public ConfirmClearTfa(SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
 
     public SpaceUser SpaceUser { get; set; }
@@ -33,7 +35,6 @@ public class ConfirmClearTfa : PageModel
 
     public async Task<IActionResult> OnPostClearAsync(Guid id)
     {
-        var actor = await _userManager.GetUserAsync(User);
         SpaceUser = await _userManager.FindByIdAsync(id.ToString());
 
         if (SpaceUser == null)
@@ -42,12 +43,9 @@ public class ConfirmClearTfa : PageModel
         }
 
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
-        
-        _userManager.AccountLog(
-            SpaceUser, 
-            AccountLogType.AuthenticatorReset,
-            new AccountLogAuthenticatorReset(actor.Id));
-        
+
+        await _accountLogManager.LogAndSave(SpaceUser, new AccountLogAuthenticatorReset());
+
         await _userManager.SetTwoFactorEnabledAsync(SpaceUser, false);
         await _userManager.ResetAuthenticatorKeyAsync(SpaceUser);
 

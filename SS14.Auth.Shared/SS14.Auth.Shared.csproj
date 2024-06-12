@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <OutputType>Library</OutputType>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -32,6 +33,10 @@
     <ItemGroup>
       <Compile Remove="Data\Migrations\20220115010730_Consent.cs" />
       <Compile Remove="Data\Migrations\20220115010730_Consent.Designer.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SS14.WebEverythingShared\SS14.WebEverythingShared.csproj" />
     </ItemGroup>
 
 </Project>

@@ -18,6 +18,7 @@ public class ManagePatreon : PageModel
     private readonly ILogger<ManagePatreon> _logger;
     private readonly ApplicationDbContext _db;
     private readonly IOptions<PatreonConfiguration> _cfg;
+    private readonly AccountLogManager _accountLogManager;
 
     public bool PatreonLinked { get; private set; }
     public string PatreonTier { get; private set; }
@@ -26,12 +27,14 @@ public class ManagePatreon : PageModel
         SpaceUserManager userManager,
         ILogger<ManagePatreon> logger,
         ApplicationDbContext db,
-        IOptions<PatreonConfiguration> cfg)
+        IOptions<PatreonConfiguration> cfg,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _logger = logger;
         _db = db;
         _cfg = cfg;
+        _accountLogManager = accountLogManager;
     }
 
     public async Task<IActionResult> OnGet()
@@ -73,9 +76,7 @@ public class ManagePatreon : PageModel
         if (patron != null)
         {
             _db.Patrons.Remove(patron);
-            _userManager.LogPatreonUnlinked(user, user);
-            
-            await _db.SaveChangesAsync();
+            await _accountLogManager.LogAndSave(user, new AccountLogPatreonUnlinked());
         }
 
         return RedirectToPage();

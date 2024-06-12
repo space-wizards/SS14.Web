@@ -18,11 +18,13 @@ public class ResetPasswordModel : PageModel
 {
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _logManager;
 
-    public ResetPasswordModel(SpaceUserManager userManager, ApplicationDbContext dbContext)
+    public ResetPasswordModel(SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager logManager)
     {
         _userManager = userManager;
         _dbContext = dbContext;
+        _logManager = logManager;
     }
 
     [BindProperty]
@@ -83,7 +85,7 @@ public class ResetPasswordModel : PageModel
 
         if (result.Succeeded)
         {
-            _userManager.LogPasswordChanged(user, user);
+            await _logManager.LogAndSave(user, new AccountLogPasswordChanged(), _logManager.ActorWithIP(user));
         }
         
         await tx.CommitAsync();

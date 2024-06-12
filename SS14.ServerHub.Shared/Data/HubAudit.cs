@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using SS14.ServerHub.Shared.Helpers;
+using SS14.WebEverythingShared;
 
 namespace SS14.ServerHub.Shared.Data;
 
@@ -38,17 +39,6 @@ public sealed class HubAudit : IDisposable
     public void Dispose() => Data.Dispose();
 }
 
-[AttributeUsage(AttributeTargets.Field)]
-internal sealed class EntryTypeAttribute : Attribute
-{
-    public Type Type { get; }
-
-    public EntryTypeAttribute(Type type)
-    {
-        Type = type;
-    }
-}  
-
 /// <summary>
 /// Types of events stored in the <see cref="HubAudit"/> table.
 /// </summary>
@@ -62,31 +52,31 @@ public enum HubAuditType
     /// <summary>
     /// A new, empty tracked community was created by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityCreated))]
+    [AuditEntryType(typeof(HubAuditCommunityCreated))]
     CommunityCreated = 1,
     
     /// <summary>
     /// The name of a tracked community was changed by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityChangedName))]
+    [AuditEntryType(typeof(HubAuditCommunityChangedName))]
     CommunityChangedName = 2,
     
     /// <summary>
     /// The banned status of a tracked community was changed by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityChangedBanned))]
+    [AuditEntryType(typeof(HubAuditCommunityChangedBanned))]
     CommunityChangedBanned = 3,
     
     /// <summary>
     /// The notes of a tracked community were changed by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityChangedNotes))]
+    [AuditEntryType(typeof(HubAuditCommunityChangedNotes))]
     CommunityChangedNotes = 4,
     
     /// <summary>
     /// A tracked community was deleted by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityDeleted))]
+    [AuditEntryType(typeof(HubAuditCommunityDeleted))]
     CommunityDeleted = 5,
     
     // 101-200: community address management
@@ -94,13 +84,13 @@ public enum HubAuditType
     /// <summary>
     /// An address was added to a tracked community by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityAddressAdd))]
+    [AuditEntryType(typeof(HubAuditCommunityAddressAdd))]
     CommunityAddressAdd = 101,
     
     /// <summary>
     /// An address was removed from a tracked community by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityAddressDelete))]
+    [AuditEntryType(typeof(HubAuditCommunityAddressDelete))]
     CommunityAddressDelete = 102,
 
     // 201-300: community domain management
@@ -108,13 +98,13 @@ public enum HubAuditType
     /// <summary>
     /// A domain was added to a tracked community by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityDomainAdd))]
+    [AuditEntryType(typeof(HubAuditCommunityDomainAdd))]
     CommunityDomainAdd = 201,
     
     /// <summary>
     /// A domain was removed from a tracked community by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityDomainDelete))]
+    [AuditEntryType(typeof(HubAuditCommunityDomainDelete))]
     CommunityDomainDelete = 202,
 
     // 301-400: community domain management
@@ -122,13 +112,13 @@ public enum HubAuditType
     /// <summary>
     /// An info match was added to a tracked community by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityInfoMatchAdd))]
+    [AuditEntryType(typeof(HubAuditCommunityInfoMatchAdd))]
     CommunityInfoMatchAdd = 301,
 
     /// <summary>
     /// An info match was removed from a tracked community by an admin.
     /// </summary>
-    [EntryType(typeof(HubAuditCommunityInfoMatchDelete))]
+    [AuditEntryType(typeof(HubAuditCommunityInfoMatchDelete))]
     CommunityInfoMatchDelete = 302
 }
 
@@ -192,27 +182,7 @@ public abstract record HubAuditEntry
     
     static HubAuditEntry()
     {
-        EnumToType = new Dictionary<HubAuditType, Type>();
-        TypeToEnum = new Dictionary<Type, HubAuditType>();
-
-        var type = typeof(HubAuditType);
-        
-        foreach (var value in Enum.GetValues<HubAuditType>())
-        {
-            var name = value.ToString();
-            
-            var field = type.GetMember(name)[0];
-            var attribute = (EntryTypeAttribute?) Attribute.GetCustomAttribute(field, typeof(EntryTypeAttribute));
-
-            if (attribute == null)
-                throw new InvalidOperationException($"{name} is missing {nameof(EntryTypeAttribute)}");
-
-            if (!attribute.Type.IsAssignableTo(typeof(HubAuditEntry)))
-                throw new InvalidOperationException($"{attribute.Type} must inherit {nameof(HubAuditEntry)}");
-            
-            EnumToType.Add(value, attribute.Type);
-            TypeToEnum.Add(attribute.Type, value);
-        }
+        (EnumToType, TypeToEnum) = AuditEntryHelper.CreateEntryMapping<HubAuditType, HubAuditEntry>();
     }
 
     public static HubAuditEntry Deserialize(HubAuditType type, JsonDocument document)

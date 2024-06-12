@@ -45,6 +45,7 @@ public static class StartupHelpers
         services.AddScoped<UserManager<SpaceUser>, SpaceUserManager>();
         services.AddScoped<SignInManager<SpaceUser>, SpaceSignInManager>();
         services.AddScoped<SpaceUserManager>();
+        services.AddScoped<AccountLogManager>();
         services.AddIdentity<SpaceUser, SpaceRole>(o =>
             {
                 o.Password.RequireDigit = false;

@@ -21,6 +21,7 @@ public class EnableAuthenticatorModel : PageModel
     private readonly UrlEncoder _urlEncoder;
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
     private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
@@ -29,13 +30,15 @@ public class EnableAuthenticatorModel : PageModel
         ILogger<EnableAuthenticatorModel> logger,
         UrlEncoder urlEncoder,
         SignInManager<SpaceUser> signInManager,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _logger = logger;
         _urlEncoder = urlEncoder;
         _signInManager = signInManager;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
 
     public string SharedKey { get; set; }
@@ -101,11 +104,8 @@ public class EnableAuthenticatorModel : PageModel
             await LoadSharedKeyAndQrCodeUriAsync(user);
             return Page();
         }
-        
-        _userManager.AccountLog(
-            user,
-            AccountLogType.AuthenticatorEnabled,
-            new AccountLogAuthenticatorEnabled(user.Id));
+
+        await _accountLogManager.LogAndSave(user, new AccountLogAuthenticatorEnabled());
 
         await _userManager.SetTwoFactorEnabledAsync(user, true);
         var userId = await _userManager.GetUserIdAsync(user);

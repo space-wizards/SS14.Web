@@ -13,15 +13,18 @@ public class GenerateRecoveryCodesModel : PageModel
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<GenerateRecoveryCodesModel> _logger;
+    private readonly AccountLogManager _accountLogManager;
 
     public GenerateRecoveryCodesModel(
         SpaceUserManager userManager,
         ApplicationDbContext dbContext,
-        ILogger<GenerateRecoveryCodesModel> logger)
+        ILogger<GenerateRecoveryCodesModel> logger,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _dbContext = dbContext;
         _logger = logger;
+        _accountLogManager = accountLogManager;
     }
 
     [TempData]
@@ -65,10 +68,7 @@ public class GenerateRecoveryCodesModel : PageModel
             throw new InvalidOperationException($"Cannot generate recovery codes for user with ID '{userId}' as they do not have 2FA enabled.");
         }
 
-        _userManager.AccountLog(
-            user,
-            AccountLogType.RecoveryCodesGenerated,
-            new AccountLogRecoveryCodesGenerated(user.Id));
+        await _accountLogManager.LogAndSave(user, new AccountLogRecoveryCodesGenerated());
 
         await _userManager.UpdateAsync(user);
         

@@ -16,17 +16,20 @@ public class Disable2faModel : PageModel
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly ILogger<Disable2faModel> _logger;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
     public Disable2faModel(
         SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager,
         ILogger<Disable2faModel> logger,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
 
     [TempData]
@@ -57,11 +60,8 @@ public class Disable2faModel : PageModel
         }
 
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
-        
-        _userManager.AccountLog(
-            user,
-            AccountLogType.AuthenticatorDisabled,
-            new AccountLogAuthenticatorDisabled(user.Id));
+
+        await _accountLogManager.LogAndSave(user, new AccountLogAuthenticatorDisabled());
 
         var disable2faResult = await _userManager.SetTwoFactorEnabledAsync(user, false);
         if (!disable2faResult.Succeeded)

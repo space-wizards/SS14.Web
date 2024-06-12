@@ -16,6 +16,7 @@ public class CreateReserved : PageModel
     private readonly ISystemClock _systemClock;
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
     [BindProperty] public InputModel Input { get; set; }
 
@@ -24,11 +25,12 @@ public class CreateReserved : PageModel
         [Required] public string Username { get; set; } = "";
     }
     
-    public CreateReserved(ISystemClock systemClock, SpaceUserManager userManager, ApplicationDbContext dbContext)
+    public CreateReserved(ISystemClock systemClock, SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager accountLogManager)
     {
         _systemClock = systemClock;
         _userManager = userManager;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
     
     public void OnGet()
@@ -41,8 +43,6 @@ public class CreateReserved : PageModel
         if (!ModelState.IsValid)
             return Page();
 
-        var actor = await _userManager.GetUserAsync(User);
-
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
 
         var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -54,10 +54,8 @@ public class CreateReserved : PageModel
         var result = await _userManager.CreateAsync(user, password);
         if (result.Succeeded)
         {
-            _userManager.AccountLog(user, AccountLogType.CreatedReserved, new AccountLogCreatedReserved(actor.Id));
+            await _accountLogManager.LogAndSave(user, new AccountLogCreatedReserved());
 
-            await _dbContext.SaveChangesAsync();
-            
             await tx.CommitAsync();
             
             TempData["StatusMessage"] = "Reserved account created";

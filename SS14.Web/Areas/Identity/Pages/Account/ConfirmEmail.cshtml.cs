@@ -1,7 +1,6 @@
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
@@ -14,11 +13,13 @@ public class ConfirmEmailModel : PageModel
 {
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
-    public ConfirmEmailModel(SpaceUserManager userManager, ApplicationDbContext dbContext)
+    public ConfirmEmailModel(SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
 
     [TempData]
@@ -45,9 +46,10 @@ public class ConfirmEmailModel : PageModel
 
         if (result.Succeeded)
         {
-            _userManager.LogEmailConfirmedChanged(user, true, user);
-
-            await _dbContext.SaveChangesAsync();
+            await _accountLogManager.LogAndSave(
+                user,
+                new AccountLogEmailConfirmedChanged(true),
+                _accountLogManager.ActorWithIP(user));
         }
         
         await tx.CommitAsync();

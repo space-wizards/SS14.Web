@@ -14,6 +14,7 @@ public partial class IndexModel : PageModel
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly IOptions<AccountOptions> _options;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
     public bool CanEditUsername { get; set; }
     public int UsernameChangeDelay => _options.Value.UsernameChangeDays;
@@ -23,12 +24,14 @@ public partial class IndexModel : PageModel
         SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager, 
         IOptions<AccountOptions> options,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _options = options;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
 
     [BindProperty] public string Username { get; set; }
@@ -117,9 +120,9 @@ public partial class IndexModel : PageModel
         }
         
         user.LastUsernameChange = DateTime.UtcNow;
-        
-        _userManager.LogNameChanged(user, oldName, user.UserName, user);
-        
+
+        await _accountLogManager.LogNameChanged(user, oldName, user.UserName);
+
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Your username has been changed. Note that it may take some time to visibly update in some places, such as the launcher.";
         

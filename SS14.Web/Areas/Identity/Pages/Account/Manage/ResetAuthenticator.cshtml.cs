@@ -16,17 +16,20 @@ public class ResetAuthenticatorModel : PageModel
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly ApplicationDbContext _dbContext;
     ILogger<ResetAuthenticatorModel> _logger;
+    private readonly AccountLogManager _accountLogManager;
 
     public ResetAuthenticatorModel(
         SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager,
         ApplicationDbContext dbContext,
-        ILogger<ResetAuthenticatorModel> logger)
+        ILogger<ResetAuthenticatorModel> logger,
+        AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _dbContext = dbContext;
         _logger = logger;
+        _accountLogManager = accountLogManager;
     }
 
     [TempData]
@@ -57,11 +60,8 @@ public class ResetAuthenticatorModel : PageModel
         await _userManager.ResetAuthenticatorKeyAsync(user);
         _logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", user.Id);
 
-        _userManager.AccountLog(
-            user, 
-            AccountLogType.AuthenticatorReset,
-            new AccountLogAuthenticatorReset(user.Id));
-        
+        await _accountLogManager.LogAndSave(user, new AccountLogAuthenticatorReset());
+
         await tx.CommitAsync();
         
         await _signInManager.RefreshSignInAsync(user);

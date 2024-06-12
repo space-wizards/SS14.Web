@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
+using System.Net;
 using System.Text.Json;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
+using SS14.WebEverythingShared;
 
 namespace SS14.Auth.Shared.Data;
 
@@ -63,69 +67,105 @@ public sealed class AccountLog : IDisposable
     [Required] public JsonDocument Data { get; set; } = default!;
     public DateTime Time { get; set; }
 
-    public void Dispose() => Data?.Dispose();
+    /// <summary>
+    /// The user ID of the account that did the action.
+    /// </summary>
+    /// <remarks>
+    /// For most logs this is going to just be the target ID, but for admin actions this is different
+    /// (and shouldn't be shown to users).
+    /// </remarks>
+    public Guid? Actor { get; set; }
 
-    public AccountLogEntry DataEntry
+    /// <summary>
+    /// The IP address that was used to perform the action.
+    /// </summary>
+    /// <remarks>
+    /// Supposed to get purged after 2 weeks.
+    /// </remarks>
+    [CanBeNull]
+    public IPAddress ActorAddress { get; set; }
+
+    public void Dispose() => Data?.Dispose();
+}
+
+#nullable enable
+
+public abstract record AccountLogEntry
+{
+    private static readonly Dictionary<AccountLogType, Type> EnumToType;
+    private static readonly Dictionary<Type, AccountLogType> TypeToEnum;
+
+    public AccountLogType Type => TypeToEnum[GetType()];
+
+    static AccountLogEntry()
     {
-        get
-        {
-            return Type switch
-            {
-                AccountLogType.Created => Data.Deserialize<AccountLogCreated>(),
-                AccountLogType.EmailConfirmedChanged => Data.Deserialize<AccountLogEmailConfirmedChanged>(),
-                AccountLogType.EmailChanged => Data.Deserialize<AccountLogEmailChanged>(),
-                AccountLogType.UserNameChanged => Data.Deserialize<AccountLogUserNameChanged>(),
-                AccountLogType.HubAdminChanged => Data.Deserialize<AccountLogHubAdminChanged>(),
-                AccountLogType.PasswordChanged => Data.Deserialize<AccountLogPasswordChanged>(),
-                AccountLogType.PatreonLinked => Data.Deserialize<AccountLogPatreonLinked>(),
-                AccountLogType.PatreonUnlinked => Data.Deserialize<AccountLogPatreonUnlinked>(),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
+        (EnumToType, TypeToEnum) = AuditEntryHelper.CreateEntryMapping<AccountLogType, AccountLogEntry>();
+    }
+
+    public static AccountLogEntry Deserialize(AccountLogType type, JsonDocument document)
+    {
+        return (AccountLogEntry)(document.Deserialize(EnumToType[type]) ?? throw new InvalidDataException());
     }
 }
 
-public abstract record AccountLogEntry;
+#nullable restore
 
 public sealed record AccountLogCreated : AccountLogEntry;
-public sealed record AccountLogEmailConfirmedChanged(bool NewConfirmed, Guid Actor) : AccountLogEntry;
+public sealed record AccountLogEmailConfirmedChanged(bool NewConfirmed) : AccountLogEntry;
 
-public sealed record AccountLogEmailChanged(string OldEmail, string NewEmail, Guid Actor) : AccountLogEntry;
-public sealed record AccountLogUserNameChanged(string NewName, string OldName, Guid Actor) : AccountLogEntry;
-public sealed record AccountLogHubAdminChanged(bool NewAdmin, Guid Actor) : AccountLogEntry;
-public sealed record AccountLogPasswordChanged(Guid Actor) : AccountLogEntry;
-public sealed record AccountLogPatreonLinked(Guid Actor) : AccountLogEntry;
-public sealed record AccountLogPatreonUnlinked(Guid Actor) : AccountLogEntry;
-public sealed record AccountLogAuthenticatorReset(Guid Actor) : AccountLogEntry;
-public sealed record AccountLogAuthenticatorEnabled(Guid Actor) : AccountLogEntry;
-public sealed record AccountLogAuthenticatorDisabled(Guid Actor) : AccountLogEntry;
-public sealed record AccountLogRecoveryCodesGenerated(Guid Actor) : AccountLogEntry;
+public sealed record AccountLogEmailChanged(string OldEmail, string NewEmail) : AccountLogEntry;
+public sealed record AccountLogUserNameChanged(string NewName, string OldName) : AccountLogEntry;
+public sealed record AccountLogHubAdminChanged(bool NewAdmin) : AccountLogEntry;
+public sealed record AccountLogPasswordChanged : AccountLogEntry;
+public sealed record AccountLogPatreonLinked : AccountLogEntry;
+public sealed record AccountLogPatreonUnlinked : AccountLogEntry;
+public sealed record AccountLogAuthenticatorReset : AccountLogEntry;
+public sealed record AccountLogAuthenticatorEnabled : AccountLogEntry;
+public sealed record AccountLogAuthenticatorDisabled : AccountLogEntry;
+public sealed record AccountLogRecoveryCodesGenerated : AccountLogEntry;
 
-public sealed record AccountLogAdminNotesChanged(string NewNotes, Guid Actor) : AccountLogEntry;
-public sealed record AccountLogAdminLockedChanged(bool NewLocked, Guid Actor) : AccountLogEntry;
+public sealed record AccountLogAdminNotesChanged(string NewNotes) : AccountLogEntry;
+public sealed record AccountLogAdminLockedChanged(bool NewLocked) : AccountLogEntry;
 
-public sealed record AccountLogAuthRoleAdded(Guid Role, Guid Actor) : AccountLogEntry;
-public sealed record AccountLogAuthRoleRemoved(Guid Role, Guid Actor) : AccountLogEntry;
+public sealed record AccountLogAuthRoleAdded(Guid Role) : AccountLogEntry;
+public sealed record AccountLogAuthRoleRemoved(Guid Role) : AccountLogEntry;
 
-public sealed record AccountLogCreatedReserved(Guid Actor) : AccountLogEntry;
+public sealed record AccountLogCreatedReserved : AccountLogEntry;
 
 public enum AccountLogType
 {
+    [AuditEntryType(typeof(AccountLogCreated))]
     Created = 0,
+    [AuditEntryType(typeof(AccountLogEmailConfirmedChanged))]
     EmailConfirmedChanged = 1,
+    [AuditEntryType(typeof(AccountLogEmailChanged))]
     EmailChanged = 2,
+    [AuditEntryType(typeof(AccountLogUserNameChanged))]
     UserNameChanged = 3,
+    [AuditEntryType(typeof(AccountLogHubAdminChanged))]
     HubAdminChanged = 4,
+    [AuditEntryType(typeof(AccountLogPasswordChanged))]
     PasswordChanged = 5,
+    [AuditEntryType(typeof(AccountLogPatreonLinked))]
     PatreonLinked = 6,
+    [AuditEntryType(typeof(AccountLogPatreonUnlinked))]
     PatreonUnlinked = 7,
+    [AuditEntryType(typeof(AccountLogAuthenticatorReset))]
     AuthenticatorReset = 8,
+    [AuditEntryType(typeof(AccountLogAuthenticatorEnabled))]
     AuthenticatorEnabled = 9,
+    [AuditEntryType(typeof(AccountLogAuthenticatorDisabled))]
     AuthenticatorDisabled = 10,
+    [AuditEntryType(typeof(AccountLogRecoveryCodesGenerated))]
     RecoveryCodesGenerated = 11,
+    [AuditEntryType(typeof(AccountLogAdminNotesChanged))]
     AdminNotesChanged = 12,
+    [AuditEntryType(typeof(AccountLogAdminLockedChanged))]
     AdminLockedChanged = 13,
+    [AuditEntryType(typeof(AccountLogAuthRoleAdded))]
     AuthRoleAdded = 14,
+    [AuditEntryType(typeof(AccountLogAuthRoleRemoved))]
     AuthRoleRemoved = 15,
+    [AuditEntryType(typeof(AccountLogCreatedReserved))]
     CreatedReserved = 16,
 }

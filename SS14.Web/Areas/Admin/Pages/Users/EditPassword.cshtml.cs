@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SS14.Auth.Shared.Data;
@@ -12,6 +11,7 @@ public class EditPassword : PageModel
 {
     private readonly SpaceUserManager _userManager;
     private readonly ApplicationDbContext _dbContext;
+    private readonly AccountLogManager _accountLogManager;
 
     public SpaceUser SpaceUser { get; set; }
 
@@ -26,10 +26,11 @@ public class EditPassword : PageModel
         public string Password { get; set; }   
     }
 
-    public EditPassword(SpaceUserManager userManager, ApplicationDbContext dbContext)
+    public EditPassword(SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _dbContext = dbContext;
+        _accountLogManager = accountLogManager;
     }
     
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -44,7 +45,6 @@ public class EditPassword : PageModel
 
     public async Task<IActionResult> OnPostSaveAsync(Guid id)
     {
-        var actor = await _userManager.GetUserAsync(User);
         SpaceUser = await _userManager.FindByIdAsync(id.ToString());
         if (SpaceUser == null)
             return NotFound("That user does not exist!");
@@ -59,8 +59,8 @@ public class EditPassword : PageModel
         var token = await _userManager.GeneratePasswordResetTokenAsync(SpaceUser);
         var result = await _userManager.ResetPasswordAsync(SpaceUser, token, Input.Password);
 
-        _userManager.LogPasswordChanged(SpaceUser, actor);
-        
+        await _accountLogManager.LogAndSave(SpaceUser, new AccountLogPasswordChanged());
+
         await tx.CommitAsync();
         
         if (result.Succeeded)
