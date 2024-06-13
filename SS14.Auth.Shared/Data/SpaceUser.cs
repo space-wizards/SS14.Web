@@ -59,7 +59,7 @@ public sealed class PastAccountName
 /// </summary>
 public sealed class AccountLog : IDisposable
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public Guid SpaceUserId { get; set; }
     public SpaceUser SpaceUser { get; set; } = default!;
 
