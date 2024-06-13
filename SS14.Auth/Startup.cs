@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Prometheus;
+using Quartz;
+using SS14.Auth.Jobs;
 using SS14.Auth.Services;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Auth;
@@ -41,6 +42,25 @@ public class Startup
         services.AddHostedService<EnsureRolesService>();
         
         StartupHelpers.AddShared(services, Configuration);
+
+        services.AddQuartz(q =>
+        {
+            q.ScheduleJob<CleanOldSessionsJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+            {
+                schedule.RepeatForever().WithIntervalInHours(24);
+            }));
+
+            q.ScheduleJob<CleanOldAuthHashesJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+            {
+                schedule.RepeatForever().WithIntervalInHours(24);
+            }));
+
+            q.ScheduleJob<CleanOldAccountLogsJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+            {
+                schedule.RepeatForever().WithIntervalInHours(24);
+            }));
+        });
+        services.AddQuartzHostedService();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

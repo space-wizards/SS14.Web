@@ -94,12 +94,24 @@ public abstract record AccountLogEntry
 {
     private static readonly Dictionary<AccountLogType, Type> EnumToType;
     private static readonly Dictionary<Type, AccountLogType> TypeToEnum;
+    public static readonly Dictionary<AccountLogType, AccountLogRetainType> EnumToRetention;
 
     public AccountLogType Type => TypeToEnum[GetType()];
 
     static AccountLogEntry()
     {
         (EnumToType, TypeToEnum) = AuditEntryHelper.CreateEntryMapping<AccountLogType, AccountLogEntry>();
+
+        EnumToRetention = new Dictionary<AccountLogType, AccountLogRetainType>();
+        foreach (var enumName in EnumToType.Keys)
+        {
+            var member = typeof(AccountLogType).GetMember(enumName.ToString())[0];
+            var attr = (AccountLogRetentionAttribute?)Attribute.GetCustomAttribute(
+                member,
+                typeof(AccountLogRetentionAttribute));
+
+            EnumToRetention[enumName] = attr?.Type ?? AccountLogRetainType.Forever;
+        }
     }
 
     public static AccountLogEntry Deserialize(AccountLogType type, JsonDocument document)
@@ -134,38 +146,97 @@ public sealed record AccountLogCreatedReserved : AccountLogEntry;
 
 public enum AccountLogType
 {
+    // @formatter:off
     [AuditEntryType(typeof(AccountLogCreated))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     Created = 0,
+
     [AuditEntryType(typeof(AccountLogEmailConfirmedChanged))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     EmailConfirmedChanged = 1,
+
     [AuditEntryType(typeof(AccountLogEmailChanged))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     EmailChanged = 2,
+
     [AuditEntryType(typeof(AccountLogUserNameChanged))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     UserNameChanged = 3,
+
     [AuditEntryType(typeof(AccountLogHubAdminChanged))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     HubAdminChanged = 4,
+
     [AuditEntryType(typeof(AccountLogPasswordChanged))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     PasswordChanged = 5,
+
     [AuditEntryType(typeof(AccountLogPatreonLinked))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     PatreonLinked = 6,
+
     [AuditEntryType(typeof(AccountLogPatreonUnlinked))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     PatreonUnlinked = 7,
+
     [AuditEntryType(typeof(AccountLogAuthenticatorReset))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     AuthenticatorReset = 8,
+
     [AuditEntryType(typeof(AccountLogAuthenticatorEnabled))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     AuthenticatorEnabled = 9,
+
     [AuditEntryType(typeof(AccountLogAuthenticatorDisabled))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     AuthenticatorDisabled = 10,
+
     [AuditEntryType(typeof(AccountLogRecoveryCodesGenerated))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     RecoveryCodesGenerated = 11,
+
     [AuditEntryType(typeof(AccountLogAdminNotesChanged))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     AdminNotesChanged = 12,
+
     [AuditEntryType(typeof(AccountLogAdminLockedChanged))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     AdminLockedChanged = 13,
+
     [AuditEntryType(typeof(AccountLogAuthRoleAdded))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     AuthRoleAdded = 14,
+
     [AuditEntryType(typeof(AccountLogAuthRoleRemoved))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     AuthRoleRemoved = 15,
+
     [AuditEntryType(typeof(AccountLogCreatedReserved))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     CreatedReserved = 16,
+    // @formatter:on
+}
+
+public enum AccountLogRetainType
+{
+    /// <summary>
+    /// Logs are retained FOREVER.
+    /// </summary>
+    Forever = 0,
+
+    /// <summary>
+    /// Detailed logs, such as server joining.
+    /// </summary>
+    Detail,
+
+    /// <summary>
+    /// Logs about account management actions such as password changes.
+    /// </summary>
+    AccountManagement
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class AccountLogRetentionAttribute(AccountLogRetainType type) : Attribute
+{
+    public AccountLogRetainType Type { get; } = type;
 }

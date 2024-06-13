@@ -7,6 +7,7 @@ Serilog:
       Microsoft: "Warning"
       Microsoft.Hosting.Lifetime: "Information"
       Microsoft.AspNetCore: Warning
+      Quartz: "Warning"
 
   WriteTo:
     - Name: Console

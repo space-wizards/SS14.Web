@@ -27,6 +27,7 @@ public static class StartupHelpers
         services.Configure<LimitOptions>(config.GetSection("Limits"));
         services.Configure<MutexOptions>(config.GetSection("Mutex"));
         services.Configure<PatreonConfiguration>(config.GetSection("Patreon"));
+        services.Configure<AccountLogRetentionConfiguration>(config.GetSection("AccountLogRetention"));
         services.Configure<SecurityStampValidatorOptions>(options =>
         {
             // The fact that this isn't default absolutely baffles me.
