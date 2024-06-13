@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using DnsClient;
 using Microsoft.EntityFrameworkCore;
 using SS14.ServerHub.Shared.Data;
 
@@ -50,30 +51,31 @@ public static class CommunityMatcher
     /// <param name="dbContext">Database context to look up in.</param>
     /// <param name="address">The server address to look up.</param>
     /// <param name="communities">List to write results into.</param>
+    /// <param name="cancel"></param>
     /// <exception cref="FailedResolveException">
     /// Thrown if <paramref name="address"/> is a domain that failed to resolve.
     /// If this happens, <paramref name="communities"/> may still contain some results.
     /// </exception>
-    public static async Task MatchCommunities(HubDbContext dbContext, Uri address, List<TrackedCommunity> communities)
+    public static async Task MatchCommunities(
+        HubDbContext dbContext,
+        Uri address,
+        List<TrackedCommunity> communities,
+        CancellationToken cancel = default)
     {
         var host = address.Host;
 
         if (!IPAddress.TryParse(host, out _))
         {
             // If a domain name, check for domain ban.
-            var domains = await CheckDomain(dbContext, host)
-                .Include(b => b.TrackedCommunity)
-                .Select(b => b.TrackedCommunity)
-                .ToArrayAsync();
-
-            communities.AddRange(domains);
+            await AddDomainMatch(dbContext, host, communities, cancel);
+            await CheckNameserver(dbContext, host, communities, cancel);
         }
 
         IPAddress[] addresses;
         try
         {
             // If the host is an IP address, GetHostAddressesAsync returns it directly.
-            addresses = await Dns.GetHostAddressesAsync(host);
+            addresses = await Dns.GetHostAddressesAsync(host, cancel);
         }
         catch (SocketException e)
         {
@@ -86,10 +88,43 @@ public static class CommunityMatcher
             var addressBan = await CheckIP(dbContext, checkAddress)
                 .Include(b => b.TrackedCommunity)
                 .Select(b => b.TrackedCommunity)
-                .ToArrayAsync();
+                .ToArrayAsync(cancellationToken: cancel);
 
             communities.AddRange(addressBan);
         }
+    }
+
+    private static async Task CheckNameserver(
+        HubDbContext dbContext,
+        string host,
+        List<TrackedCommunity> communities,
+        CancellationToken cancel)
+    {
+        var client = new LookupClient();
+
+        var soa = await client.QueryAsync(host, QueryType.SOA, QueryClass.IN, cancel);
+        // I don't think this is possible??
+        if (soa.Answers.Count == 0)
+            return;
+
+        foreach (var record in soa.Answers.SoaRecords())
+        {
+            await AddDomainMatch(dbContext, record.MName.Value.TrimEnd('.'), communities, cancel);
+        }
+    }
+
+    private static async Task AddDomainMatch(
+        HubDbContext dbContext,
+        string host,
+        List<TrackedCommunity> communities,
+        CancellationToken cancel)
+    {
+        var domains = await CheckDomain(dbContext, host)
+            .Include(b => b.TrackedCommunity)
+            .Select(b => b.TrackedCommunity)
+            .ToArrayAsync(cancellationToken: cancel);
+
+        communities.AddRange(domains);
     }
 
     /// <summary>

@@ -5,7 +5,13 @@ public sealed class HubOptions
     public const string Position = "Hub";
         
     public float AdvertisementExpireMinutes { get; set; } = 3;
-        
+
+    /// <summary>
+    /// When a server advertises itself with the hub, we have to check whether their banned.
+    /// This may involve DNS lookups, so this is the timeout for that.
+    /// </summary>
+    public float AdvertisementBanCheckTimeout { get; set; } = 500;
+
     /// <summary>
     /// When a server advertises itself with the hub, we check whether we can reach the address.
     /// This is the timeout for that test.

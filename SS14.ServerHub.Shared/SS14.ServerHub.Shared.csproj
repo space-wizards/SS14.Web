@@ -17,6 +17,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.2" />
+        <PackageReference Include="DnsClient" Version="1.7.0" />
     </ItemGroup>
     
     <ItemGroup>

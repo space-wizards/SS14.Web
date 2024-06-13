@@ -221,15 +221,22 @@ public class ServerListController : ControllerBase
 
     private async Task<BanCheckResult> CheckAddressBannedAsync(Uri uri)
     {
+        var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(_options.Value.AdvertisementBanCheckTimeout));
         var matched = new List<TrackedCommunity>();
         try
         {
-            await CommunityMatcher.MatchCommunities(_dbContext, uri, matched);
+            await CommunityMatcher.MatchCommunities(_dbContext, uri, matched, cts.Token);
         }
         catch (CommunityMatcher.FailedResolveException e)
         {
             _logger.LogInformation(e, "{Host} failed to resolve", uri.Host);
             return BanCheckResult.FailedResolve;
+        }
+        catch (OperationCanceledException e)
+        {
+            _logger.LogInformation(e, "Checking banned for {Host} timed out", uri.Host);
+            return BanCheckResult.Timeout;
         }
 
         return CheckMatchedCommunitiesForBan(uri, matched);
@@ -274,7 +281,8 @@ public class ServerListController : ControllerBase
     {
         Banned,
         NotBanned,
-        FailedResolve
+        FailedResolve,
+        Timeout
     }
 
     public sealed record ServerInfo(string Address, RawJson? StatusData, string[] InferredTags);
