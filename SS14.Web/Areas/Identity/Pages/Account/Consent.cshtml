@@ -54,22 +54,20 @@
                     .Where(c => c.Name != "openid" && c.Name != "profile")
                     .ToArray();
             }
-            @if (identityResources.Length != 0)
-            {
-                <div class="row mb-3">
-                    <div class="col">
-                        <strong>Requested Account Information</strong>
-                        <ul class="pl-3">
-                            @foreach (var resource in identityResources)
-                            {
-                                <li>
-                                    @resource.DisplayName
-                                </li>
-                            }
-                        </ul>
-                    </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <strong>Requested Account Information</strong>
+                    <ul class="pl-3">
+                        <li>Name and user ID</li>
+                        @foreach (var resource in identityResources)
+                        {
+                            <li>
+                                @resource.DisplayName
+                            </li>
+                        }
+                    </ul>
                 </div>
-            }
+            </div>
             <!-- TODO: non-identity scopes -->
             <div class="row">
                 <div class="col-6">
