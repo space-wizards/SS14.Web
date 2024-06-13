@@ -45,20 +45,23 @@ public class Startup
 
         services.AddQuartz(q =>
         {
-            q.ScheduleJob<CleanOldSessionsJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+            if (Configuration.GetValue<bool>("IsPrimary"))
             {
-                schedule.RepeatForever().WithIntervalInHours(24);
-            }));
+                q.ScheduleJob<CleanOldSessionsJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+                {
+                    schedule.RepeatForever().WithIntervalInHours(24);
+                }));
 
-            q.ScheduleJob<CleanOldAuthHashesJob>(trigger => trigger.WithSimpleSchedule(schedule =>
-            {
-                schedule.RepeatForever().WithIntervalInHours(24);
-            }));
+                q.ScheduleJob<CleanOldAuthHashesJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+                {
+                    schedule.RepeatForever().WithIntervalInHours(24);
+                }));
 
-            q.ScheduleJob<CleanOldAccountLogsJob>(trigger => trigger.WithSimpleSchedule(schedule =>
-            {
-                schedule.RepeatForever().WithIntervalInHours(24);
-            }));
+                q.ScheduleJob<CleanOldAccountLogsJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+                {
+                    schedule.RepeatForever().WithIntervalInHours(24);
+                }));
+            }
         });
         services.AddQuartzHostedService();
     }
