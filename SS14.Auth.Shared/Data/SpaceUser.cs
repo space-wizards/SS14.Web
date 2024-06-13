@@ -7,6 +7,7 @@ using System.Net;
 using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json;
 using SS14.WebEverythingShared;
 
 namespace SS14.Auth.Shared.Data;
@@ -96,6 +97,7 @@ public abstract record AccountLogEntry
     private static readonly Dictionary<Type, AccountLogType> TypeToEnum;
     public static readonly Dictionary<AccountLogType, AccountLogRetainType> EnumToRetention;
 
+    [JsonIgnore]
     public AccountLogType Type => TypeToEnum[GetType()];
 
     static AccountLogEntry()

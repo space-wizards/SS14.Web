@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using SS14.ServerHub.Shared.Helpers;
 using SS14.WebEverythingShared;
 
@@ -178,6 +179,7 @@ public abstract record HubAuditEntry
     private static readonly Dictionary<HubAuditType, Type> EnumToType;
     private static readonly Dictionary<Type, HubAuditType> TypeToEnum;
 
+    [JsonIgnore]
     public HubAuditType Type => TypeToEnum[GetType()];
     
     static HubAuditEntry()
