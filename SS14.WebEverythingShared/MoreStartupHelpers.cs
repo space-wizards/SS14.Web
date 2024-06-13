@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 namespace SS14.WebEverythingShared;
 
 // Help I already have this type somewhere.
-public class MoreStartupHelpers
+public static class MoreStartupHelpers
 {
     public static void AddForwardedSupport(IApplicationBuilder app, IConfiguration config)
     {
