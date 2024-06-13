@@ -5,7 +5,7 @@ namespace SS14.Auth.Shared.Data;
 
 public class AuthHash
 {
-    public int AuthHashId { get; set; }
+    public long AuthHashId { get; set; }
 
     public Guid SpaceUserId { get; set; }
     public SpaceUser SpaceUser { get; set; }

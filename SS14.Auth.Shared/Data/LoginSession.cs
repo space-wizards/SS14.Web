@@ -5,7 +5,7 @@ namespace SS14.Auth.Shared.Data;
 
 public class LoginSession
 {
-    public int LoginSessionId { get; set; }
+    public long LoginSessionId { get; set; }
 
     public Guid SpaceUserId { get; set; }
     public SpaceUser SpaceUser { get; set; }

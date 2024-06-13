@@ -6,7 +6,7 @@ namespace SS14.ServerHub.Shared.Data;
 public sealed class ServerStatusArchive
 {
     public int AdvertisedServerId { get; set; }
-    public int ServerStatusArchiveId { get; set; }
+    public long ServerStatusArchiveId { get; set; }
     
     /// <summary>
     /// Time when this advertisement was made.
