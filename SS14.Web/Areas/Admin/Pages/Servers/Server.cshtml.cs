@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +21,7 @@ public class Server : PageModel
 
     public int ServerId { get; private set; }
     public string Address { get; private set; } = "";
+    [CanBeNull] public IPAddress AdvertiserAddress { get; private set; }
     public ServerStatusData Status { get; private set; }
     public ServerInfoData Info { get; private set; }
     public bool Online { get; private set; }
@@ -74,6 +77,7 @@ public class Server : PageModel
         ServerId = serverId;
         Address = server.Address;
         Online = server.Expires > DateTime.UtcNow;
+        AdvertiserAddress = server.AdvertiserAddress;
 
         return Page();
     }
