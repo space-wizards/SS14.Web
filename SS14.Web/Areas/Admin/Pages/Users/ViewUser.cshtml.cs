@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Mime;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +24,7 @@ public class ViewUser : PageModel
     private readonly ApplicationDbContext _dbContext;
     private readonly RoleManager<SpaceRole> _roleManager;
     private readonly AccountLogManager _accountLogManager;
+    private readonly PersonalDataCollector _personalDataCollector;
 
     public SpaceUser SpaceUser { get; set; }
 
@@ -30,7 +33,7 @@ public class ViewUser : PageModel
     [BindProperty] public InputModel Input { get; set; }
 
     public string PatronTier { get; set; }
-        
+
     public class InputModel
     {
         [EmailAddress]
@@ -43,9 +46,9 @@ public class ViewUser : PageModel
 
         [Display(Name = "Is Auth Hub Admin?")] public bool HubAdmin { get; set; }
         [Display(Name = "Is Server Hub Admin?")] public bool ServerHubAdmin { get; set; }
-        
+
         [Display(Name = "2FA enabled?")] public bool TfaEnabled { get; set; }
-        
+
         [Display(Name = "Locked?")]
         public bool AdminLocked { get; set; }
 
@@ -54,13 +57,14 @@ public class ViewUser : PageModel
     }
 
     public ViewUser(
-        SpaceUserManager userManager, 
+        SpaceUserManager userManager,
         IEmailSender emailSender,
         SessionManager sessionManager,
         PatreonDataManager patreonDataManager,
         ApplicationDbContext dbContext,
         RoleManager<SpaceRole> roleManager,
-        AccountLogManager accountLogManager)
+        AccountLogManager accountLogManager,
+        PersonalDataCollector personalDataCollector)
     {
         _userManager = userManager;
         _emailSender = emailSender;
@@ -69,6 +73,7 @@ public class ViewUser : PageModel
         _dbContext = dbContext;
         _roleManager = roleManager;
         _accountLogManager = accountLogManager;
+        _personalDataCollector = personalDataCollector;
     }
 
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -87,14 +92,14 @@ public class ViewUser : PageModel
 
     public async Task<IActionResult> OnPostSaveAsync(Guid id)
     {
-        await using var tx = await _dbContext.Database.BeginTransactionAsync(); 
-        
+        await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
         var actor = await _userManager.GetUserAsync(User);
         SpaceUser = await _userManager.FindByIdAsync(id.ToString());
 
         // Field becomes null if empty.
         Input.AdminNotes ??= "";
-        
+
         if (SpaceUser == null)
         {
             return NotFound("That user does not exist!");
@@ -117,7 +122,7 @@ public class ViewUser : PageModel
             await _accountLogManager.LogNameChanged(SpaceUser, SpaceUser.UserName, Input.Username);
             SpaceUser.UserName = Input.Username;
         }
-        
+
         if (SpaceUser.EmailConfirmed != Input.EmailConfirmed)
         {
             await _accountLogManager.Log(SpaceUser, new AccountLogEmailConfirmedChanged(Input.EmailConfirmed));
@@ -129,7 +134,7 @@ public class ViewUser : PageModel
             await _accountLogManager.Log(SpaceUser, new AccountLogAdminNotesChanged(Input.AdminNotes));
             SpaceUser.AdminNotes = Input.AdminNotes;
         }
-        
+
         if (SpaceUser.AdminLocked != Input.AdminLocked)
         {
             await _accountLogManager.Log(SpaceUser, new AccountLogAdminLockedChanged(Input.AdminLocked));
@@ -156,7 +161,7 @@ public class ViewUser : PageModel
             {
                 var role = await _roleManager.FindByNameAsync(roleName);
                 var roleGuid = Guid.Parse(await _roleManager.GetRoleIdAsync(role));
-                
+
                 if (set)
                 {
                     await _userManager.AddToRoleAsync(SpaceUser, roleName);
@@ -181,7 +186,7 @@ public class ViewUser : PageModel
         {
             return NotFound("That user does not exist!");
         }
-        
+
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(SpaceUser);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var confirmLink = Url.Page(
@@ -217,7 +222,7 @@ public class ViewUser : PageModel
         await _userManager.UpdateSecurityStampAsync(SpaceUser);
 
         StatusMessage = "All sessions logged out";
-            
+
         return RedirectToPage(new {id});
     }
 
@@ -236,5 +241,19 @@ public class ViewUser : PageModel
         };
 
         PatronTier = await _patreonDataManager.GetPatreonTierAsync(SpaceUser);
+    }
+
+    public async Task<IActionResult> OnPostDownloadPersonalDataAsync(Guid id, CancellationToken cancel)
+    {
+        SpaceUser = await _userManager.FindByIdAsync(id.ToString());
+
+        if (SpaceUser == null)
+        {
+            return NotFound("That user does not exist!");
+        }
+
+        var data = await _personalDataCollector.CollectPersonalData(SpaceUser, cancel);
+        Response.Headers.Add("Content-Disposition", $"attachment; filename={SpaceUser.UserName}-PersonalData.zip");
+        return new FileStreamResult(data, MediaTypeNames.Application.Zip);
     }
 }
