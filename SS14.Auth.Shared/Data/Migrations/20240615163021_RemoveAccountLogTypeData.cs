@@ -11,7 +11,7 @@ namespace SS14.Auth.Shared.Data.Migrations
 
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql("UPDATE \"AccountLog\" SET \"Data\" = \"Data\" #- '{\"Type\"}';");
+            migrationBuilder.Sql("UPDATE \"AccountLogs\" SET \"Data\" = \"Data\" #- '{\"Type\"}';");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
