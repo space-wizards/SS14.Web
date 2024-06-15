@@ -61,6 +61,11 @@ public class Startup
                 {
                     schedule.RepeatForever().WithIntervalInHours(24);
                 }));
+
+                q.ScheduleJob<DeleteUnconfirmedAccounts>(trigger => trigger.WithSimpleSchedule(schedule =>
+                {
+                    schedule.RepeatForever().WithIntervalInHours(24);
+                }));
             }
         });
         services.AddQuartzHostedService();
