@@ -16,18 +16,22 @@ public class ChangePasswordModel : PageModel
 {
     private readonly UserManager<SpaceUser> _userManager;
     private readonly SessionManager _sessionManager;
+    private readonly AccountLogManager _logManager;
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly ILogger<ChangePasswordModel> _logger;
 
     public ChangePasswordModel(
         UserManager<SpaceUser> userManager,
         SignInManager<SpaceUser> signInManager,
-        ILogger<ChangePasswordModel> logger, SessionManager sessionManager)
+        ILogger<ChangePasswordModel> logger,
+        SessionManager sessionManager,
+        AccountLogManager logManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
         _sessionManager = sessionManager;
+        _logManager = logManager;
     }
 
     [BindProperty]
@@ -95,6 +99,7 @@ public class ChangePasswordModel : PageModel
             return Page();
         }
 
+        await _logManager.LogAndSave(user, new AccountLogPasswordChanged());
         await _sessionManager.InvalidateSessions(user);
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User changed their password successfully.");
