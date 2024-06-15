@@ -1,33 +1,39 @@
+using System.Net.Mime;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
 using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
-public class PersonalDataModel : PageModel
+public class PersonalDataModel(
+    UserManager<SpaceUser> userManager,
+    PersonalDataCollector personalDataCollector)
+    : PageModel
 {
-    private readonly UserManager<SpaceUser> _userManager;
-    private readonly ILogger<PersonalDataModel> _logger;
-
-    public PersonalDataModel(
-        UserManager<SpaceUser> userManager,
-        ILogger<PersonalDataModel> logger)
-    {
-        _userManager = userManager;
-        _logger = logger;
-    }
-
     public async Task<IActionResult> OnGet()
     {
-        var user = await _userManager.GetUserAsync(User);
+        var user = await userManager.GetUserAsync(User);
         if (user == null)
         {
-            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
         }
 
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostDownloadPersonalDataAsync(CancellationToken cancel)
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
+        }
+
+        var data = await personalDataCollector.CollectPersonalData(user, cancel);
+        Response.Headers.Add("Content-Disposition", $"attachment; filename={user.UserName}-PersonalData.zip");
+        return new FileStreamResult(data, MediaTypeNames.Application.Zip);
     }
 }

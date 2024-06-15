@@ -5,9 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
-using Newtonsoft.Json;
 using SS14.WebEverythingShared;
 
 namespace SS14.Auth.Shared.Data;
@@ -15,28 +15,28 @@ namespace SS14.Auth.Shared.Data;
 public class SpaceUser : IdentityUser<Guid>
 {
     public DateTimeOffset CreatedTime { get; set; }
-    
+
     /// <summary>
     /// Account has been locked by an administrator and cannot be logged into anymore.
     /// </summary>
     public bool AdminLocked { get; set; }
-    
+
     /// <summary>
     /// Note set by hub administrator.
     /// </summary>
     [Required]
     public string AdminNotes { get; set; } = "";
-    
+
     /// <summary>
     /// Last time this user changed their user name.
     /// </summary>
     public DateTime? LastUsernameChange { get; set; }
-    
+
     public List<LoginSession> LoginSessions { get; set; } = new List<LoginSession>();
     public List<AuthHash> AuthHashes { get; set; } = new List<AuthHash>();
-    
+
     public Patron Patron { get; set; }
-    
+
     public List<PastAccountName> PastAccountNames { get; set; } = default!;
     public List<AccountLog> AccountLogs { get; set; } = default!;
 }
@@ -46,6 +46,7 @@ public sealed class PastAccountName
     public int Id { get; set; }
 
     public Guid SpaceUserId { get; set; }
+    [JsonIgnore]
     public SpaceUser SpaceUser { get; set; } = default!;
 
     [Required]
@@ -62,6 +63,7 @@ public sealed class AccountLog : IDisposable
 {
     public long Id { get; set; }
     public Guid SpaceUserId { get; set; }
+    [JsonIgnore]
     public SpaceUser SpaceUser { get; set; } = default!;
 
     public AccountLogType Type { get; set; } = default!;

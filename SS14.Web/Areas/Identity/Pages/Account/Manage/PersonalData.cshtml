@@ -9,15 +9,17 @@
 
 <div class="row">
     <div class="col-md-6">
-        <p>Your account contains personal data that you have given us.
-            If you would like to download or delete the personal data we have about you, please <a asp-area="" asp-controller="Home" asp-action="Contact">contact us</a> via email.</p>
+        <p>Your account contains personal data that you have given us. This page will allow you to download the data on the accounts server.
+            For data on game servers and other services (forums, wiki), you need to contact the operator of those servers.
+            For official servers ("Wizard's Den") you can <a asp-area="" asp-controller="Home" asp-action="Contact">contact us</a> via email.
+            If you would like to delete the personal data we have about you, please <a asp-area="" asp-controller="Home" asp-action="Contact">contact us</a> via email.</p>
         @*<p>
             <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-        </p>
-        <form id="download-data" asp-page="DownloadPersonalData" method="post" class="form-group">
+        </p>*@
+        <form id="download-data" asp-page-handler="DownloadPersonalData" method="post" class="form-group">
             <button class="btn btn-primary" type="submit">Download</button>
         </form>
-        <p>
+        @*<p>
             <a id="delete" asp-page="DeletePersonalData" class="btn btn-primary">Delete</a>
         </p>*@
     </div>

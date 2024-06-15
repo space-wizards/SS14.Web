@@ -40,7 +40,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddScoped<HubAuditLogManager>();
-        
+
         services.Configure<AccountOptions>(Configuration.GetSection("Account"));
         HCaptchaService.RegisterServices(services, Configuration);
 
@@ -56,15 +56,15 @@ public class Startup
         services.AddAuthorization(options =>
         {
             options.AddPolicy(
-                AuthConstants.PolicyAnyHubAdmin, 
+                AuthConstants.PolicyAnyHubAdmin,
                 policy => policy.RequireRole(AuthConstants.RoleSysAdmin, AuthConstants.RoleServerHubAdmin)
             );
-            
+
             options.AddPolicy(
                 AuthConstants.PolicySysAdmin,
                 policy => policy.RequireRole(AuthConstants.RoleSysAdmin)
             );
-            
+
             options.AddPolicy(
                 AuthConstants.PolicyServerHubAdmin,
                 policy => policy.RequireRole(AuthConstants.RoleServerHubAdmin)
@@ -164,7 +164,7 @@ public class Startup
                 new ECDsaSecurityKey(key),
                 IdentityServerConstants.ECDsaSigningAlgorithm.ES256);
         }
-            
+
         var keyPathRsa = Configuration.GetValue<string>("Is4SigningKeyPathRsa");
         if (keyPathRsa != null)
         {
@@ -179,6 +179,8 @@ public class Startup
                 new RsaSecurityKey(key),
                 IdentityServerConstants.RsaSigningAlgorithm.RS256);
         }
+
+        services.AddScoped<PersonalDataCollector>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
