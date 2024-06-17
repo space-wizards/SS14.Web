@@ -53,7 +53,7 @@ public class ServerListController : ControllerBase
 
         return dbInfos;
     }
-
+    
     [EnableCors(CorsPolicies.PolicyHubPublic)]
     [HttpGet("info")]
     public async Task<IActionResult> GetServerInfo(string url)
@@ -65,7 +65,7 @@ public class ServerListController : ControllerBase
 
         if (dbInfo == null)
             return NotFound();
-
+        
         return Ok((RawJson?) dbInfo.InfoData);
     }
 
@@ -149,7 +149,7 @@ public class ServerListController : ControllerBase
             StatusData = statusJson,
             InferredTags = inferredTags
         });
-
+        
         await _dbContext.SaveChangesAsync();
         return NoContent();
     }
@@ -176,11 +176,11 @@ public class ServerListController : ControllerBase
             {
                 return (UnprocessableEntity($"/status response data was too large (max: {maxStatusSize} KiB)"), null, null);
             }
-
+            
             var statusData = JsonSerializer.Deserialize<ServerStatus>(statusResponse);
             if (statusData == null)
                 throw new InvalidDataException("Status cannot be null");
-
+            
             if (string.IsNullOrWhiteSpace(statusData.Name))
                 return (UnprocessableEntity("Server name cannot be empty"), null, null);
 
