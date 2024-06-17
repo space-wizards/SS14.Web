@@ -53,7 +53,7 @@ public class ServerListController : ControllerBase
 
         return dbInfos;
     }
-    
+
     [EnableCors(CorsPolicies.PolicyHubPublic)]
     [HttpGet("info")]
     public async Task<IActionResult> GetServerInfo(string url)
@@ -65,7 +65,7 @@ public class ServerListController : ControllerBase
 
         if (dbInfo == null)
             return NotFound();
-        
+
         return Ok((RawJson?) dbInfo.InfoData);
     }
 
@@ -94,7 +94,7 @@ public class ServerListController : ControllerBase
         if (!Uri.TryCreate(advertise.Address, UriKind.Absolute, out var parsedAddress) ||
             string.IsNullOrWhiteSpace(parsedAddress.Host) ||
             parsedAddress.Scheme is not (Ss14UriHelper.SchemeSs14 or Ss14UriHelper.SchemeSs14s))
-            return BadRequest("Invalid SS14 URI");
+            return BadRequest("Invalid SS14 URI. Ensure your hub.server_url starts with ss14:// or ss14s:// and that the address is valid.");
 
         // Ban check.
         switch (await CheckAddressBannedAsync(parsedAddress))
@@ -112,7 +112,7 @@ public class ServerListController : ControllerBase
         Debug.Assert(statusJson != null);
         Debug.Assert(infoJson != null);
 
-        switch (await CheckInfoBannedAsync(parsedAddress, statusJson, infoJson!))
+        switch (await CheckInfoBannedAsync(parsedAddress, statusJson, infoJson))
         {
             case BanCheckResult.Banned:
                 return Unauthorized("Your server has been blocked from advertising on the hub. If you believe this to be in error, please contact us.");
@@ -149,7 +149,7 @@ public class ServerListController : ControllerBase
             StatusData = statusJson,
             InferredTags = inferredTags
         });
-        
+
         await _dbContext.SaveChangesAsync();
         return NoContent();
     }
@@ -176,11 +176,11 @@ public class ServerListController : ControllerBase
             {
                 return (UnprocessableEntity($"/status response data was too large (max: {maxStatusSize} KiB)"), null, null);
             }
-            
+
             var statusData = JsonSerializer.Deserialize<ServerStatus>(statusResponse);
             if (statusData == null)
                 throw new InvalidDataException("Status cannot be null");
-            
+
             if (string.IsNullOrWhiteSpace(statusData.Name))
                 return (UnprocessableEntity("Server name cannot be empty"), null, null);
 
@@ -214,8 +214,8 @@ public class ServerListController : ControllerBase
         }
         catch (Exception e)
         {
-            _logger.LogInformation(e, "Failed to connect to advertising server");
-            return (UnprocessableEntity("Unable to contact status address"), null, null);
+            _logger.LogInformation(e, $"Failed to connect to advertising server: {uri}");
+            return (UnprocessableEntity("Unable to contact status address, ensure your firewall/port forwarding configuration allows traffic from the internet and double check your config."), null, null);
         }
     }
 
