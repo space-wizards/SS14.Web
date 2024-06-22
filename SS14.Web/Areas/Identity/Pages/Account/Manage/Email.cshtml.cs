@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 
@@ -17,15 +16,18 @@ public partial class EmailModel : PageModel
     private readonly UserManager<SpaceUser> _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
     private readonly IEmailSender _emailSender;
+    private readonly AccountLogManager _logManager;
 
     public EmailModel(
         UserManager<SpaceUser> userManager,
         SignInManager<SpaceUser> signInManager,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        AccountLogManager logManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _emailSender = emailSender;
+        _logManager = logManager;
     }
 
     public string Username { get; set; }
@@ -102,6 +104,7 @@ public partial class EmailModel : PageModel
                 Input.NewEmail,
                 "Confirm your email",
                 $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+            await _logManager.LogAndSave(user, new AccountLogEmailChangeRequested(email, Input.NewEmail));
 
             StatusMessage = "Confirmation link to change email sent. Please check your email.";
             return RedirectToPage();

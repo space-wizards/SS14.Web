@@ -130,6 +130,7 @@ public sealed record AccountLogCreated : AccountLogEntry;
 public sealed record AccountLogEmailConfirmedChanged(bool NewConfirmed) : AccountLogEntry;
 
 public sealed record AccountLogEmailChanged(string OldEmail, string NewEmail) : AccountLogEntry;
+public sealed record AccountLogEmailChangeRequested(string OldEmail, string NewEmail) : AccountLogEntry;
 public sealed record AccountLogUserNameChanged(string NewName, string OldName) : AccountLogEntry;
 public sealed record AccountLogHubAdminChanged(bool NewAdmin) : AccountLogEntry;
 public sealed record AccountLogPasswordChanged : AccountLogEntry;
@@ -148,6 +149,7 @@ public sealed record AccountLogAuthRoleRemoved(Guid Role) : AccountLogEntry;
 
 public sealed record AccountLogCreatedReserved : AccountLogEntry;
 
+[UsedImplicitly]
 public enum AccountLogType
 {
     // @formatter:off
@@ -218,6 +220,10 @@ public enum AccountLogType
     [AuditEntryType(typeof(AccountLogCreatedReserved))]
     [AccountLogRetention(AccountLogRetainType.AccountManagement)]
     CreatedReserved = 16,
+
+    [AuditEntryType(typeof(AccountLogEmailChangeRequested))]
+    [AccountLogRetention(AccountLogRetainType.AccountManagement)]
+    EmailChangeRequested = 17,
     // @formatter:on
 }
 
