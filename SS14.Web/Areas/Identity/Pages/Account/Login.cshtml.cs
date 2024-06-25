@@ -63,7 +63,7 @@ public class LoginModel : PageModel
 
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-        ReturnUrl = returnUrl; 
+        ReturnUrl = returnUrl;
     }
 
     public async Task<IActionResult> OnPostAsync(string returnUrl = null)
@@ -104,6 +104,18 @@ public class LoginModel : PageModel
             {
                 _logger.LogWarning("User account locked by admin.");
                 return RedirectToPage("./AdminLocked");
+            }
+
+            if (result is SpaceSignInResult { EmailChangeRequired: true })
+            {
+                _logger.LogWarning("User account needs an email change.");
+                return RedirectToPage("./EmailChangeRequired");
+            }
+
+            if (result is SpaceSignInResult { PasswordChangeRequired: true })
+            {
+                _logger.LogWarning("User account needs a password change.");
+                return RedirectToPage("./PasswordChangeRequired");
             }
 
             if (result.RequiresTwoFactor)

@@ -63,6 +63,8 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
                     user.TwoFactorEnabled,
                     user.NormalizedUserName,
                     user.AdminLocked,
+                    user.RequirePasswordChange,
+                    user.RequireEmailChange,
                     user.AdminNotes,
                     user.LastUsernameChange
                 ),
@@ -199,6 +201,8 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
         bool TwoFactorEnabled,
         string NormalizedUserName,
         bool AdminLocked,
+        bool RequirePasswordChange,
+        bool RequireEmailChange,
         string AdminNotes,
         DateTimeOffset? LastUsernameChange);
 }

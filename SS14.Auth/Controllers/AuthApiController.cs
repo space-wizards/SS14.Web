@@ -97,6 +97,20 @@ public class AuthApiController : ControllerBase
                 AuthenticateDenyResponseCode.AccountLocked));
         }
 
+        if (signInResult is SpaceSignInResult { EmailChangeRequired: true })
+        {
+            return Unauthorized(new AuthenticateDenyResponse(
+                new[] { "Account requires a new email." },
+                AuthenticateDenyResponseCode.EmailChangeNeeded));
+        }
+
+        if (signInResult is SpaceSignInResult { PasswordChangeRequired: true })
+        {
+            return Unauthorized(new AuthenticateDenyResponse(
+                new[] { "Account requires a new password." },
+                AuthenticateDenyResponseCode.PasswdChangeNeeded));
+        }
+
         if (!signInResult.Succeeded)
         {
             return Unauthorized(new AuthenticateDenyResponse(
@@ -113,22 +127,22 @@ public class AuthApiController : ControllerBase
                     new[] { "" },
                     AuthenticateDenyResponseCode.TfaRequired));
             }
-            
+
             var verify = await _userManager.VerifyTwoFactorTokenAsync(
-                user, 
+                user,
                 _userManager.Options.Tokens.AuthenticatorTokenProvider,
                 request.TfaCode);
-            
+
             if (!verify)
             {
                 return Unauthorized(new AuthenticateDenyResponse(
                     new[] { "" },
                     AuthenticateDenyResponseCode.TfaInvalid));
             }
-            
+
             // 2FA passed, we're good.
         }
-        
+
         var (token, expireTime) =
             await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
 
@@ -278,6 +292,8 @@ public enum AuthenticateDenyResponseCode
     TfaRequired        = 3,
     TfaInvalid         = 4,
     AccountLocked      = 5,
+    EmailChangeNeeded  = 6,
+    PasswdChangeNeeded = 7,
     // @formatter:on
 }
 

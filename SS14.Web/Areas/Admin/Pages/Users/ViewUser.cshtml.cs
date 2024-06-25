@@ -52,6 +52,12 @@ public class ViewUser : PageModel
         [Display(Name = "Locked?")]
         public bool AdminLocked { get; set; }
 
+        [Display(Name = "Require Email change on next login?")]
+        public bool RequireEmailChange { get; set; }
+
+        [Display(Name = "Require Password change on next login?")]
+        public bool RequirePasswordChange { get; set; }
+
         [Display(Name = "Administrative notes")]
         public string AdminNotes { get; set; }
     }
@@ -139,6 +145,18 @@ public class ViewUser : PageModel
         {
             await _accountLogManager.Log(SpaceUser, new AccountLogAdminLockedChanged(Input.AdminLocked));
             SpaceUser.AdminLocked = Input.AdminLocked;
+        }
+
+        if (SpaceUser.RequireEmailChange != Input.RequireEmailChange)
+        {
+            await _accountLogManager.Log(SpaceUser, new AccountLogAdminLockedChanged(Input.RequireEmailChange));
+            SpaceUser.RequireEmailChange = Input.RequireEmailChange;
+        }
+
+        if (SpaceUser.RequirePasswordChange != Input.RequirePasswordChange)
+        {
+            await _accountLogManager.Log(SpaceUser, new AccountLogAdminLockedChanged(Input.RequirePasswordChange));
+            SpaceUser.RequirePasswordChange = Input.RequirePasswordChange;
         }
 
         await CheckRole(Input.HubAdmin, AuthConstants.RoleSysAdmin);
@@ -237,6 +255,8 @@ public class ViewUser : PageModel
             ServerHubAdmin = await _userManager.IsInRoleAsync(SpaceUser, AuthConstants.RoleServerHubAdmin),
             TfaEnabled = SpaceUser.TwoFactorEnabled,
             AdminLocked = SpaceUser.AdminLocked,
+            RequireEmailChange = SpaceUser.RequireEmailChange,
+            RequirePasswordChange = SpaceUser.RequirePasswordChange,
             AdminNotes = SpaceUser.AdminNotes
         };
 

@@ -35,6 +35,12 @@ public sealed class SpaceSignInManager : SignInManager<SpaceUser>
         if (user.AdminLocked)
             return SpaceSignInResult.AdminLocked;
 
+        if (user.RequireEmailChange)
+            return SpaceSignInResult.RequireEmailChange;
+
+        if (user.RequirePasswordChange)
+            return SpaceSignInResult.RequirePasswordChange;
+
         return await base.PreSignInCheck(user);
     }
 }

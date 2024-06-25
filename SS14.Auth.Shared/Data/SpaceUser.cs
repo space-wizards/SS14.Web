@@ -22,6 +22,16 @@ public class SpaceUser : IdentityUser<Guid>
     public bool AdminLocked { get; set; }
 
     /// <summary>
+    /// Account requires an email change before being accessible again.
+    /// </summary>
+    public bool RequireEmailChange { get; set; }
+
+    /// <summary>
+    /// Account requires a password change before being accessible again.
+    /// </summary>
+    public bool RequirePasswordChange { get; set; }
+
+    /// <summary>
     /// Note set by hub administrator.
     /// </summary>
     [Required]
