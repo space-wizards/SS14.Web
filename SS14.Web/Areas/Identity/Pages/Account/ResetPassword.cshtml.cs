@@ -73,7 +73,7 @@ public class ResetPasswordModel : PageModel
         }
 
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
-        
+
         var user = await _userManager.FindByEmailAsync(Input.Email);
         if (user == null)
         {
@@ -85,11 +85,16 @@ public class ResetPasswordModel : PageModel
 
         if (result.Succeeded)
         {
+            if (user.RequirePasswordChange)
+            {
+                user.RequirePasswordChange = false;
+                await _userManager.UpdateAsync(user);
+            }
             await _logManager.LogAndSave(user, new AccountLogPasswordChanged(), _logManager.ActorWithIP(user));
         }
-        
+
         await tx.CommitAsync();
-        
+
         if (result.Succeeded)
         {
             return RedirectToPage("./ResetPasswordConfirmation");
