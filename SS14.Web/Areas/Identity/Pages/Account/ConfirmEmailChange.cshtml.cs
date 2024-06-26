@@ -64,6 +64,12 @@ public class ConfirmEmailChangeModel : PageModel
             new AccountLogEmailChanged(oldEmail, email),
             _accountLogManager.ActorWithIP(user));
 
+        if (user.RequireEmailChange)
+        {
+            user.RequireEmailChange = false;
+            await _userManager.UpdateAsync(user);
+        }
+
         await tx.CommitAsync();
 
         await _signInManager.RefreshSignInAsync(user);

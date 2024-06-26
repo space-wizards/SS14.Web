@@ -102,6 +102,11 @@ public class ChangePasswordModel : PageModel
         await _logManager.LogAndSave(user, new AccountLogPasswordChanged());
         await _sessionManager.InvalidateSessions(user);
         await _signInManager.RefreshSignInAsync(user);
+        if (user.RequirePasswordChange)
+        {
+            user.RequirePasswordChange = false;
+            await _userManager.UpdateAsync(user);
+        }
         _logger.LogInformation("User changed their password successfully.");
         StatusMessage = "Your password has been changed.";
 
