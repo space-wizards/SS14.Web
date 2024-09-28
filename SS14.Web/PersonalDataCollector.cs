@@ -42,6 +42,7 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
             await CollectPatrons(zip, user, cancel);
             await CollectUserOAuthClients(zip, user, cancel);
             await CollectIS4PersistedGrants(zip, user, cancel);
+            await CollectHwidUsers(zip, user, cancel);
         }
 
         stream.Seek(0, SeekOrigin.Begin);
@@ -173,6 +174,16 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
         var grants = await dbContext.PersistedGrants.Where(x => x.SubjectId == user.Id.ToString()).ToListAsync(cancel);
 
         SerializeToFile(zip, "IS4.PersistedGrants.json", grants);
+    }
+
+    private async Task CollectHwidUsers(ZipArchive zip, SpaceUser user, CancellationToken cancel)
+    {
+        var hwidUsers = await dbContext.HwidUsers
+            .Include(h => h.Hwid)
+            .Where(h => h.SpaceUser == user)
+            .ToListAsync(cancel);
+
+        SerializeToFile(zip, "HwidUsers.json", hwidUsers);
     }
 
     private static void StringToFile(ZipArchive archive, string name, string data)

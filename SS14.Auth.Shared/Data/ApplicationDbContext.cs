@@ -40,6 +40,11 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .HasIndex(p => new {p.Hash, p.SpaceUserId})
             .IsUnique();
 
+        builder.Entity<AuthHash>()
+            .HasOne(h => h.Hwid)
+            .WithMany()
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Entity<BurnerEmail>()
             .HasIndex(p => new {p.Domain})
             .IsUnique();
@@ -58,6 +63,14 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
 
         builder.Entity<UserOAuthClient>()
             .HasIndex(p => new { p.ClientId })
+            .IsUnique();
+
+        builder.Entity<Hwid>()
+            .HasIndex(h => h.ClientData)
+            .IsUnique();
+
+        builder.Entity<HwidUser>()
+            .HasIndex(h => new { h.HwidId, h.SpaceUserId })
             .IsUnique();
 
         var cfgStoreOptions = new ConfigurationStoreOptions
@@ -103,6 +116,8 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
     public DbSet<PastAccountName> PastAccountNames { get; set; }
     public DbSet<AccountLog> AccountLogs { get; set; }
+    public DbSet<Hwid> Hwids { get; set; }
+    public DbSet<HwidUser> HwidUsers { get; set; }
 
     // IS4 configuration.
     public DbSet<Client> Clients { get; set; }
