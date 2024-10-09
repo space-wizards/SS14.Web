@@ -15,12 +15,10 @@ public class SearchApiController : ControllerBase
 {
     private const int MaxLimit = 100;
 
-    private readonly UserManager<SpaceUser> _userManager;
     private readonly ApplicationDbContext _db;
 
-    public SearchApiController(UserManager<SpaceUser> userManager, ApplicationDbContext db)
+    public SearchApiController(ApplicationDbContext db)
     {
-        _userManager = userManager;
         _db = db;
     }
 
