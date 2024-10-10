@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SS14.Auth.Responses;
 using SS14.Auth.Shared.Data;
 
@@ -30,7 +31,7 @@ public class QueryApiController : ControllerBase
     /// </summary>
     [HttpGet("pastname")]
     [HttpHead("pastname")]
-    public IActionResult SearchByPastName(
+    public async Task<IActionResult> SearchByPastName(
         [FromQuery] string name,
         [FromQuery] int limit = 10
     )
@@ -40,13 +41,25 @@ public class QueryApiController : ControllerBase
             return BadRequest($"Limit out of range. Must be between 1 and {MaxLimit}.");
         }
 
-        var users = _db.PastAccountNames
+        var users = await _db.PastAccountNames
             .Where(p => p.PastName.Equals(name))
             .Select(p => new PastUsernameSearchResponse(p.SpaceUser.UserName, p.SpaceUser.Id))
-            .ToList()
-            .DistinctBy(p => p.UserId)
-            .Take(limit);
+            .ToListAsync();
 
+        users = users
+            .DistinctBy(u => u.UserId)
+            .Take(limit)
+            .ToList();
+        /*
+         The reason why this is not done in the DB query is because the distinct by user ID is not supported by EF Core.
+         This may cause performance issues when a past name was used by many users. But I believe this is a rare enough case.
+         This also applies for the .Take because we need to distinct first, otherwise a rare edge case could apply where:
+         A user has had the same name multiple times, but we only want to show them once. Let's also say a different user had the same name once.
+         We enter the edge case where we take only the first user 10 times, and then the second user is never shown.
+         The end result would still only be one past name, even though two users had it.
+
+         This is not wanted behavior, so we need to distinct first, then take.
+        */
         return Ok(users);
     }
 
