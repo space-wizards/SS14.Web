@@ -46,10 +46,6 @@ public class QueryApiController : ControllerBase
             .Select(p => new PastUsernameSearchResponse(p.SpaceUser.UserName, p.SpaceUser.Id))
             .ToListAsync();
 
-        users = users
-            .DistinctBy(u => u.UserId)
-            .Take(limit)
-            .ToList();
         /*
          The reason why this is not done in the DB query is because the distinct by user ID is not supported by EF Core.
          This may cause performance issues when a past name was used by many users. But I believe this is a rare enough case.
@@ -60,6 +56,12 @@ public class QueryApiController : ControllerBase
 
          This is not wanted behavior, so we need to distinct first, then take.
         */
+
+        users = users
+            .DistinctBy(u => u.UserId)
+            .Take(limit)
+            .ToList();
+
         return Ok(users);
     }
 
