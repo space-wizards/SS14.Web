@@ -26,7 +26,7 @@ public class HomeController : Controller
 
     public IActionResult Contact()
     {
-        return Redirect("https://spacestation14.io/about/contact/");
+        return Redirect("https://spacestation14.com/about/contact/");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -37,6 +37,6 @@ public class HomeController : Controller
 
     public IActionResult MainWebsite()
     {
-        return Redirect("https://spacestation14.io/");
+        return Redirect("https://spacestation14.com/");
     }
 }
