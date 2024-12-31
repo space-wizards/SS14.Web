@@ -21,7 +21,7 @@ public class HomeController : Controller
 
     public IActionResult Privacy()
     {
-        return View();
+        return Redirect("https://spacestation14.com/about/privacy/");
     }
 
     public IActionResult Contact()
