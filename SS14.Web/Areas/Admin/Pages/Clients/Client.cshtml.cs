@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.Entities;
-using IdentityServer4.Models;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using SS14.Auth.Shared.Data;
-using DbClient = IdentityServer4.EntityFramework.Entities.Client;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
+
+// TODO: Replace identityserver4 code in this file
 
 public class Client : PageModel
 {
@@ -28,11 +21,11 @@ public class Client : PageModel
 
     [TempData] public string StatusMessage { get; set; }
 
-    public DbClient DbClient { get; set; }
+    //public DbClient DbClient { get; set; }
 
-    public string Title => DbClient.ClientName ?? DbClient.ClientId;
+    //public string Title => DbClient.ClientName ?? DbClient.ClientId;
 
-    public IEnumerable<ClientSecret> Secrets { get; set; }
+    //public IEnumerable<ClientSecret> Secrets { get; set; }
 
     public sealed class CreateSecretModel
     {
@@ -99,7 +92,7 @@ public class Client : PageModel
         public string AllowedCorsOrigins { get; set; }
     }
 
-    public async Task<IActionResult> OnGetAsync(int id)
+    /*public async Task<IActionResult> OnGetAsync(int id)
     {
         DbClient = await _dbContext.Clients
             .Include(c => c.RedirectUris)
@@ -321,5 +314,5 @@ public class Client : PageModel
         StatusMessage = "Secret deleted.";
 
         return RedirectToPage(new {id = dbSecret.ClientId});
-    }
+    }*/
 }

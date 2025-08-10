@@ -2,18 +2,20 @@
 @model SS14.Web.Areas.Admin.Pages.Clients.ConfirmDelete
 
 @{
-    ViewData["Title"] = $"Delete {Model.Title}?";
+    // TODO: Replace identityserver4 code in this file
+
+    //ViewData["Title"] = $"Delete {Model.Title}?";
 }
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
         <li class="breadcrumb-item"><a asp-page="./Index">OAuth Clients</a></li>
-        <li class="breadcrumb-item "><a asp-page="./ViewUser" asp-route-id="@Model.DbClient.Id">@Model.Title</a></li>
+        @*<li class="breadcrumb-item "><a asp-page="./ViewUser" asp-route-id="@Model.DbClient.Id">@Model.Title</a></li>*@
         <li class="breadcrumb-item active" aria-current="page">Confirm Deletion</li>
     </ol>
 </nav>
 
 <form method="post">
-    <button id="delete-button" type="submit" asp-page-handler="Delete" asp-route-id="@Model.DbClient.Id" class="btn btn-danger">Delete</button>
+    @*<button id="delete-button" type="submit" asp-page-handler="Delete" asp-route-id="@Model.DbClient.Id" class="btn btn-danger">Delete</button>*@
 </form>

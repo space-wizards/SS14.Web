@@ -25,9 +25,9 @@ public class Developer : PageModel
     {
         var user = await _userManager.GetUserAsync(User);
 
-        OAuthClients = await _dbContext.UserOAuthClients
+        /*OAuthClients = await _dbContext.UserOAuthClients
             .Include(oa => oa.Client)
             .Where(oa => oa.SpaceUser == user)
-            .ToListAsync();
+            .ToListAsync();*/
     }
 }

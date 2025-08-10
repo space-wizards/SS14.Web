@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -47,8 +44,9 @@ public class Create : PageModel
     public async Task<IActionResult> OnPostAsync()
     {
         var user = await _userManager.GetUserAsync(User);
+        // TODO: Replace identityserver4 code in this file
 
-        var client = new Client
+        /*var client = new Client
         {
             ClientName = Input.Name,
             ClientId = Guid.NewGuid().ToString(),
@@ -82,6 +80,7 @@ public class Create : PageModel
 
         await _dbContext.SaveChangesAsync();
 
-        return RedirectToPage("Manage", new { client = userClient.UserOAuthClientId });
+        return RedirectToPage("Manage", new { client = userClient.UserOAuthClientId });*/
+        return NotFound();
     }
 }

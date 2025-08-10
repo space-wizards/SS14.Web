@@ -2,6 +2,7 @@
 @model SS14.Web.Areas.Admin.Pages.Clients.Index
 
 @{
+    // TODO: Replace identityserver4 code in this file
     ViewData["Title"] = "OAuth Clients";
 }
 <nav aria-label="breadcrumb">
@@ -13,7 +14,7 @@
 
 @if (TempData.ContainsKey("StatusMessage"))
 {
-    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />   
+    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />
 }
 
 <form asp-page-handler="NewClient" method="post">
@@ -30,7 +31,7 @@
     </tr>
     </thead>
     <tbody>
-        @foreach (var (client, userClient) in Model.Clients)
+        @*@foreach (var (client, userClient) in Model.Clients)
         {
             <tr>
                 <td>@client.ClientId</td>
@@ -45,7 +46,7 @@
                     <a asp-page="./Client" asp-route-id="@client.Id">View</a>
                 </td>
             </tr>
-        }
+        }*@
     </tbody>
 </table>
 

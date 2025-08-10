@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.Entities;
-using IdentityServer4.EntityFramework.Extensions;
-using IdentityServer4.EntityFramework.Interfaces;
-using IdentityServer4.EntityFramework.Options;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace SS14.Auth.Shared.Data;
 
+// TODO: Replace identityserver4 code in this file
+
 public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid>,
-    IDataProtectionKeyContext,
-    IConfigurationDbContext,
-    IPersistedGrantDbContext
+    IDataProtectionKeyContext //,
+    //IConfigurationDbContext,
+    //IPersistedGrantDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -73,7 +70,7 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .HasIndex(h => new { h.HwidId, h.SpaceUserId })
             .IsUnique();
 
-        var cfgStoreOptions = new ConfigurationStoreOptions
+        /*var cfgStoreOptions = new ConfigurationStoreOptions
         {
             IdentityResource = new TableConfiguration("IdentityResources", "IS4"),
             IdentityResourceClaim = new TableConfiguration("IdentityResourceClaims", "IS4"),
@@ -103,7 +100,7 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
         {
             PersistedGrants = new TableConfiguration("PersistedGrants", "IS4"),
             DeviceFlowCodes = new TableConfiguration("DeviceCodes", "IS4"),
-        });
+        });*/
     }
 
     public DbSet<LoginSession> ActiveSessions { get; set; }
@@ -120,7 +117,7 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<HwidUser> HwidUsers { get; set; }
 
     // IS4 configuration.
-    public DbSet<Client> Clients { get; set; }
+    /*public DbSet<Client> Clients { get; set; }
     public DbSet<ClientSecret> ClientSecrets { get; set; }
     public DbSet<ClientCorsOrigin> ClientCorsOrigins { get; set; }
     public DbSet<IdentityResource> IdentityResources { get; set; }
@@ -134,5 +131,5 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     Task<int> IPersistedGrantDbContext.SaveChangesAsync()
     {
         return base.SaveChangesAsync();
-    }
+    }*/
 }

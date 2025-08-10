@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
-using IdentityServer4;
-using IdentityServer4.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -126,8 +124,8 @@ public class Startup
                 });
         }
 
-
-        var builder = services.AddIdentityServer(options =>
+        //TODO: Replace identityserver4 code in this file
+        /*var builder = services.AddIdentityServer(options =>
             {
                 options.UserInteraction.ConsentUrl = "/Identity/Account/Consent";
             })
@@ -139,7 +137,7 @@ public class Startup
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
                 new IdentityResources.Email(),
-            });
+            });*/
 
         var keyPath = Configuration.GetValue<string>("Is4SigningKeyPath");
         if (keyPath == null)
@@ -147,7 +145,7 @@ public class Startup
             if (Environment.IsDevelopment())
             {
                 Log.Debug("Using developer signing credentials");
-                builder.AddDeveloperSigningCredential();
+                //builder.AddDeveloperSigningCredential();
             }
             else
             {
@@ -160,9 +158,9 @@ public class Startup
             var key = ECDsa.Create();
             key.ImportFromPem(keyPem);
 
-            builder.AddSigningCredential(
-                new ECDsaSecurityKey(key),
-                IdentityServerConstants.ECDsaSigningAlgorithm.ES256);
+            //builder.AddSigningCredential(
+            //    new ECDsaSecurityKey(key),
+            //    IdentityServerConstants.ECDsaSigningAlgorithm.ES256);
         }
 
         var keyPathRsa = Configuration.GetValue<string>("Is4SigningKeyPathRsa");
@@ -172,12 +170,12 @@ public class Startup
             var key = RSA.Create();
             key.ImportFromPem(keyPem);
 
-            builder.AddSigningCredential(
-                new RsaSecurityKey(key),
-                IdentityServerConstants.RsaSigningAlgorithm.PS256);
-            builder.AddSigningCredential(
-                new RsaSecurityKey(key),
-                IdentityServerConstants.RsaSigningAlgorithm.RS256);
+            //builder.AddSigningCredential(
+            //    new RsaSecurityKey(key),
+            //    IdentityServerConstants.RsaSigningAlgorithm.PS256);
+            //builder.AddSigningCredential(
+            //    new RsaSecurityKey(key),
+            //    IdentityServerConstants.RsaSigningAlgorithm.RS256);
         }
 
         services.AddScoped<PersonalDataCollector>();
@@ -234,6 +232,6 @@ public class Startup
             endpoints.MapMetrics();
         });
 
-        app.UseIdentityServer();
+        //app.UseIdentityServer();
     }
 }

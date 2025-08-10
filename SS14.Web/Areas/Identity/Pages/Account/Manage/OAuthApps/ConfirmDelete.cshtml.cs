@@ -7,6 +7,8 @@ using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps;
 
+// TODO: Replace identityserver4 code in this file
+
 public class ConfirmDelete : PageModel
 {
     private readonly ApplicationDbContext _dbContext;
@@ -23,8 +25,8 @@ public class ConfirmDelete : PageModel
     public async Task<IActionResult> OnGetAsync(int client)
     {
         var user = await _userManager.GetUserAsync(User);
-        App = await _dbContext.UserOAuthClients.Include(a => a.Client)
-            .SingleOrDefaultAsync(ac => ac.UserOAuthClientId == client);
+        //App = await _dbContext.UserOAuthClients.Include(a => a.Client)
+        //    .SingleOrDefaultAsync(ac => ac.UserOAuthClientId == client);
 
         if (App == null)
             return NotFound();
@@ -38,8 +40,8 @@ public class ConfirmDelete : PageModel
     public async Task<IActionResult> OnPostDeleteAsync(int client)
     {
         var user = await _userManager.GetUserAsync(User);
-        App = await _dbContext.UserOAuthClients.Include(a => a.Client)
-            .SingleOrDefaultAsync(ac => ac.UserOAuthClientId == client);
+        //App = await _dbContext.UserOAuthClients.Include(a => a.Client)
+        //    .SingleOrDefaultAsync(ac => ac.UserOAuthClientId == client);
 
         if (App == null)
             return NotFound();
@@ -47,10 +49,10 @@ public class ConfirmDelete : PageModel
         if (!Manage.VerifyAppAccess(user, App))
             return Forbid();
 
-        _dbContext.Remove(App.Client);
-        
+       // _dbContext.Remove(App.Client);
+
         await _dbContext.SaveChangesAsync();
-        
+
         return RedirectToPage("../Developer");
     }
 }

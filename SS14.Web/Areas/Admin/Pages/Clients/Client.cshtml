@@ -1,15 +1,17 @@
 ﻿@page
 @model SS14.Web.Areas.Admin.Pages.Clients.Client
-
+@* Oh god this file is going to be horrible to refactor for openiddict *@
 @{
-    ViewData["Title"] = $"OAuth Client: {Model.Title}";
+    // TODO: Replace identityserver4 code in this file
+
+    //ViewData["Title"] = $"OAuth Client: {Model.Title}";
 }
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
         <li class="breadcrumb-item"><a asp-page="./Index">OAuth Clients</a></li>
-        <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+        @*<li class="breadcrumb-item active" aria-current="page">@Model.Title</li>*@
     </ol>
 </nav>
 
@@ -313,7 +315,7 @@
     <textarea asp-for="Input.IdentityProviderRestrictions" class="form-control col-sm-9"></textarea>
 </div>
 
-<button id="save-button" type="submit" asp-page-handler="Save" asp-route-id="@Model.DbClient.Id" class="btn btn-primary btn-sm">Save</button>
+@*<button id="save-button" type="submit" asp-page-handler="Save" asp-route-id="@Model.DbClient.Id" class="btn btn-primary btn-sm">Save</button>*@
 </form>
 
 <h5 class="mt-5">Secrets</h5>
@@ -328,7 +330,7 @@
     </tr>
     </thead>
     <tbody>
-    @foreach (var secret in Model.Secrets)
+    @*@foreach (var secret in Model.Secrets)
     {
         <tr>
             <td>@secret.Description</td>
@@ -337,12 +339,12 @@
             <td>
                 <form method="post">
                     <button type="submit"
-                            asp-page-handler="DeleteSecret" asp-route-secret="@secret.Id" 
+                            asp-page-handler="DeleteSecret" asp-route-secret="@secret.Id"
                             class="btn btn-danger">Delete</button>
                 </form>
             </td>
-        </tr>   
-    }
+        </tr>
+    }*@
     </tbody>
 </table>
 
@@ -354,10 +356,11 @@
         <input asp-for="CreateSecretInput.Value" class="form-control col-md-3" placeholder="Value">
         <label asp-for="CreateSecretInput.Type" class="col-form-label col-md-1"></label>
         <input asp-for="CreateSecretInput.Type" class="form-control col-md-2">
-        <button type="submit" asp-route-id="@Model.DbClient.Id" asp-page-handler="CreateSecret" class="btn btn-primary col-md-1">Create</button>
+        @*<button type="submit" asp-route-id="@Model.DbClient.Id" asp-page-handler="CreateSecret" class="btn btn-primary col-md-1">Create</button>*@
     </div>
 </form>
 
 <h5 class="mt-5">Actions</h5>
-
+@*
 <a asp-page="./ConfirmDelete" asp-route-id="@Model.DbClient.Id" class="btn btn-danger">Delete</a>
+*@

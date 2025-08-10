@@ -2,9 +2,11 @@
 @using SS14.Auth.Shared
 @model SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps.Manage
 
+@* TODO: Replace identityserver4 code in this file *@
+
 @{
     Layout = "/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = $"Manage OAuth app {Model.App.Client.ClientName}";
+    //ViewData["Title"] = $"Manage OAuth app {Model.App.Client.ClientName}";
 }
 
 <div class="container">
@@ -16,7 +18,7 @@
     </div>
     <div class="row mb-3">
         <div class="col">
-            <strong>Client ID:</strong> <span class="text-monospace">@Model.App.Client.ClientId</span><br/>
+            <strong>Client ID:</strong> <span class="text-monospace">@*@Model.App.Client.ClientId*@</span><br/>
             Only Authorization Code flow is accepted<br/>
             Available scopes are: <span class="text-monospace">openid</span>, <span class="text-monospace">profile</span>, <span class="text-monospace">email</span><br/>
             SS14 implements OpenID Connect via IdentityServer4. See <a class="text-monospace" href="@Url.Content("~/.well-known/openid-configuration")">.well-known/openid-configuration</a> for config and endpoints.
@@ -67,7 +69,7 @@
             <div class="row">
                 <div class="col">
                     <div class="list-group">
-                        @foreach (var secret in Model.App.Client.ClientSecrets.OrderByDescending(a => a.Created))
+                        @*@foreach (var secret in Model.App.Client.ClientSecrets.OrderByDescending(a => a.Created))
                         {
                             var show = Model.ShowSecret == secret.Id;
                             if (secret.Type != "SharedSecret")
@@ -87,7 +89,7 @@
                                     </button>
                                 </form>
                             </div>
-                        }
+                        }*@
                     </div>
                 </div>
             </div>

@@ -171,9 +171,11 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
 
     private async Task CollectIS4PersistedGrants(ZipArchive zip, SpaceUser user, CancellationToken cancel)
     {
-        var grants = await dbContext.PersistedGrants.Where(x => x.SubjectId == user.Id.ToString()).ToListAsync(cancel);
+        // TODO: Replace identityserver4 code in this file
 
-        SerializeToFile(zip, "IS4.PersistedGrants.json", grants);
+        //var grants = await dbContext.PersistedGrants.Where(x => x.SubjectId == user.Id.ToString()).ToListAsync(cancel);
+
+        //SerializeToFile(zip, "IS4.PersistedGrants.json", grants);
     }
 
     private async Task CollectHwidUsers(ZipArchive zip, SpaceUser user, CancellationToken cancel)

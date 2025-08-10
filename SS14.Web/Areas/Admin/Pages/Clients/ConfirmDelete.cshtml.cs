@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SS14.Auth.Shared.Data;
-using DbClient = IdentityServer4.EntityFramework.Entities.Client;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
+
+// TODO: Replace identityserver4 code in this file
 
 public class ConfirmDelete : PageModel
 {
@@ -16,24 +17,24 @@ public class ConfirmDelete : PageModel
         _dbContext = dbContext;
     }
 
-    public DbClient DbClient { get; set; }
-    public string Title => DbClient.ClientName ?? DbClient.ClientId;
- 
+    //public DbClient DbClient { get; set; }
+    //public string Title => DbClient.ClientName ?? DbClient.ClientId;
+
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
+        /*DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
 
         if (DbClient == null)
         {
             return NotFound("Unknown client");
-        }
+        }*/
 
         return Page();
     }
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
-        DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
+        /*DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
 
         if (DbClient == null)
         {
@@ -44,7 +45,7 @@ public class ConfirmDelete : PageModel
 
         await _dbContext.SaveChangesAsync();
 
-        TempData["StatusMessage"] = "OAuth client deleted";
+        TempData["StatusMessage"] = "OAuth client deleted";*/
         return RedirectToPage("./Index");
     }
 }

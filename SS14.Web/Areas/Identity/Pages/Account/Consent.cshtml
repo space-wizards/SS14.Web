@@ -4,7 +4,7 @@
 @{
     Layout = null;
 }
-
+@* TODO: Replace identityserver4 code in this file *@
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,18 +27,18 @@
     </div>
     <div class="row">
         <div class="col d-flex align-items-center">
-            <h2 class="text-center flex-grow-1 m-3">Authorize @Model.AuthRequest.Client.ClientName</h2>
-            @if (!string.IsNullOrWhiteSpace(@Model.AuthRequest.Client.LogoUri))
+            <h2 class="text-center flex-grow-1 m-3">Authorize @*@Model.AuthRequest.Client.ClientName*@</h2>
+            @*@if (!string.IsNullOrWhiteSpace(@Model.AuthRequest.Client.LogoUri))
             {
                 <img class="rounded" height="48" src="@Model.AuthRequest.Client.LogoUri" alt="@Model.AuthRequest.Client.ClientName"/>
-            }
-        </div>  
+            }*@
+        </div>
     </div>
     <div class="row consent-wrap">
         <div class="col consent-contents">
             <div class="row mb-3">
                 <div class="col">
-                    <strong>@Model.AuthRequest.Client.ClientName</strong>
+                    @*<strong>@Model.AuthRequest.Client.ClientName</strong>*@
                     @if (Model.UserClient != null)
                     {
                         <span>
@@ -50,21 +50,21 @@
             </div>
             @{
                 // openid and profile are not worth showing.
-                var identityResources = Model.AuthRequest.ValidatedResources.Resources.IdentityResources
+                @*var identityResources = Model.AuthRequest.ValidatedResources.Resources.IdentityResources
                     .Where(c => c.Name != "openid" && c.Name != "profile")
-                    .ToArray();
+                    .ToArray();*@
             }
             <div class="row mb-3">
                 <div class="col">
                     <strong>Requested Account Information</strong>
                     <ul class="pl-3">
                         <li>Name and user ID</li>
-                        @foreach (var resource in identityResources)
+                        @*@foreach (var resource in identityResources)
                         {
                             <li>
                                 @resource.DisplayName
                             </li>
-                        }
+                        }*@
                     </ul>
                 </div>
             </div>
