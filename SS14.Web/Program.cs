@@ -1,48 +1,127 @@
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Prometheus;
 using Serilog;
 using SS14.Auth.Shared;
+using SS14.ServerHub.Shared.Data;
+using SS14.Web;
+using SS14.Web.Data;
+using SS14.Web.Extensions;
+using SS14.Web.HCaptcha;
+using SS14.WebEverythingShared;
 
-[assembly: InternalsVisibleTo("SS14.Web.Tests")]
+var builder = WebApplication.CreateBuilder();
 
-namespace SS14.Web;
+// Configuration
+var env = builder.Environment;
+builder.Configuration.AddYamlFile("appsettings.yml", false, true);
+builder.Configuration.AddYamlFile($"appsettings.{env.EnvironmentName}.yml", true, true);
+builder.Configuration.AddYamlFile("appsettings.Secret.yml", true, true);
 
-public class Program
+builder.Services.Configure<AccountOptions>(builder.Configuration.GetSection("Account"));
+
+// Logging
+builder.Services.AddSerilog(config =>
 {
-    public static void Main(string[] args)
+    config.ReadFrom.Configuration(builder.Configuration);
+    StartupHelpers.SetupLoki(config, builder.Configuration, "SS14.Web");
+});
+
+builder.Services.AddScoped<HubAuditLogManager>();
+
+// Database
+
+builder.Services.AddDbContext<HubDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("HubConnection")
+        ?? throw new InvalidOperationException("Must set HubConnection");
+
+    options.UseNpgsql(connectionString);
+});
+
+// Auth
+
+builder.Services.AddAuthorizationBuilder()
+   .AddPolicy(AuthConstants.PolicyAnyHubAdmin, policy => policy.RequireRole(AuthConstants.RoleSysAdmin, AuthConstants.RoleServerHubAdmin) )
+   .AddPolicy(AuthConstants.PolicySysAdmin, policy => policy.RequireRole(AuthConstants.RoleSysAdmin) )
+   .AddPolicy(AuthConstants.PolicyServerHubAdmin, policy => policy.RequireRole(AuthConstants.RoleServerHubAdmin) );
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = $"/Identity/Account/Login";
+    options.LogoutPath = $"/Identity/Account/Logout";
+    options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+});
+
+// MVC
+
+builder.Services.AddMvc().AddRazorPagesOptions(options =>
+{
+    options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
+    options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
+    options.Conventions.AuthorizeAreaFolder("Admin", "/", AuthConstants.PolicyAnyHubAdmin);
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Clients", AuthConstants.PolicySysAdmin);
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Users", AuthConstants.PolicySysAdmin);
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Servers", AuthConstants.PolicyServerHubAdmin);
+});
+
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
+// Services
+builder.Services.AddSystemd();
+HCaptchaService.RegisterServices(builder.Services, builder.Configuration);
+builder.AddPatreon();
+builder.AddOpenIdConnect();
+builder.Services.AddScoped<PersonalDataCollector>();
+builder.AddShared();
+
+var app = builder.Build();
+
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms to {ClientAddress}";
+    options.EnrichDiagnosticContext = (context, httpContext) =>
     {
-        CreateHostBuilder(args).Build().Run();
-    }
+        context.Set("ClientAddress", httpContext.Connection.RemoteIpAddress);
+    };
+});
 
-    public static IHostBuilder CreateHostBuilder(string[] args)
-    {
-        return Host.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((context, builder) =>
-            {
-                var env = context.HostingEnvironment;
-                builder.AddYamlFile("appsettings.yml", false, true);
-                builder.AddYamlFile($"appsettings.{env.EnvironmentName}.yml", true, true);
-                builder.AddYamlFile("appsettings.Secret.yml", true, true);
-            })
-            .UseSerilog((ctx, cfg) =>
-            {
-                cfg.ReadFrom.Configuration(ctx.Configuration);
-
-                StartupHelpers.SetupLoki(cfg, ctx.Configuration, "SS14.Web");
-            })
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                var webRoot = webBuilder.GetSetting("WEBROOT");
-                if (!string.IsNullOrEmpty(webRoot))
-                {
-                    webBuilder.UseWebRoot(webRoot);
-                }
-
-                webBuilder.UseStartup<Startup>();
-            })
-            .UseSystemd();
-    }
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseMigrationsEndPoint();
 }
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+MoreStartupHelpers.AddForwardedSupport(app, app.Configuration);
+
+var pathBase = app.Configuration.GetValue<string>("PathBase");
+if (!string.IsNullOrEmpty(pathBase))
+    app.UsePathBase(pathBase);
+
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseHttpMetrics();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapDefaultControllerRoute();
+app.MapRazorPages();
+app.MapMetrics();
+
+app.UseOpenIdConnect();
+
+app.Run();

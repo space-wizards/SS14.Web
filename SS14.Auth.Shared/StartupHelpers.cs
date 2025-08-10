@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,11 @@ namespace SS14.Auth.Shared;
 
 public static class StartupHelpers
 {
+    public static void AddShared(this WebApplicationBuilder builder)
+    {
+        AddShared(builder.Services, builder.Configuration);
+    }
+
     public static void AddShared(IServiceCollection services, IConfiguration config)
     {
         // Configure.
@@ -34,7 +40,7 @@ public static class StartupHelpers
             // The fact that this isn't default absolutely baffles me.
             options.ValidationInterval = TimeSpan.FromSeconds(5);
         });
-            
+
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(
                 config.GetConnectionString("DefaultConnection")));
@@ -86,7 +92,7 @@ public static class StartupHelpers
 
         services.AddTransient<MutexDatabase>();
     }
-        
+
     public static void SetupLoki(LoggerConfiguration log, IConfiguration cfg, string appName)
     {
         var dat = cfg.GetSection("Serilog:Loki").Get<LokiConfigurationData>();
