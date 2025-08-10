@@ -87,7 +87,8 @@ app.UseSerilogRequestLogging(options =>
     options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms to {ClientAddress}";
     options.EnrichDiagnosticContext = (context, httpContext) =>
     {
-        context.Set("ClientAddress", httpContext.Connection.RemoteIpAddress);
+        if (httpContext.Connection.RemoteIpAddress != null)
+            context.Set("ClientAddress", httpContext.Connection.RemoteIpAddress);
     };
 });
 
