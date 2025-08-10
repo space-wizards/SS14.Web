@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 namespace SS14.ServerHub.Shared.Data;
 
 #pragma warning disable EF1001
-
+/*
 // Taken from https://github.com/npgsql/efcore.pg/issues/1158
 // To support inet -> (IPAddress, int) mapping.
 public class CustomNpgsqlTypeMappingSource : NpgsqlTypeMappingSource
@@ -18,7 +18,7 @@ public class CustomNpgsqlTypeMappingSource : NpgsqlTypeMappingSource
         TypeMappingSourceDependencies dependencies,
         RelationalTypeMappingSourceDependencies relationalDependencies,
         ISqlGenerationHelper sqlGenerationHelper,
-        INpgsqlOptions? npgsqlOptions = null)
+        INpgsqlSingletonOptions? npgsqlOptions = null)
         : base(dependencies, relationalDependencies, sqlGenerationHelper, npgsqlOptions)
     {
         StoreTypeMappings["inet"] =
@@ -65,3 +65,4 @@ public class NpgsqlInetWithMaskTypeMapping : NpgsqlTypeMapping
     static readonly ConstructorInfo Constructor =
         typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) })!;
 }
+*/

@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using DnsClient;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
 using SS14.ServerHub.Shared.Data;
 
 namespace SS14.ServerHub.Shared;
@@ -16,7 +17,7 @@ public static class CommunityMatcher
         return dbContext.TrackedCommunityAddress
             .Where(c => EF.Functions.ContainsOrEqual(c.Address, address));
     }
-    
+
     public static IQueryable<TrackedCommunityDomain> CheckDomain(HubDbContext dbContext, string domain)
     {
         return dbContext.TrackedCommunityDomain
@@ -158,7 +159,7 @@ public static class CommunityMatcher
     {
         public FailedResolveException(string message, Exception e) : base(message, e)
         {
-            
+
         }
     }
 }

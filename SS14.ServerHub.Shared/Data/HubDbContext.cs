@@ -12,8 +12,8 @@ public sealed class HubDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
-            
-        optionsBuilder.ReplaceService<IRelationalTypeMappingSource, CustomNpgsqlTypeMappingSource>();
+
+        //optionsBuilder.ReplaceService<IRelationalTypeMappingSource, CustomNpgsqlTypeMappingSource>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
