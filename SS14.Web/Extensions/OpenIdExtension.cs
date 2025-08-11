@@ -1,15 +1,14 @@
-﻿using System;
-using System.Configuration;
+﻿#nullable enable
+using System;
 using System.IO;
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Serilog;
+using SS14.Auth.Shared.Data;
 using SS14.ServerHub.Shared.Data;
 using SS14.Web.Configuration;
+using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
 namespace SS14.Web.Extensions;
 
@@ -18,7 +17,11 @@ public static class OpenIdExtension
     public static void AddOpenIdConnect(this WebApplicationBuilder builder)
     {
         var openId = builder.Services.AddOpenIddict();
-        openId.AddCore(options => options.UseEntityFrameworkCore().UseDbContext<HubDbContext>());
+        openId.AddCore(options =>
+        {
+            options.UseEntityFrameworkCore().UseDbContext<HubDbContext>()
+                .ReplaceDefaultEntities<SpaceApplication, DefaultAuthorization, DefaultScope, DefaultToken, string>();
+        });
 
         openId.AddValidation().UseLocalServer();
         openId.AddValidation().UseAspNetCore();

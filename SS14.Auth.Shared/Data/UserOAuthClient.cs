@@ -3,6 +3,7 @@ using System;
 
 namespace SS14.Auth.Shared.Data;
 
+// TODO: Delete
 public sealed class UserOAuthClient
 {
     public int UserOAuthClientId { get; set; }

@@ -1,4 +1,5 @@
-﻿namespace SS14.Web.Configuration;
+﻿#nullable enable
+namespace SS14.Web.Configuration;
 
 public sealed class OpenIdCertificateConfiguration
 {

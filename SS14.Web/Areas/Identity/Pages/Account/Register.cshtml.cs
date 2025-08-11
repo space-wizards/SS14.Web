@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -82,7 +83,7 @@ public class RegisterModel : PageModel
         public bool AgeCheck { get; set; }
     }
 
-    public async Task OnGetAsync(string returnUrl = null)
+    public async Task OnGetAsync(string? returnUrl = null)
     {
         ReturnUrl = returnUrl;
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -131,9 +132,9 @@ public class RegisterModel : PageModel
         return Page();
     }
 
-    public async Task<string> GenerateEmailConfirmLink(
+    public async Task<string?> GenerateEmailConfirmLink(
         SpaceUser user,
-        string returnUrl = null)
+        string? returnUrl = null)
     {
         var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));

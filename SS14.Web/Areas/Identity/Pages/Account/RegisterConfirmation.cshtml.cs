@@ -1,3 +1,4 @@
+#nullable enable
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
@@ -25,7 +26,7 @@ public class RegisterConfirmationModel : PageModel
 
     public string EmailConfirmationUrl { get; set; }
 
-    public async Task<IActionResult> OnGetAsync(string email, string returnUrl = null)
+    public async Task<IActionResult> OnGetAsync(string? email, string? returnUrl = null)
     {
         if (email == null)
         {

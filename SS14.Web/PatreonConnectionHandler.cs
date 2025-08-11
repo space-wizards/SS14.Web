@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -40,7 +41,7 @@ public sealed class PatreonConnectionHandler
     {
         // Add current tier to the principal, rest is handle in Received.
 
-        var identity = (ClaimsIdentity) context.Principal!.Identity;
+        var identity = (ClaimsIdentity?) context.Principal!.Identity;
 
         // AFAICT you shouldn't be able to have multiple tiers with our current patreon setup so...
         var tier = ParseTiers(context.User)

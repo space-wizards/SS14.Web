@@ -1,4 +1,5 @@
-﻿namespace SS14.Web;
+﻿#nullable enable
+namespace SS14.Web;
 
 public sealed class AccountOptions
 {

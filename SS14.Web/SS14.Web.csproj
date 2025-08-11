@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>12</LangVersion>
+        <Nullable>true</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

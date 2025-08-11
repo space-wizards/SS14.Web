@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 
 namespace SS14.Web.Models;

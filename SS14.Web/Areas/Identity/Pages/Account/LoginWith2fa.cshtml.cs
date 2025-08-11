@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -43,7 +44,7 @@ public class LoginWith2faModel : PageModel
         public bool RememberMachine { get; set; }
     }
 
-    public async Task<IActionResult> OnGetAsync(bool rememberMe, string returnUrl = null)
+    public async Task<IActionResult> OnGetAsync(bool rememberMe, string? returnUrl = null)
     {
         // Ensure the user has gone through the username & password screen first
         var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();

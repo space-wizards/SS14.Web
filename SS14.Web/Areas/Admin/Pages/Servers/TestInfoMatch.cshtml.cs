@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ public class TestInfoMatch : PageModel
         _dbContext = dbContext;
     }
 
-    public async Task OnGetAsync(string path, InfoMatchField field)
+    public async Task OnGetAsync(string? path, InfoMatchField field)
     {
         CurrentPath = path;
         CurrentField = field;
