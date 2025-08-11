@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace SS14.Web.HCaptcha;
+﻿namespace SS14.Web.HCaptcha;
 
 public sealed class HCaptchaOptions
 {

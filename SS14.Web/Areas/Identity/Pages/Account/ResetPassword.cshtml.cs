@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -50,7 +49,7 @@ public class ResetPasswordModel : PageModel
         public string Code { get; set; }
     }
 
-    public IActionResult OnGet(string? code = null)
+    public IActionResult OnGet(string code = null)
     {
         if (code == null)
         {

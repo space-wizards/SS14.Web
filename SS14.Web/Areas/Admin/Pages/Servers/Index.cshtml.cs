@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace SS14.Web.Areas.Admin.Pages.Servers;
 

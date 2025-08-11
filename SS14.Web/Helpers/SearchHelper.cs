@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Linq.Expressions;
 
 namespace SS14.Web.Helpers;

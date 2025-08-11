@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +35,7 @@ public class ConfirmEmailChangeModel : PageModel
     [TempData]
     public string StatusMessage { get; set; }
 
-    public async Task<IActionResult> OnGetAsync(string? userId, string? email, string code)
+    public async Task<IActionResult> OnGetAsync(string userId, string email, string code)
     {
         if (userId == null || email == null || code == null)
         {

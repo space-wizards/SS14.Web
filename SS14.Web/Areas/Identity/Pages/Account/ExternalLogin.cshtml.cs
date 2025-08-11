@@ -1,4 +1,3 @@
-#nullable enable
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text;
@@ -58,7 +57,7 @@ public class ExternalLoginModel : PageModel
         return RedirectToPage("./Login");
     }
 
-    public IActionResult OnPost(string provider, string? returnUrl = null)
+    public IActionResult OnPost(string provider, string returnUrl = null)
     {
         // Request a redirect to the external login provider.
         var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
@@ -66,7 +65,7 @@ public class ExternalLoginModel : PageModel
         return new ChallengeResult(provider, properties);
     }
 
-    public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string? remoteError = null)
+    public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
     {
         returnUrl = returnUrl ?? Url.Content("~/");
         if (remoteError != null)

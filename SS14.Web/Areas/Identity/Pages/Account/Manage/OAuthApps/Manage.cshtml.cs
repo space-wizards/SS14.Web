@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -132,7 +131,7 @@ public class Manage : PageModel
     }
 
     // Null return indicates everything good.
-    private async Task<IActionResult?> GetAppAndVerifyAccess(int client)
+    private async Task<IActionResult> GetAppAndVerifyAccess(int client)
     {
         var user = await _userManager.GetUserAsync(User);
         //App = await _dbContext.UserOAuthClients

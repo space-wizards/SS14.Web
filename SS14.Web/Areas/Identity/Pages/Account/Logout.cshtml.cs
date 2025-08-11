@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +27,7 @@ public class LogoutModel : PageModel
     {
     }
 
-    public async Task<IActionResult> OnPost(string? returnUrl = null)
+    public async Task<IActionResult> OnPost(string returnUrl = null)
     {
         await _signInManager.SignOutAsync();
         _logger.LogInformation("User logged out.");

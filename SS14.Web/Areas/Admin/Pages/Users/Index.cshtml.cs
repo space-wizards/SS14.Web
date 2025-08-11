@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -29,7 +28,7 @@ public class Index : PageModel
     }
 
     public async Task OnGetAsync(
-        string? sortOrder,
+        string sortOrder,
         string currentFilter,
         string searchString,
         int? pageIndex)

@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +25,7 @@ public class ConfirmEmailModel : PageModel
     [TempData]
     public string StatusMessage { get; set; }
 
-    public async Task<IActionResult> OnGetAsync(string? userId, string code)
+    public async Task<IActionResult> OnGetAsync(string userId, string code)
     {
         if (userId == null || code == null)
         {
