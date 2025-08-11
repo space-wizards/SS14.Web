@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using SS14.ServerHub.Shared.Data;
+using SS14.Web.Configuration;
 
 namespace SS14.Web.Extensions;
 
@@ -16,26 +17,17 @@ public static class OpenIdExtension
 {
     public static void AddOpenIdConnect(this WebApplicationBuilder builder)
     {
-        builder.Services.AddOpenIddict()
-            .AddCore(options => options.UseEntityFrameworkCore().UseDbContext<HubDbContext>())
-            .AddServer(options =>
-            {
-                options.SetAuthorizationEndpointUris("connect/authorize", "connect/authorize/accept", "connect/authorize/deny")
-                    .SetTokenEndpointUris("connect/token")
-                    .SetEndSessionEndpointUris("connect/endsession")
-                    .SetUserInfoEndpointUris("connect/userinfo")
-                    .SetIntrospectionEndpointUris("connect/introspect");
+        var openId = builder.Services.AddOpenIddict();
+        openId.AddCore(options => options.UseEntityFrameworkCore().UseDbContext<HubDbContext>());
 
-                options.AllowAuthorizationCodeFlow();
+        openId.AddValidation().UseLocalServer();
+        openId.AddValidation().UseAspNetCore();
 
-                options.ConfigureKeys(builder);
+        openId.AddServer().Configure(config => builder.Configuration.Bind("OpenId:Server", config));
+        openId.AddServer().UseAspNetCore().EnableAuthorizationEndpointPassthrough().EnableStatusCodePagesIntegration();
+        ConfigureCertificates(openId, builder);
 
-            })
-            .AddValidation(options =>
-            {
-                options.UseLocalServer();
-                options.UseAspNetCore();
-            });
+
     }
 
     public static void UseOpenIdConnect(this WebApplication app)
@@ -43,56 +35,25 @@ public static class OpenIdExtension
 
     }
 
-    private static void ConfigureKeys(this OpenIddictServerBuilder options,  WebApplicationBuilder builder)
+    private static void ConfigureCertificates(OpenIddictBuilder openId, WebApplicationBuilder builder)
     {
-        var deprecatedKeyPath = builder.Configuration.GetValue<string>("Is4SigningKeyPath");
-        if (deprecatedKeyPath != null)
-            Log.Warning("Using deprecated Is4SigningKeyPath. Use OidcSigningKeyPath instead.");
-
-        var keyPath = deprecatedKeyPath ?? builder.Configuration.GetValue<string>("OidcSigningKeyPath");
-
-        if (keyPath == null)
+        if (builder.Environment.IsDevelopment())
         {
-            if (builder.Environment.IsDevelopment())
-            {
-                Log.Debug("Using developer signing credentials");
-                //builder.AddDeveloperSigningCredential();
-            }
-            else
-            {
-                throw new Exception("No key specified for IS4!");
-            }
-        }
-        else
-        {
-            var keyPem = File.ReadAllText(keyPath);
-            var key = ECDsa.Create();
-            key.ImportFromPem(keyPem);
-
-            //builder.AddSigningCredential(
-            //    new ECDsaSecurityKey(key),
-            //    IdentityServerConstants.ECDsaSigningAlgorithm.ES256);
+            openId.AddServer().AddDevelopmentEncryptionCertificate().AddDevelopmentSigningCertificate();
+            return;
         }
 
-        var deprecatedKeyPathRsa = builder.Configuration.GetValue<string>("Is4SigningKeyPathRsa");
-        if (deprecatedKeyPathRsa != null)
-            Log.Warning("Using deprecated Is4SigningKeyPathRsa. Use OidcSigningKeyPathRsa instead.");
+        var config = builder.Configuration
+            .GetSection("OpenId")
+            .GetSection(OpenIdCertificateConfiguration.Name).Get<OpenIdCertificateConfiguration>();
 
-        var keyPathRsa = deprecatedKeyPathRsa ?? builder.Configuration.GetValue<string>("OidcSigningKeyPathRsa");
+        if (config?.EncryptionCertificatePath == null || config.SigningCertificatePath == null)
+            throw new InvalidOperationException("Encryption and signing certificates not configured");
 
-        if (keyPathRsa != null)
-        {
-            var keyPem = File.ReadAllText(keyPathRsa);
-            var key = RSA.Create();
-            key.ImportFromPem(keyPem);
+        using var encryptionCert = File.OpenRead(config.EncryptionCertificatePath);
+        openId.AddServer().AddEncryptionCertificate(encryptionCert, config.EncryptionCertificatePassword);
 
-            //builder.AddSigningCredential(
-            //    new RsaSecurityKey(key),
-            //    IdentityServerConstants.RsaSigningAlgorithm.PS256);
-            //builder.AddSigningCredential(
-            //    new RsaSecurityKey(key),
-            //    IdentityServerConstants.RsaSigningAlgorithm.RS256);
-        }
-
+        using var signingCert = File.OpenRead(config.SigningCertificatePath);
+        openId.AddServer().AddSigningCertificate(signingCert, config.SigningCertificatePassword);
     }
 }

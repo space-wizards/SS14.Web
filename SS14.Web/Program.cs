@@ -41,6 +41,7 @@ builder.Services.AddDbContext<HubDbContext>(options =>
         ?? throw new InvalidOperationException("Must set HubConnection");
 
     options.UseNpgsql(connectionString);
+    options.UseOpenIddict();
 });
 
 // Auth
