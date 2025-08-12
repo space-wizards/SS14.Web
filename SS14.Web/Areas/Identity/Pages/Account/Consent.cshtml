@@ -1,4 +1,7 @@
 ﻿@page
+@using OpenIddict.Abstractions
+@using SS14.Web.Extensions
+@using SS14.Web.Helpers
 @model SS14.Web.Areas.Identity.Pages.Account.Consent
 
 @{
@@ -28,47 +31,45 @@
     <div class="row">
         <div class="col d-flex align-items-center">
             <h2 class="text-center flex-grow-1 m-3">Authorize @*@Model.AuthRequest.Client.ClientName*@</h2>
-            @*@if (!string.IsNullOrWhiteSpace(@Model.AuthRequest.Client.LogoUri))
+            @if (!string.IsNullOrWhiteSpace(Model.Application?.LogoUri))
             {
-                <img class="rounded" height="48" src="@Model.AuthRequest.Client.LogoUri" alt="@Model.AuthRequest.Client.ClientName"/>
-            }*@
+                <img class="rounded" height="48" src="@Model.Application?.LogoUri" alt="@Model.Application?.DisplayName"/>
+            }
         </div>
     </div>
     <div class="row consent-wrap">
         <div class="col consent-contents">
             <div class="row mb-3">
                 <div class="col">
-                    @*<strong>@Model.AuthRequest.Client.ClientName</strong>*@
-                    @if (Model.UserClient != null)
+                    <strong>@Model.Application?.DisplayName</strong>
+                    @if (Model.Application != null)
                     {
                         <span>
-                            by <strong>@Model.UserClient.SpaceUser.UserName</strong>
+                            by <strong>@Model.Application?.SpaceUser?.UserName</strong>
                         </span>
                     }
                     <br/> wants access to your account <strong>@User.Identity!.Name</strong>
                 </div>
             </div>
             @{
-                // openid and profile are not worth showing.
-                @*var identityResources = Model.AuthRequest.ValidatedResources.Resources.IdentityResources
-                    .Where(c => c.Name != "openid" && c.Name != "profile")
-                    .ToArray();*@
+                // openid is not worth showing.
+                var scopes = Model.AuthRequest?.GetScopes()
+                    .Where(c => c != "openid")
+                    .ToArray();
             }
             <div class="row mb-3">
                 <div class="col">
                     <strong>Requested Account Information</strong>
                     <ul class="pl-3">
-                        <li>Name and user ID</li>
-                        @*@foreach (var resource in identityResources)
+                        @foreach (var scope in scopes ?? [])
                         {
                             <li>
-                                @resource.DisplayName
+                               @ScopeHelper.GetScopeName(scope)
                             </li>
-                        }*@
+                        }
                     </ul>
                 </div>
             </div>
-            <!-- TODO: non-identity scopes -->
             <div class="row">
                 <div class="col-6">
                     <button name="button" value="no" class="btn-block btn btn-dark">Cancel</button>

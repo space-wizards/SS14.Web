@@ -2,12 +2,17 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
 using SS14.Auth.Shared.Data;
+using SS14.Web.Models.Types;
 using SS14.Web.Services;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace SS14.Web.Areas.Identity.Pages.Account;
 // TODO: Replace identityserver4 code in this file
@@ -56,15 +61,25 @@ public sealed class Consent : PageModel
             case false when validation.Error.IsChallenge:
                 return Challenge(validation.Error.Properties!);
             case false:
-                return Forbid(validation.Error.Error!, "The login is required.");
+                return Forbid(validation.Error.Error!, GetErrorDescription(validation.Error.Error!));
         }
 
         var authorization = await _actionService.AuthorizeActionAsync(AuthRequest, AuthRequest.GetScopes());
         Application = authorization.Application;
 
+        return authorization.Type switch
+        {
+            AuthorizationResult.ResultType.Forbidden =>
+               Forbid(authorization.ErrorName ?? "", GetErrorDescription(authorization.ErrorName)),
 
-        
-        return Page();
+            AuthorizationResult.ResultType.Error =>
+                BadRequest(GetErrorDescription(authorization.ErrorName)),
+
+            AuthorizationResult.ResultType.SignIn =>
+                SignIn(authorization.Principal!, authenticationScheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme),
+
+            _ => Page(),
+        };
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -97,4 +112,22 @@ public sealed class Consent : PageModel
 
         return Redirect(Input.ReturnUrl);*/
     }
+
+    public static string GetScopeName(string scope) => scope switch
+    {
+        Scopes.Email => "Email",
+        Scopes.Roles => "Roles",
+        _ => scope,
+    };
+
+    // ReSharper disable once ArrangeMethodOrOperatorBody
+    private static string GetErrorDescription(string? error) => error switch
+    {
+        OpenIdActionService.ApplicationNotFoundError => "No application for the given client id.",
+        Errors.AccessDenied => "The logged in user is not allowed to access this client application.",
+        Errors.ConsentRequired => "Interactive user consent is required.",
+        Errors.UnsupportedGrantType => "The specified grant type is not supported.",
+        Errors.InvalidGrant => "The token is no longer valid.",
+        _ => "An unknown error occurred.",
+    };
 }

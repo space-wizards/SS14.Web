@@ -17,6 +17,7 @@ using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.MutexDb;
 using SS14.Auth.Shared.Sessions;
+using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
 namespace SS14.Auth.Shared;
 
@@ -42,8 +43,10 @@ public static class StartupHelpers
         });
 
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(
-                config.GetConnectionString("DefaultConnection")));
+        {
+            options.UseNpgsql(config.GetConnectionString("DefaultConnection"));
+            options.UseOpenIddict<SpaceApplication, DefaultAuthorization, DefaultScope, DefaultToken, string>();
+        });
 
         services.AddDataProtection()
             .PersistKeysToDbContext<ApplicationDbContext>()

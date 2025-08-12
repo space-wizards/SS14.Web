@@ -5,9 +5,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenIddict.Server;
 using SS14.Auth.Shared.Data;
 using SS14.ServerHub.Shared.Data;
 using SS14.Web.Configuration;
+using SS14.Web.Data;
+using SS14.Web.Services;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
 namespace SS14.Web.Extensions;
@@ -19,18 +23,22 @@ public static class OpenIdExtension
         var openId = builder.Services.AddOpenIddict();
         openId.AddCore(options =>
         {
-            options.UseEntityFrameworkCore().UseDbContext<HubDbContext>()
+            options.UseEntityFrameworkCore().UseDbContext<ApplicationDbContext>()
                 .ReplaceDefaultEntities<SpaceApplication, DefaultAuthorization, DefaultScope, DefaultToken, string>();
         });
+
+        openId.AddServer()
+            .Configure(config => builder.Configuration.Bind("OpenId:Server", config))
+            .UseAspNetCore().EnableAuthorizationEndpointPassthrough().EnableStatusCodePagesIntegration();
+        ConfigureCertificates(openId, builder);
 
         openId.AddValidation().UseLocalServer();
         openId.AddValidation().UseAspNetCore();
 
-        openId.AddServer().Configure(config => builder.Configuration.Bind("OpenId:Server", config));
-        openId.AddServer().UseAspNetCore().EnableAuthorizationEndpointPassthrough().EnableStatusCodePagesIntegration();
-        ConfigureCertificates(openId, builder);
-
-
+        builder.Services.AddHostedService<TestDataSeeder>();
+        builder.Services.AddScoped<IdentityClaimsProvider>();
+        builder.Services.AddScoped<SignedInIdentityService>();
+        builder.Services.AddScoped<OpenIdActionService>();
     }
 
     public static void UseOpenIdConnect(this WebApplication app)

@@ -8,12 +8,14 @@ using Microsoft.Extensions.Hosting;
 using Prometheus;
 using Serilog;
 using SS14.Auth.Shared;
+using SS14.Auth.Shared.Data;
 using SS14.ServerHub.Shared.Data;
 using SS14.Web;
 using SS14.Web.Data;
 using SS14.Web.Extensions;
 using SS14.Web.HCaptcha;
 using SS14.WebEverythingShared;
+using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -42,7 +44,6 @@ builder.Services.AddDbContext<HubDbContext>(options =>
         ?? throw new InvalidOperationException("Must set HubConnection");
 
     options.UseNpgsql(connectionString);
-    options.UseOpenIddict();
 });
 
 // Auth
