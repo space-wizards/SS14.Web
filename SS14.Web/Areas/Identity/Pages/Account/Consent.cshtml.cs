@@ -45,7 +45,7 @@ public sealed class Consent : PageModel
     public async Task<IActionResult> OnGetAsync(string returnUrl)
     {
         ReturnUrl = returnUrl;
-        AuthRequest = HttpContext.GetOpenIddictClientRequest();
+        AuthRequest = HttpContext.GetOpenIddictServerRequest();
 
         if (AuthRequest is null)
             return BadRequest();

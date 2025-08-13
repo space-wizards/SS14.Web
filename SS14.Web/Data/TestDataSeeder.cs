@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
+using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Data;
 
@@ -14,6 +16,7 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
     {
         using var scope = serviceProvider.CreateScope();
         await PopulateInternalApps(scope, ct);
+        await PopulateUsersAsync(scope);
     }
 
     public Task StopAsync(CancellationToken ct)
@@ -57,5 +60,19 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
         {
             await appManager.UpdateAsync(client, appDescriptor, ct);
         }
+    }
+
+    private async ValueTask PopulateUsersAsync(IServiceScope scope)
+    {
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<SpaceUser>>();
+
+        var user = new SpaceUser
+        {
+            UserName = "TestUser",
+            Email = "test@example.test",
+            EmailConfirmed = true,
+        };
+
+        await userManager.CreateAsync(user, "Test123456$");
     }
 }
