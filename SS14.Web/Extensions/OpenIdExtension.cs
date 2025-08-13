@@ -16,7 +16,7 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
 namespace SS14.Web.Extensions;
-
+// TODO: Add integration with quartz
 public static class OpenIdExtension
 {
     public static void AddOpenIdConnect(this WebApplicationBuilder builder)
