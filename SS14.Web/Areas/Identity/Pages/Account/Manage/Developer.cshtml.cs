@@ -13,7 +13,7 @@ public class Developer : PageModel
     private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<SpaceUser> _userManager;
 
-    public List<UserOAuthClient> OAuthClients { get; set; }
+    //public List<UserOAuthClient> OAuthClients { get; set; }
 
     public Developer(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager)
     {

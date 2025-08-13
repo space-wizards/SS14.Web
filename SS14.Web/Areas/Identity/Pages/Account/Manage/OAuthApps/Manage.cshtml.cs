@@ -19,7 +19,7 @@ public class Manage : PageModel
     private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<SpaceUser> _userManager;
 
-    public UserOAuthClient App { get; set; }
+    //public UserOAuthClient App { get; set; }
 
     [BindProperty] public InputModel Input { get; set; }
 
@@ -141,19 +141,19 @@ public class Manage : PageModel
         //    .ThenInclude(c => c.ClientSecrets)
         //    .SingleOrDefaultAsync(oa => oa.UserOAuthClientId == client);
 
-        if (App == null)
-            return NotFound();
+        //if (App == null)
+        //    return NotFound();
 
-        if (!VerifyAppAccess(user, App))
-            return Forbid();
+        //if (!VerifyAppAccess(user, App))
+        //    return Forbid();
 
         return null;
     }
 
-    public static bool VerifyAppAccess(
+    /*public static bool VerifyAppAccess(
         SpaceUser user,
         UserOAuthClient userClient)
     {
         return user == userClient.SpaceUser;
-    }
+    }*/
 }

@@ -20,7 +20,7 @@ public class ConfirmDelete : PageModel
         _userManager = userManager;
     }
 
-    public UserOAuthClient App { get; set; }
+    //public UserOAuthClient App { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int client)
     {
@@ -28,11 +28,11 @@ public class ConfirmDelete : PageModel
         //App = await _dbContext.UserOAuthClients.Include(a => a.Client)
         //    .SingleOrDefaultAsync(ac => ac.UserOAuthClientId == client);
 
-        if (App == null)
-            return NotFound();
+        //if (App == null)
+        //    return NotFound();
 
-        if (!Manage.VerifyAppAccess(user, App))
-            return Forbid();
+        //if (!Manage.VerifyAppAccess(user, App))
+        //    return Forbid();
 
         return Page();
     }
@@ -43,11 +43,11 @@ public class ConfirmDelete : PageModel
         //App = await _dbContext.UserOAuthClients.Include(a => a.Client)
         //    .SingleOrDefaultAsync(ac => ac.UserOAuthClientId == client);
 
-        if (App == null)
-            return NotFound();
+        //if (App == null)
+        //    return NotFound();
 
-        if (!Manage.VerifyAppAccess(user, App))
-            return Forbid();
+        //if (!Manage.VerifyAppAccess(user, App))
+        //    return Forbid();
 
        // _dbContext.Remove(App.Client);
 

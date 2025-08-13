@@ -54,10 +54,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .HasIndex(p => p.SpaceUserId)
             .IsUnique();
 
-        builder.Entity<UserOAuthClient>()
-            .HasIndex(p => new { p.ClientId })
-            .IsUnique();
-
         builder.Entity<Hwid>()
             .HasIndex(h => h.ClientData)
             .IsUnique();
@@ -74,7 +70,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<WhitelistEmail> WhitelistEmails { get; set; }
     public DbSet<Patron> Patrons { get; set; }
     public DbSet<PatreonWebhookLog> PatreonWebhookLogs { get; set; }
-    public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
     public DbSet<PastAccountName> PastAccountNames { get; set; }
     public DbSet<AccountLog> AccountLogs { get; set; }
     public DbSet<Hwid> Hwids { get; set; }

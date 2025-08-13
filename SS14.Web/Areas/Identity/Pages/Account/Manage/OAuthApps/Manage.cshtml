@@ -97,11 +97,11 @@
     </div>
     <div class="row">
         <div class="col">
-            <a asp-page="./ConfirmDelete" class="btn btn-danger" asp-route-client="@Model.App.UserOAuthClientId">Delete</a>
+            @*<a asp-page="./ConfirmDelete" class="btn btn-danger" asp-route-client="@Model.App.UserOAuthClientId">Delete</a>
             @if (User.IsInRole(AuthConstants.RoleSysAdmin))
             {
                 <a asp-area="Admin" asp-page="/Clients/Client" class="btn btn-primary" asp-route-id="@Model.App.ClientId">Hub Admin</a>
-            }
+            }*@
         </div>
     </div>
 </div>
