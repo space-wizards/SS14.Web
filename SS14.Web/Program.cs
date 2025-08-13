@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,6 +84,14 @@ builder.AddPatreon();
 builder.AddOpenIdConnect();
 builder.Services.AddScoped<PersonalDataCollector>();
 builder.AddShared();
+
+builder.Services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
+    options =>
+    {
+        options.LoginPath = $"/Identity/Account/Login";
+        options.LogoutPath = $"/Identity/Account/Logout";
+        options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+    });
 
 var app = builder.Build();
 

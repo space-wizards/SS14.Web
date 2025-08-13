@@ -1,4 +1,5 @@
 ﻿@page
+@using Microsoft.Extensions.Primitives
 @using OpenIddict.Abstractions
 @using SS14.Web.Extensions
 @using SS14.Web.Helpers
@@ -22,7 +23,12 @@
 <!-- totally not ripped from github's -->
 
 <form style="max-width: 500px" method="post" class="container-fluid">
-    <input type="hidden" asp-for="ReturnUrl"/>
+    @* Pass request parameters through so they can be handled by the accept/deny handlers*@
+    @foreach (var parameter in HttpContext.Request.HasFormContentType ? (IEnumerable<KeyValuePair<string, StringValues>>) HttpContext.Request.Form : HttpContext.Request.Query)
+    {
+        <input type="hidden" name="@parameter.Key" value="@parameter.Value"/>
+    }
+
     <div class="row">
         <div class="col">
             <img alt="Space Station 14" src="~/logo-long-auth-o.svg" class="img-fluid p-3"/>
@@ -42,7 +48,7 @@
             <div class="row mb-3">
                 <div class="col">
                     <strong>@Model.Application?.DisplayName</strong>
-                    @if (Model.Application != null)
+                    @if (Model.Application?.SpaceUser != null)
                     {
                         <span>
                             by <strong>@Model.Application?.SpaceUser?.UserName</strong>
@@ -64,7 +70,7 @@
                         @foreach (var scope in scopes ?? [])
                         {
                             <li>
-                               @ScopeHelper.GetScopeName(scope)
+                                @ScopeHelper.GetScopeName(scope)
                             </li>
                         }
                     </ul>
@@ -72,10 +78,10 @@
             </div>
             <div class="row">
                 <div class="col-6">
-                    <button name="button" value="no" class="btn-block btn btn-dark">Cancel</button>
+                    <button name="Button" value="no" class="btn-block btn btn-dark">Cancel</button>
                 </div>
                 <div class="col-6">
-                    <button name="button" value="yes" class="btn-block btn btn-success">Authorize</button>
+                    <button  name="Button" value="yes" class="btn-block btn btn-success">Authorize</button>
                 </div>
             </div>
         </div>

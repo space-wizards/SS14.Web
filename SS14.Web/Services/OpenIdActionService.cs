@@ -52,13 +52,13 @@ public class OpenIdActionService
         if (auth.Succeeded)
             return Result<Void, AuthenticationValidationFailure>.Success(Void.Nothing);
 
-        var ignoreChallenge = context.Session.GetString(IgnoreChallengeKey);
+        //var ignoreChallenge = context.Session.GetString(IgnoreChallengeKey);
 
         if (auth.Succeeded
             && !request.HasPromptValue(PromptValues.Login)
             && request.MaxAge is not 0
             && (request.MaxAge is null || auth.Properties?.IssuedUtc is null || TimeProvider.System.GetUtcNow() - auth.Properties.IssuedUtc < TimeSpan.FromSeconds(request.MaxAge.Value))
-            && ignoreChallenge is null or "false")
+            )//&& ignoreChallenge is null or "false")
         {
             return Result<Void, AuthenticationValidationFailure>.Success(Void.Nothing);
         }
@@ -66,11 +66,11 @@ public class OpenIdActionService
         if (request.HasPromptValue(PromptValues.None))
             return Result<Void, AuthenticationValidationFailure>.Failure(AuthenticationValidationFailure.LoginRequired);
 
-        context.Session.SetString(IgnoreChallengeKey, "true");
+        //context.Session.SetString(IgnoreChallengeKey, "true");
         var properties = new AuthenticationProperties
         {
             RedirectUri = context.Request.PathBase + context.Request.Path + QueryString.Create(
-                context.Request.HasFormContentType ? context.Request.Form : context.Request.Query)
+                context.Request.HasFormContentType ? context.Request.Form : context.Request.Query),
         };
 
         return Result<Void, AuthenticationValidationFailure>.Failure(AuthenticationValidationFailure.Challenge(properties));

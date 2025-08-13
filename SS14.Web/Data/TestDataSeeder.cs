@@ -34,7 +34,7 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
             ClientSecret = "test_secret",
             ClientType = OpenIddictConstants.ClientTypes.Confidential,
             DisplayName = "Test Client",
-            RedirectUris = { new Uri("https://localhost:7175/callback") },
+            RedirectUris = { new Uri("https://localhost:5001/signin-oidc") },
             Requirements = { OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange },
             Permissions =
             {
@@ -47,7 +47,7 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
                 OpenIddictConstants.Permissions.ResponseTypes.Code,
                 OpenIddictConstants.Permissions.Scopes.Email,
                 OpenIddictConstants.Permissions.Scopes.Profile,
-                OpenIddictConstants.Permissions.Scopes.Roles
+                OpenIddictConstants.Permissions.Scopes.Roles,
             }
         };
 

@@ -24,10 +24,10 @@ public class Startup
         services.AddHttpLogging(logging =>
         {
             logging.LoggingFields = HttpLoggingFields.All;
-            //Write your code to configure the HttpLogging middleware here    
+            //Write your code to configure the HttpLogging middleware here
         });
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-            
+
         services.AddControllersWithViews();
 
         services.AddAuthentication(options =>
@@ -39,15 +39,15 @@ public class Startup
             .AddOpenIdConnect("oidc", options =>
             {
                 options.SignInScheme = "Cookies";
-                    
-                options.Authority = "https://localhost:5003";
-                options.ClientId = "A";
-                options.ClientSecret = "A";
+
+                options.Authority = "https://localhost:5001";
+                options.ClientId = "test_client";
+                options.ClientSecret = "test_secret";
 
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 //options.SaveTokens = true;
-                    
+
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
                 options.ResponseType = "code";
