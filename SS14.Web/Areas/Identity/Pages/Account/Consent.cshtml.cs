@@ -4,11 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SS14.Auth.Shared.Data;
@@ -18,11 +15,8 @@ using SS14.Web.Services;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace SS14.Web.Areas.Identity.Pages.Account;
-// TODO: Replace identityserver4 code in this file
 public sealed class Consent : PageModel
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly ILogger<Consent> _logger;
     private readonly OpenIdActionService _actionService;
 
     public OpenIddictRequest? AuthRequest { get; private set; }
@@ -38,10 +32,8 @@ public sealed class Consent : PageModel
         public string? Button { get; set; }
     }
 
-    public Consent(ApplicationDbContext dbContext, ILogger<Consent> logger, OpenIdActionService actionService)
+    public Consent(OpenIdActionService actionService)
     {
-        _dbContext = dbContext;
-        _logger = logger;
         _actionService = actionService;
     }
 
@@ -52,43 +44,12 @@ public sealed class Consent : PageModel
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl)
     {
-        switch (Input?.Button)
+        return Input?.Button switch
         {
-            case "no":
-                return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-            case "yes":
-                return await HandleAccept();
-            default:
-                return await HandleAuthorization(returnUrl);
-
-                return NotFound();
-                /*var request = await _interaction.GetAuthorizationContextAsync(Input.ReturnUrl);
-        if (request == null)
-            return RedirectToAction("Error", "Home");
-
-        var response = new ConsentResponse();
-        if (Input.Button == "yes")
-        {
-            var resources = request.ValidatedResources.Resources;
-
-            // TODO: Maybe allow configuring this?
-            response.RememberConsent = true;
-            response.ScopesValuesConsented = resources.ApiScopes.Select(x => x.Name)
-                .Concat(resources.IdentityResources.Select(x => x.Name));
-        }
-        else if (Input.Button == "no")
-        {
-            response.Error = AuthorizationError.AccessDenied;
-        }
-        else
-        {
-            return BadRequest();
-        }
-
-        await _interaction.GrantConsentAsync(request, response);
-
-        return Redirect(Input.ReturnUrl);*/
-        }
+            "no" => Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme),
+            "yes" => await HandleAccept(),
+            _ => await HandleAuthorization(returnUrl)
+        };
     }
 
     public static string GetScopeName(string scope) => scope switch
