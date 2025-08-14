@@ -11,7 +11,7 @@ using OpenIddict.Server.AspNetCore;
 using SS14.Auth.Shared.Data;
 using SS14.Web.Helpers;
 using SS14.Web.Models.Types;
-using SS14.Web.Services;
+using SS14.Web.OpenId.Services;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace SS14.Web.Areas.Identity.Pages.Account;

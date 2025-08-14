@@ -5,17 +5,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenIddict.Client.AspNetCore;
-using OpenIddict.Server;
 using SS14.Auth.Shared.Data;
-using SS14.ServerHub.Shared.Data;
-using SS14.Web.Configuration;
 using SS14.Web.Data;
-using SS14.Web.Services;
+using SS14.Web.OpenId.Configuration;
+using SS14.Web.OpenId.EventHandlers;
+using SS14.Web.OpenId.Services;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
-namespace SS14.Web.Extensions;
+namespace SS14.Web.OpenId.Extensions;
 // TODO: Add integration with quartz
 public static class OpenIdExtension
 {
@@ -31,9 +29,8 @@ public static class OpenIdExtension
         openId.AddValidation().UseLocalServer();
         openId.AddValidation().UseAspNetCore();
 
-        openId.AddServer()
-            .Configure(config => builder.Configuration.Bind("OpenId:Server", config))
-            .UseAspNetCore().EnableAuthorizationEndpointPassthrough().EnableStatusCodePagesIntegration();
+        openId.AddServer().Configure(config => builder.Configuration.Bind("OpenId:Server", config));
+        openId.AddServer().UseAspNetCore().EnableAuthorizationEndpointPassthrough().EnableStatusCodePagesIntegration();
         ConfigureCertificates(openId, builder);
 
         builder.Services.AddHostedService<TestDataSeeder>();
@@ -49,6 +46,9 @@ public static class OpenIdExtension
 
     private static void ConfigureCertificates(OpenIddictBuilder openId, WebApplicationBuilder builder)
     {
+        builder.Services.Add(TokenSigningHandler.Descriptor.ServiceDescriptor);
+        openId.AddServer().AddEventHandler(TokenSigningHandler.Descriptor);
+
         if (builder.Environment.IsDevelopment())
         {
             openId.AddServer().AddDevelopmentEncryptionCertificate().AddDevelopmentSigningCertificate();
@@ -59,13 +59,19 @@ public static class OpenIdExtension
             .GetSection("OpenId")
             .GetSection(OpenIdCertificateConfiguration.Name).Get<OpenIdCertificateConfiguration>();
 
-        if (config?.EncryptionCertificatePath == null || config.SigningCertificatePath == null)
-            throw new InvalidOperationException("Encryption and signing certificates not configured");
+        if (config is null)
+            throw new ArgumentException("OpenId:Server:CertificateConfiguration is not set.");
 
-        using var encryptionCert = File.OpenRead(config.EncryptionCertificatePath);
-        openId.AddServer().AddEncryptionCertificate(encryptionCert, config.EncryptionCertificatePassword);
+        foreach (var encryptionCertificate in config.EncryptionCertificates)
+        {
+            using var encryptionCert = File.OpenRead(encryptionCertificate.Path);
+            openId.AddServer().AddEncryptionCertificate(encryptionCert, encryptionCertificate.Password);
+        }
 
-        using var signingCert = File.OpenRead(config.SigningCertificatePath);
-        openId.AddServer().AddSigningCertificate(signingCert, config.SigningCertificatePassword);
+        foreach (var signingCertificate in config.EncryptionCertificates)
+        {
+            using var signingCert = File.OpenRead(signingCertificate.Path);;
+            openId.AddServer().AddSigningCertificate(signingCert, signingCertificate.Password);
+        }
     }
 }

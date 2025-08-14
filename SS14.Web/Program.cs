@@ -16,6 +16,7 @@ using SS14.Web;
 using SS14.Web.Data;
 using SS14.Web.Extensions;
 using SS14.Web.HCaptcha;
+using SS14.Web.OpenId.Extensions;
 using SS14.WebEverythingShared;
 using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 

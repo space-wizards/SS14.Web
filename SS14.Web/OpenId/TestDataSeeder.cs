@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
 
-namespace SS14.Web.Data;
+namespace SS14.Web.OpenId;
 
 // TODO: Remove after development
 public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedService
@@ -34,8 +34,9 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
             ClientSecret = "test_secret",
             ClientType = OpenIddictConstants.ClientTypes.Confidential,
             DisplayName = "Test Client",
-            RedirectUris = { new Uri("https://localhost:5001/signin-oidc") },
+            RedirectUris = { new Uri("https://localhost:5002/signin-oidc") },
             Requirements = { OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange },
+            Settings = {{OpenIdConstants.SigningAlgorithmSetting, "RS256"}},
             Permissions =
             {
                 OpenIddictConstants.Permissions.Endpoints.Authorization,

@@ -11,14 +11,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
-using OpenIddict.EntityFrameworkCore.Models;
 using SS14.Auth.Shared.Data;
 using SS14.Web.Extensions;
 using SS14.Web.Models.Types;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using Void = SS14.Web.Models.Types.Void;
 
-namespace SS14.Web.Services;
+namespace SS14.Web.OpenId.Services;
 
 public class OpenIdActionService
 {
@@ -107,7 +106,7 @@ public class OpenIdActionService
             ConsentTypes.External when authorizations.Count is 0 =>
                AuthorizationResult.Forbidden(application,  Errors.AccessDenied),
 
-            ConsentTypes.Implicit or ConsentTypes.External when authorizations.Count is not 0 =>
+            ConsentTypes.Implicit or ConsentTypes.External or ConsentTypes.Explicit when authorizations.Count is not 0 =>
                 await HandleSignIn(request, application, authorizations),
 
             ConsentTypes.Explicit or ConsentTypes.Systematic when request.HasPromptValue(PromptValues.None) =>

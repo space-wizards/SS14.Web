@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using SS14.Auth.Shared.Data;
 
-namespace SS14.Web.Services;
+namespace SS14.Web.OpenId.Services;
 
 public class SignedInIdentityService
 {

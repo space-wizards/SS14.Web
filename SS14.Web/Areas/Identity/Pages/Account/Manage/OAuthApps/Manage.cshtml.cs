@@ -8,7 +8,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
+using SS14.Web.Extensions;
+using SS14.Web.OpenId.Extensions;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps;
 
@@ -18,8 +21,10 @@ public class Manage : PageModel
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<SpaceUser> _userManager;
+    private readonly OpenIddictApplicationManager<SpaceApplication> _appManager;
 
     //public UserOAuthClient App { get; set; }
+    public SpaceApplication App { get; set; }
 
     [BindProperty] public InputModel Input { get; set; }
 
@@ -49,10 +54,11 @@ public class Manage : PageModel
         public bool AllowPS256 { get; set; } = true;
     }
 
-    public Manage(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager)
+    public Manage(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager, OpenIddictApplicationManager<SpaceApplication> appManager)
     {
         _dbContext = dbContext;
         _userManager = userManager;
+        _appManager = appManager;
     }
 
     public async Task<IActionResult> OnGetAsync(int client)
@@ -60,12 +66,13 @@ public class Manage : PageModel
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
+
         Input = new InputModel
         {
-            //Name = App.Client.ClientName,
-            //CallbackUrl = App.Client.RedirectUris.FirstOrDefault()?.RedirectUri ?? "",
-            //HomepageUrl = App.Client.ClientUri,
-            //RequirePkce = App.Client.RequirePkce,
+            Name = App.DisplayName,
+            CallbackUrl = await _appManager.GetFirstRedirectUrl(App) ?? "",
+            HomepageUrl = await _appManager.GetHomePageProperty(App) ?? "",
+            RequirePkce = await _appManager.GetRequiresPkceSetting(App),
             //AllowPS256 = App.Client.AllowedIdentityTokenSigningAlgorithms?.Contains("PS256") ?? false
         };
 

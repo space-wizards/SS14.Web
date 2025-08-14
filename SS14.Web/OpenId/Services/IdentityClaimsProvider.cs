@@ -9,7 +9,7 @@ using SS14.Auth.Shared.Data;
 using SS14.Web.Helpers;
 using Claims = OpenIddict.Abstractions.OpenIddictConstants.Claims;
 
-namespace SS14.Web.Services;
+namespace SS14.Web.OpenId.Services;
 
 public class IdentityClaimsProvider
 {
