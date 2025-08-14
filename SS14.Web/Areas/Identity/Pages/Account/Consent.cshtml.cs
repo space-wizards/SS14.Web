@@ -24,6 +24,9 @@ public sealed class Consent : PageModel
     public ImmutableArray<string> RequestScopes { get; private set; }
     public string? ReturnUrl { get; set; }
 
+    [TempData]
+    public bool IgnoreChallenge { get; set; }
+
     [BindProperty] public InputModel? Input { get; set; }
 
     [ValidateAntiForgeryToken]
@@ -70,8 +73,12 @@ public sealed class Consent : PageModel
         var result = await HttpContext.AuthenticateAsync();
         var validation = _actionService.ValidateOpenIdAuthentication(
             HttpContext,
+            IgnoreChallenge,
             result,
             AuthRequest);
+
+        // Prevent infinite redirection loops
+        IgnoreChallenge = true;
 
         switch (validation.IsSuccess)
         {

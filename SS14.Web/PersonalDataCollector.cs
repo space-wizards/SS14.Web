@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
 using SS14.Web.Extensions;
+using SS14.Web.OpenId.Extensions;
 using SS14.WebEverythingShared;
 
 namespace SS14.Web;
@@ -136,11 +137,9 @@ public sealed class PersonalDataCollector(
 
     private async Task CollectUserOAuthClients(ZipArchive zip, SpaceUser user, CancellationToken cancel)
     {
-       var applications = await applicationManager.ListAsync(
-           x => x.Where(a => a.SpaceUserId == user.Id)
-           , cancel).ToListAsync(ct: cancel);
+        var applications = await applicationManager.FindApplicationsByUserId(user.Id, cancel);
 
-       var data = applications.Select(x => new SpaceApplicationData(
+        var data = applications.Select(x => new SpaceApplicationData(
            Id: x.Id,
            UserId: x.SpaceUserId,
            ClientId: x.ClientId,
@@ -153,9 +152,9 @@ public sealed class PersonalDataCollector(
            RedirectUris: x.RedirectUris,
            Properties: x.Properties,
            Requirements: x.Requirements,
-           Settings: x.Settings
+           Settings: x.Settings,
+           HomePageUrl: x.WebsiteUrl
        ));
-
 
        SerializeToFile(zip, "OAuthClients.json", data);
     }
@@ -211,7 +210,7 @@ public sealed class PersonalDataCollector(
 
         SerializeToFile(zip, "HwidUsers.json", hwidUsers);
     }
-    
+
     private static void StringToFile(ZipArchive archive, string name, string data)
     {
         var entry = archive.CreateEntry(name, CompressionLevel.Optimal);
@@ -251,6 +250,7 @@ public sealed class PersonalDataCollector(
         string? Permissions,
         string? PostLogoutRedirectUris,
         string? RedirectUris,
+        string? HomePageUrl,
         string? Properties,
         string? Requirements,
         string? Settings);

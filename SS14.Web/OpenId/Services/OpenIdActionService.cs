@@ -46,26 +46,24 @@ public class OpenIdActionService
         _scopeManager = scopeManager;
     }
 
-    public Result<Void, AuthenticationValidationFailure> ValidateOpenIdAuthentication(HttpContext context, AuthenticateResult auth, OpenIddictRequest request)
+    public Result<Void, AuthenticationValidationFailure> ValidateOpenIdAuthentication(
+        HttpContext context,
+        bool ignoreChallenge,
+        AuthenticateResult auth,
+        OpenIddictRequest request)
     {
-        if (auth.Succeeded)
-            return Result<Void, AuthenticationValidationFailure>.Success(Void.Nothing);
-
-        //var ignoreChallenge = context.Session.GetString(IgnoreChallengeKey);
-
+        // Auth succeeded and nothing is forcing re-authentication
         if (auth.Succeeded
             && !request.HasPromptValue(PromptValues.Login)
             && request.MaxAge is not 0
-            && (request.MaxAge is null || auth.Properties?.IssuedUtc is null || TimeProvider.System.GetUtcNow() - auth.Properties.IssuedUtc < TimeSpan.FromSeconds(request.MaxAge.Value))
-            )//&& ignoreChallenge is null or "false")
+            && (request.MaxAge is null || auth.Properties?.IssuedUtc is null || TimeProvider.System.GetUtcNow() - auth.Properties.IssuedUtc < TimeSpan.FromSeconds(request.MaxAge.Value)))
         {
             return Result<Void, AuthenticationValidationFailure>.Success(Void.Nothing);
         }
 
-        if (request.HasPromptValue(PromptValues.None))
+        if (ignoreChallenge || request.HasPromptValue(PromptValues.None))
             return Result<Void, AuthenticationValidationFailure>.Failure(AuthenticationValidationFailure.LoginRequired);
 
-        //context.Session.SetString(IgnoreChallengeKey, "true");
         var properties = new AuthenticationProperties
         {
             RedirectUri = context.Request.PathBase + context.Request.Path + QueryString.Create(
