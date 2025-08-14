@@ -11,4 +11,5 @@ public sealed class SpaceApplication : OpenIddictEntityFrameworkCoreApplication<
     public Guid? SpaceUserId { get; set; }
     public SpaceUser? SpaceUser { get; set; }
     public string? LogoUri { get; set; }
+    public string? WebsiteUrl { get; set; }
 }
