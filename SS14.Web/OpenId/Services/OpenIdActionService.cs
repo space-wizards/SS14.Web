@@ -14,6 +14,7 @@ using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
 using SS14.Web.Extensions;
 using SS14.Web.Models.Types;
+using SS14.Web.OpenId.Types;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using Void = SS14.Web.Models.Types.Void;
 

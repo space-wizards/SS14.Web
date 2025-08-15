@@ -119,7 +119,7 @@ public class Manage : PageModel
 
         var secretVal = Convert.ToBase64String(RandomNumberGenerator.GetBytes(36));
 
-        App.ClientSecretDescription = $"*****{secretVal[^6..]}";
+        //App.ClientSecretDescription = $"*****{secretVal[^6..]}";
         await _appManager.UpdateAsync(App, secretVal);
 
         ShowSecretValue = secretVal;

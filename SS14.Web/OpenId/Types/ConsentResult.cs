@@ -1,7 +1,7 @@
 ﻿#nullable enable
 using System.Security.Claims;
 
-namespace SS14.Web.Models.Types;
+namespace SS14.Web.OpenId.Types;
 
 public record ConsentResult(ConsentResult.ResultType Type, string? ErrorName, ClaimsPrincipal? Principal)
 {

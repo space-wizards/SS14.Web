@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using OpenIddict.Abstractions;
 
-namespace SS14.Web.Models.Types;
+namespace SS14.Web.OpenId.Types;
 
 public record AuthenticationValidationFailure(
     string? Error = null,

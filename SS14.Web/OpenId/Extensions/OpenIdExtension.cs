@@ -24,6 +24,8 @@ public static class OpenIdExtension
         {
             options.UseEntityFrameworkCore().UseDbContext<ApplicationDbContext>()
                 .ReplaceDefaultEntities<SpaceApplication, DefaultAuthorization, DefaultScope, DefaultToken, string>();
+
+            options.ReplaceApplicationManager<SpaceApplication, SpaceApplicationManager>();
         });
 
         openId.AddValidation().UseLocalServer();

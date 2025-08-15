@@ -1,10 +1,9 @@
 ﻿#nullable enable
 using System.Collections.Immutable;
 using System.Security.Claims;
-using OpenIddict.EntityFrameworkCore.Models;
 using SS14.Auth.Shared.Data;
 
-namespace SS14.Web.Models.Types;
+namespace SS14.Web.OpenId.Types;
 
 public record AuthorizationResult(
     AuthorizationResult.ResultType Type,

@@ -40,7 +40,7 @@ namespace SS14.Auth.Shared.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DataProtectionKeys");
+                    b.ToTable("DataProtectionKeys", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -177,7 +177,7 @@ namespace SS14.Auth.Shared.Data.Migrations
 
                     b.HasIndex("SpaceUserId");
 
-                    b.ToTable("AccountLogs");
+                    b.ToTable("AccountLogs", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.AuthHash", b =>
@@ -210,7 +210,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.HasIndex("Hash", "SpaceUserId")
                         .IsUnique();
 
-                    b.ToTable("AuthHashes");
+                    b.ToTable("AuthHashes", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.BurnerEmail", b =>
@@ -229,7 +229,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.HasIndex("Domain")
                         .IsUnique();
 
-                    b.ToTable("BurnerEmails");
+                    b.ToTable("BurnerEmails", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.Hwid", b =>
@@ -256,7 +256,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.HasIndex("ClientData")
                         .IsUnique();
 
-                    b.ToTable("Hwids");
+                    b.ToTable("Hwids", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.HwidUser", b =>
@@ -283,7 +283,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.HasIndex("HwidId", "SpaceUserId")
                         .IsUnique();
 
-                    b.ToTable("HwidUsers");
+                    b.ToTable("HwidUsers", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.LoginSession", b =>
@@ -311,7 +311,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.HasIndex("Token")
                         .IsUnique();
 
-                    b.ToTable("ActiveSessions");
+                    b.ToTable("ActiveSessions", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultAuthorization", b =>
@@ -479,7 +479,7 @@ namespace SS14.Auth.Shared.Data.Migrations
 
                     b.HasIndex("SpaceUserId");
 
-                    b.ToTable("PastAccountNames");
+                    b.ToTable("PastAccountNames", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.PatreonWebhookLog", b =>
@@ -501,7 +501,7 @@ namespace SS14.Auth.Shared.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PatreonWebhookLogs");
+                    b.ToTable("PatreonWebhookLogs", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.Patron", b =>
@@ -530,7 +530,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.HasIndex("SpaceUserId")
                         .IsUnique();
 
-                    b.ToTable("Patrons");
+                    b.ToTable("Patrons", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.SpaceApplication", b =>
@@ -721,7 +721,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.HasIndex("Domain")
                         .IsUnique();
 
-                    b.ToTable("WhitelistEmails");
+                    b.ToTable("WhitelistEmails", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
