@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -104,16 +106,20 @@ public class SpaceApplicationManager(
             if (!legacy && await base.ValidateClientSecretAsync(value, comparand, ct))
                 return true;
 
-            if (legacy && await ValidateLegacySecret(value, comparand, ct))
+            if (legacy && ValidateLegacySecret(value, comparand))
                 return true;
         }
 
         return false;
     }
 
-    private async ValueTask<bool> ValidateLegacySecret(string value, string comparand, CancellationToken ct)
+    // TODO: Write a unit test for this.
+    private bool ValidateLegacySecret(string secret, string comparand)
     {
-        throw new NotImplementedException();
+        var bytes = Encoding.UTF8.GetBytes(secret);
+        var hash = SHA256.HashData(bytes);
+        var comparandValue = Convert.FromBase64String(comparand.Remove(0, LegacySecretPrefix.Length));
+        return CryptographicOperations.FixedTimeEquals(hash, comparandValue);
     }
 
     public static class Functions
