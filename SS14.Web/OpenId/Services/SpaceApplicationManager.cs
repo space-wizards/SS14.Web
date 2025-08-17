@@ -36,7 +36,7 @@ public class SpaceApplicationManager(
         var secrets = span.SplitAny(',', '.');
         while (secrets.MoveNext())
         {
-            result.Add(Functions.ParseSecretInfo(span, secrets));
+            result.Add(Functions.ParseSecretInfo(span, ref secrets));
         }
 
         return result;
@@ -45,8 +45,9 @@ public class SpaceApplicationManager(
     public async ValueTask<ClientSecretInfo> AddSecret(SpaceApplication app, string secret, CancellationToken ct = default)
     {
         var key = await base.ObfuscateClientSecretAsync(secret, ct);
-        var (secretsString, info) = Functions.AddSecret(app.ClientSecret, key);
+        var (secretsString, info) = Functions.AddSecret(app.ClientSecret, key, secret[^6..]);
         await Store.SetClientSecretAsync(app, secretsString, ct);
+        await base.UpdateAsync(app, ct);
         return info;
     }
 
@@ -60,6 +61,7 @@ public class SpaceApplicationManager(
             return;
 
         await Store.SetClientSecretAsync(app, result, ct);
+        await base.UpdateAsync(app, ct);
     }
 
     protected override async ValueTask<string> ObfuscateClientSecretAsync(string secret, CancellationToken ct = new())
@@ -117,7 +119,7 @@ public class SpaceApplicationManager(
     public static class Functions
     {
         // MoveNext() needs to have been called for parts once already. This is to allow checking the client secret id
-        public static ClientSecretInfo ParseSecretInfo(ReadOnlySpan<char> span, MemoryExtensions.SpanSplitEnumerator<char> parts)
+        public static ClientSecretInfo ParseSecretInfo(ReadOnlySpan<char> span, ref MemoryExtensions.SpanSplitEnumerator<char> parts)
         {
             var id = span[parts.Current];
             parts.MoveNext();
@@ -142,7 +144,7 @@ public class SpaceApplicationManager(
             while (parts.MoveNext())
             {
                 if (int.Parse(span[parts.Current]) == id)
-                    return Functions.ParseSecretInfo(span, parts);
+                    return Functions.ParseSecretInfo(span, ref parts);
 
                 parts.MoveNext(); //timestamp
                 parts.MoveNext(); //key
@@ -152,7 +154,7 @@ public class SpaceApplicationManager(
             return null;
         }
 
-        public static (string, ClientSecretInfo) AddSecret(string? secrets, string obfuscatedSecret)
+        public static (string, ClientSecretInfo) AddSecret(string? secrets, string obfuscatedSecret, string? desc = null)
         {
             var id = 0;
 
@@ -172,7 +174,7 @@ public class SpaceApplicationManager(
             }
 
             var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
-            var description = obfuscatedSecret[^6..];
+            var description = desc ?? obfuscatedSecret[^6..];
             var secretInfoString = $"{id}.{timestamp}.{obfuscatedSecret}.{description}";
             var secretsString = secrets is null ? secretInfoString : $"{secrets},{secretInfoString}";
             var secretInfo = new ClientSecretInfo(id, DateTimeOffset.UtcNow, description, false);

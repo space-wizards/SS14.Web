@@ -21,12 +21,12 @@ public static class ApplicationManagerExtensions
         return callbackUris.IsEmpty ? null : callbackUris[0];
     }
 
-    public static async ValueTask<bool> GetRequiresPkceSetting(
+    public static async ValueTask<bool> GetRequiresPkce(
         this OpenIddictApplicationManager<SpaceApplication> manager,
         SpaceApplication app)
     {
-        var settings = await manager.GetSettingsAsync(app);
-        return settings.ContainsKey(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
+        var requirements = await manager.GetRequirementsAsync(app);
+        return requirements.Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
     }
 
     public static async ValueTask<bool> GetPs256Setting(

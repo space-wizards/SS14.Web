@@ -21,7 +21,7 @@
             <strong>Client ID:</strong> <span class="text-monospace">@Model.App.ClientId</span><br/>
             Only Authorization Code flow is accepted<br/>
             Available scopes are: <span class="text-monospace">openid</span>, <span class="text-monospace">profile</span>, <span class="text-monospace">email</span><br/>
-            SS14 implements OpenID Connect via IdentityServer4. See <a class="text-monospace" href="@Url.Content("~/.well-known/openid-configuration")">.well-known/openid-configuration</a> for config and endpoints.
+            SS14 implements OpenID Connect via OpenIddict. See <a class="text-monospace" href="@Url.Content("~/.well-known/openid-configuration")">.well-known/openid-configuration</a> for config and endpoints.
         </div>
     </div>
     <div class="row">
@@ -70,25 +70,23 @@
                 <div class="col">
                     <div class="list-group">
                         @* TODO: Change once I know if I need to support multiple secrets *@
-                        @*@foreach (var secret in Model.App.Client.ClientSecrets.OrderByDescending(a => a.Created))*@
-                        @{
-                            var show = Model.ShowSecretValue != null;//Model.ShowSecret == secret.Id;
-                            //if (secret.Type != "SharedSecret")
-                            //continue;
+                        @foreach (var secret in Model.Secrets.OrderByDescending(a => a.CreatedOn))
+                        {
+                            var show = Model.ShowSecret == secret.Id;
 
                             <div class="list-group-item d-flex justify-content-between align-items-center @(show ? "list-group-item-success" : "")">
                             <div>
-                                @*<span class="text-monospace">@(Model.ShowSecretValue ?? Model.App.ClientSecretDescription)</span>*@
+                                <span class="text-monospace">@(show ? Model.ShowSecretValue : $"****************************{secret.Description}")</span>
                                 <br/>
-                                <span class="text-muted">Created at @Model.App. UTC</span>
+                                <span class="text-muted">Created at @secret.CreatedOn UTC</span>
                             </div>
-                            @*<form method="post">
+                            <form method="post">
                                 <button type="submit"
                                         asp-page-handler="DeleteSecret" asp-route-secret="@secret.Id"
                                         class="btn btn-sm btn-danger">
                                     Delete
                                 </button>
-                            </form>*@
+                            </form>
                         </div>
                         }
                     </div>
@@ -98,11 +96,11 @@
     </div>
     <div class="row">
         <div class="col">
-            @*<a asp-page="./ConfirmDelete" class="btn btn-danger" asp-route-client="@Model.App.UserOAuthClientId">Delete</a>
+            <a asp-page="./ConfirmDelete" class="btn btn-danger" asp-route-client="@Model.App.Id">Delete</a>
             @if (User.IsInRole(AuthConstants.RoleSysAdmin))
             {
                 <a asp-area="Admin" asp-page="/Clients/Client" class="btn btn-primary" asp-route-id="@Model.App.ClientId">Hub Admin</a>
-            }*@
+            }
         </div>
     </div>
 </div>

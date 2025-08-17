@@ -13,6 +13,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
 using SS14.Web.Extensions;
+using SS14.Web.Models.Types;
 using SS14.Web.OpenId;
 using SS14.Web.OpenId.Extensions;
 using SS14.Web.OpenId.Services;
@@ -32,7 +33,9 @@ public class Manage : PageModel
 
     [BindProperty] public InputModel Input { get; set; }
 
-    [TempData] public int ShowSecret { get; set; }
+    public List<ClientSecretInfo> Secrets { get; set; }
+
+    [TempData] public int? ShowSecret { get; set; }
     [TempData] public string ShowSecretValue { get; set; }
 
     public sealed class InputModel
@@ -70,15 +73,16 @@ public class Manage : PageModel
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
-
         Input = new InputModel
         {
             Name = App.DisplayName,
             CallbackUrl = await _appManager.GetFirstRedirectUrl(App) ?? "",
             HomepageUrl = App.WebsiteUrl ?? "",
-            RequirePkce = await _appManager.GetRequiresPkceSetting(App),
+            RequirePkce = await _appManager.GetRequiresPkce(App),
             AllowPS256 = await _appManager.GetPs256Setting(App),
         };
+
+        Secrets = _appManager.ListSecrets(App);
 
         return Page();
     }
@@ -121,26 +125,19 @@ public class Manage : PageModel
         var secretVal = Convert.ToBase64String(RandomNumberGenerator.GetBytes(36));
 
         //App.ClientSecretDescription = $"*****{secretVal[^6..]}";
-        await _appManager.UpdateAsync(App, secretVal);
-        ShowSecret = 1;
+        var secretInfo = await _appManager.AddSecret(App, secretVal);
+        ShowSecret = secretInfo.Id;
         ShowSecretValue = secretVal;
 
         return RedirectToPage(new { client });
     }
 
-    // TODO: Delete if multiple secrets don't need to be supported.
     public async Task<IActionResult> OnPostDeleteSecretAsync(string client, int secret)
     {
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
-        //var dbSecret = App.Client.ClientSecrets.Find(p => p.Id == secret);
-        //if (dbSecret == null)
-        //    return NotFound("Secret not found");
-
-        //_dbContext.ClientSecrets.Remove(dbSecret);
-
-        await _dbContext.SaveChangesAsync();
+        await _appManager.RemoveSecret(App, secret);
 
         return RedirectToPage(new {id = client});
     }

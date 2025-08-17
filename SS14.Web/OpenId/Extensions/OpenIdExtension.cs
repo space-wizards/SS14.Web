@@ -35,6 +35,7 @@ public static class OpenIdExtension
         openId.AddServer().UseAspNetCore().EnableAuthorizationEndpointPassthrough().EnableStatusCodePagesIntegration();
         ConfigureCertificates(openId, builder);
 
+        builder.Services.AddScoped<SpaceApplicationManager>();
         builder.Services.AddHostedService<TestDataSeeder>();
         builder.Services.AddScoped<IdentityClaimsProvider>();
         builder.Services.AddScoped<SignedInIdentityService>();

@@ -1,33 +1,32 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SS14.Auth.Shared.Data;
+using SS14.Web.OpenId.Extensions;
+using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class Developer : PageModel
 {
-    private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceApplicationManager _appManager;
 
-    //public List<UserOAuthClient> OAuthClients { get; set; }
+    public List<SpaceApplication> Apps { get; set; } = [];
 
-    public Developer(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager)
+    public Developer(UserManager<SpaceUser> userManager, SpaceApplicationManager appManager)
     {
-        _dbContext = dbContext;
         _userManager = userManager;
+        _appManager = appManager;
     }
 
     public async Task OnGetAsync()
     {
         var user = await _userManager.GetUserAsync(User);
-
-        /*OAuthClients = await _dbContext.UserOAuthClients
-            .Include(oa => oa.Client)
-            .Where(oa => oa.SpaceUser == user)
-            .ToListAsync();*/
+        Apps = await _appManager.FindApplicationsByUserId(user!.Id);
     }
 }
