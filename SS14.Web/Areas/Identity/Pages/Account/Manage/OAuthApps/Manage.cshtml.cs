@@ -15,6 +15,7 @@ using SS14.Auth.Shared.Data;
 using SS14.Web.Extensions;
 using SS14.Web.OpenId;
 using SS14.Web.OpenId.Extensions;
+using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps;
 
@@ -24,7 +25,7 @@ public class Manage : PageModel
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<SpaceUser> _userManager;
-    private readonly OpenIddictApplicationManager<SpaceApplication> _appManager;
+    private readonly SpaceApplicationManager _appManager;
 
     //public UserOAuthClient App { get; set; }
     public SpaceApplication App { get; set; }
@@ -57,7 +58,7 @@ public class Manage : PageModel
         public bool AllowPS256 { get; set; } = true;
     }
 
-    public Manage(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager, OpenIddictApplicationManager<SpaceApplication> appManager)
+    public Manage(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager, SpaceApplicationManager appManager)
     {
         _dbContext = dbContext;
         _userManager = userManager;
@@ -121,7 +122,7 @@ public class Manage : PageModel
 
         //App.ClientSecretDescription = $"*****{secretVal[^6..]}";
         await _appManager.UpdateAsync(App, secretVal);
-
+        ShowSecret = 1;
         ShowSecretValue = secretVal;
 
         return RedirectToPage(new { client });

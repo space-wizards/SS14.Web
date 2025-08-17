@@ -21,30 +21,12 @@ public class SpaceApplicationManager(
 {
     private const string LegacySecretPrefix = "_OLD_";
 
-    public ClientSecretInfo? FindSecretById(SpaceApplication app,
-        int id,
-        CancellationToken ct = default)
+    public ClientSecretInfo? FindSecretById(SpaceApplication app, int id, CancellationToken ct = default)
     {
-        if (app.ClientSecret is null)
-            return null;
-
-        var span = app.ClientSecret.AsSpan();
-        var secrets = span.SplitAny(',', '.');
-        while (secrets.MoveNext())
-        {
-            if (int.Parse(span[secrets.Current]) == id)
-                return ParseSecretInfo(span, secrets);
-
-            secrets.MoveNext(); //timestamp
-            secrets.MoveNext(); //key
-            secrets.MoveNext(); //description
-        }
-
-        return null;
+        return app.ClientSecret is null ? null : Functions.FindById(app.ClientSecret, id);
     }
 
-    public List<ClientSecretInfo> ListSecrets(SpaceApplication app,
-        CancellationToken ct = default)
+    public List<ClientSecretInfo> ListSecrets(SpaceApplication app, CancellationToken ct = default)
     {
         var result = new List<ClientSecretInfo>();
         if (app.ClientSecret is null)
@@ -54,29 +36,30 @@ public class SpaceApplicationManager(
         var secrets = span.SplitAny(',', '.');
         while (secrets.MoveNext())
         {
-            result.Add(ParseSecretInfo(span, secrets));
+            result.Add(Functions.ParseSecretInfo(span, secrets));
         }
 
         return result;
     }
 
-    // MoveNext() needs to have been called for parts once already. This is to allow checking the client secret id
-    private ClientSecretInfo ParseSecretInfo(ReadOnlySpan<char> span, MemoryExtensions.SpanSplitEnumerator<char> parts)
+    public async ValueTask<ClientSecretInfo> AddSecret(SpaceApplication app, string secret, CancellationToken ct = default)
     {
-        var id = span[parts.Current];
-        parts.MoveNext();
-        var timestamp = span[parts.Current];
-        parts.MoveNext();
-        var isLegacy = span[parts.Current];
-        parts.MoveNext();
-        var description = span[parts.Current];
+        var key = await base.ObfuscateClientSecretAsync(secret, ct);
+        var (secretsString, info) = Functions.AddSecret(app.ClientSecret, key);
+        await Store.SetClientSecretAsync(app, secretsString, ct);
+        return info;
+    }
 
-        return new ClientSecretInfo(
-            int.Parse(id),
-            DateTime.Parse(timestamp),
-            description.ToString(),
-            isLegacy.StartsWith(LegacySecretPrefix)
-        );
+    public async ValueTask RemoveSecret(SpaceApplication app, int id, CancellationToken ct = default)
+    {
+        if (app.ClientSecret is null)
+            return;
+
+        var result = Functions.RemoveSecret(app.ClientSecret, id);
+        if (result == app.ClientSecret)
+            return;
+
+        await Store.SetClientSecretAsync(app, result, ct);
     }
 
     protected override async ValueTask<string> ObfuscateClientSecretAsync(string secret, CancellationToken ct = new())
@@ -129,5 +112,110 @@ public class SpaceApplicationManager(
     private async ValueTask<bool> ValidateLegacySecret(string value, string comparand, CancellationToken ct)
     {
         throw new NotImplementedException();
+    }
+
+    public static class Functions
+    {
+        // MoveNext() needs to have been called for parts once already. This is to allow checking the client secret id
+        public static ClientSecretInfo ParseSecretInfo(ReadOnlySpan<char> span, MemoryExtensions.SpanSplitEnumerator<char> parts)
+        {
+            var id = span[parts.Current];
+            parts.MoveNext();
+            var timestamp = span[parts.Current];
+            parts.MoveNext();
+            var isLegacy = span[parts.Current];
+            parts.MoveNext();
+            var description = span[parts.Current];
+
+            return new ClientSecretInfo(
+                int.Parse(id),
+                DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp)),
+                description.ToString(),
+                isLegacy.StartsWith(LegacySecretPrefix)
+            );
+        }
+
+        public static ClientSecretInfo? FindById(string secret, int id)
+        {
+            var span = secret.AsSpan();
+            var parts = span.SplitAny(',', '.');
+            while (parts.MoveNext())
+            {
+                if (int.Parse(span[parts.Current]) == id)
+                    return Functions.ParseSecretInfo(span, parts);
+
+                parts.MoveNext(); //timestamp
+                parts.MoveNext(); //key
+                parts.MoveNext(); //description
+            }
+
+            return null;
+        }
+
+        public static (string, ClientSecretInfo) AddSecret(string? secrets, string obfuscatedSecret)
+        {
+            var id = 0;
+
+            if (secrets is not null)
+            {
+                var span = secrets.AsSpan();
+                var parts = span.SplitAny(',', '.');
+                while (parts.MoveNext())
+                {
+                    if (int.Parse(span[parts.Current]) >= id)
+                        id = int.Parse(span[parts.Current]) + 1;
+
+                    parts.MoveNext(); //timestamp
+                    parts.MoveNext(); //key
+                    parts.MoveNext(); //description
+                }
+            }
+
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+            var description = obfuscatedSecret[^6..];
+            var secretInfoString = $"{id}.{timestamp}.{obfuscatedSecret}.{description}";
+            var secretsString = secrets is null ? secretInfoString : $"{secrets},{secretInfoString}";
+            var secretInfo = new ClientSecretInfo(id, DateTimeOffset.UtcNow, description, false);
+            return (secretsString, secretInfo);
+        }
+
+        public static string? RemoveSecret(string secrets, int id)
+        {
+            var span = secrets.AsSpan();
+            var parts = span.SplitAny(',', '.');
+            while (parts.MoveNext())
+            {
+                if (int.Parse(span[parts.Current]) == id)
+                {
+                    var start = span[..parts.Current.Start.Value];
+                    if (start.StartsWith(','))
+                        start = start[1..];
+
+                    if (start.EndsWith(','))
+                        start = start[..^1];
+
+                    parts.MoveNext(); //timestamp
+                    parts.MoveNext(); //key
+                    parts.MoveNext(); //description
+
+                    var end = span[parts.Current.End.Value..];
+                    if (end.StartsWith(','))
+                        end = end[1..];
+
+                    if (end.EndsWith(','))
+                        end = end[..^1];
+
+                    var comma = start.IsEmpty || end.IsEmpty ? string.Empty : ",";
+                    var result = $"{start}{comma}{end}";
+                    return result.Equals(string.Empty) ? null : result;
+                }
+
+                parts.MoveNext(); //timestamp
+                parts.MoveNext(); //key
+                parts.MoveNext(); //description
+            }
+
+            return secrets;
+        }
     }
 }
