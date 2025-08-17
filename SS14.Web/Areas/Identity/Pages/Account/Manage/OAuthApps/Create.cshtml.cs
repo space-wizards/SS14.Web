@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
+using SS14.Web.Models;
 using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps;
@@ -29,11 +30,13 @@ public class Create : PageModel
 
         //[Url(ErrorMessage = "The Homepage URL field is not a valid fully-qualified http or https URL.")]
         [Required]
+        [SpaceUrl]
         [DisplayName("Homepage URL")]
         public string HomepageUrl { get; set; }  = null!;
 
         //[Url(ErrorMessage = "The Authorization callback URL field is not a valid fully-qualified http or https URL.")]
         [Required]
+        [SpaceUrl]
         [DisplayName("Authorization callback URL")]
         public string CallbackUrl { get; set; }  = null!;
     }
@@ -50,6 +53,9 @@ public class Create : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (!ModelState.IsValid)
+            return Page();
+
         var user = await _userManager.GetUserAsync(User);
         var appDescriptor = new OpenIddictApplicationDescriptor
         {

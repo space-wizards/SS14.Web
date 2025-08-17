@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
+using SS14.Web.Models;
 using SS14.Web.Models.Types;
 using SS14.Web.OpenId;
 using SS14.Web.OpenId.Extensions;
@@ -37,10 +38,12 @@ public class Manage : PageModel
         public string Name { get; set; }
 
         [Required]
+        [SpaceUrl]
         [DisplayName("Homepage URL")]
         public string HomepageUrl { get; set; }
 
         [Required]
+        [SpaceUrl]
         [DisplayName("Authorization callback URL")]
         public string CallbackUrl { get; set; }
 
@@ -80,6 +83,9 @@ public class Manage : PageModel
 
     public async Task<IActionResult> OnPostUpdateAsync(string client)
     {
+        if (!ModelState.IsValid)
+            return Page();
+
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
