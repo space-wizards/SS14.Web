@@ -3,16 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
-using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Extensions;
 using SS14.Web.Models.Types;
 using SS14.Web.OpenId;
 using SS14.Web.OpenId.Extensions;
@@ -20,15 +16,11 @@ using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps;
 
-// TODO: Replace identityserver4 code in this file
-
 public class Manage : PageModel
 {
-    private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<SpaceUser> _userManager;
     private readonly SpaceApplicationManager _appManager;
 
-    //public UserOAuthClient App { get; set; }
     public SpaceApplication App { get; set; }
 
     [BindProperty] public InputModel Input { get; set; }
@@ -61,9 +53,8 @@ public class Manage : PageModel
         public bool AllowPS256 { get; set; } = true;
     }
 
-    public Manage(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager, SpaceApplicationManager appManager)
+    public Manage(UserManager<SpaceUser> userManager, SpaceApplicationManager appManager)
     {
-        _dbContext = dbContext;
         _userManager = userManager;
         _appManager = appManager;
     }
@@ -124,7 +115,6 @@ public class Manage : PageModel
 
         var secretVal = Convert.ToBase64String(RandomNumberGenerator.GetBytes(36));
 
-        //App.ClientSecretDescription = $"*****{secretVal[^6..]}";
         var secretInfo = await _appManager.AddSecret(App, secretVal);
         ShowSecret = secretInfo.Id;
         ShowSecretValue = secretVal;
