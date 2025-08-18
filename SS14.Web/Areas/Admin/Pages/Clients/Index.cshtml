@@ -31,22 +31,22 @@
     </tr>
     </thead>
     <tbody>
-        @*@foreach (var (client, userClient) in Model.Clients)
+        @foreach (var app in Model.Apps)
         {
             <tr>
-                <td>@client.ClientId</td>
-                <td>@client.ClientName</td>
+                <td>@app.ClientId</td>
+                <td>@app.DisplayName</td>
                 <td>
-                    @if (userClient?.SpaceUser is { } user)
+                    @if (app.SpaceUserId is { } id)
                     {
-                        <a asp-page="../Users/ViewUser" asp-route-id="@user.Id">@user.UserName</a>
+                        <a asp-page="../Users/ViewUser" asp-route-id="@id">@(await Model.GetUserNameAsync(id))</a>
                     }
                 </td>
                 <td>
-                    <a asp-page="./Client" asp-route-id="@client.Id">View</a>
+                    <a asp-page="./Client" asp-route-id="@app.Id">View</a>
                 </td>
             </tr>
-        }*@
+        }
     </tbody>
 </table>
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.OpenId;
@@ -66,6 +67,21 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
     private async ValueTask PopulateUsersAsync(IServiceScope scope)
     {
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<SpaceUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<SpaceRole>>();
+
+        var sysAdmin = new SpaceRole
+        {
+            Name = AuthConstants.RoleSysAdmin,
+        };
+
+        await roleManager.CreateAsync(sysAdmin);
+
+        var hubAdmin = new SpaceRole
+        {
+            Name = AuthConstants.RoleServerHubAdmin,
+        };
+
+        await roleManager.CreateAsync(hubAdmin);
 
         var user = new SpaceUser
         {
@@ -75,5 +91,7 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
         };
 
         await userManager.CreateAsync(user, "Test123456$");
+        await userManager.AddToRoleAsync(user, AuthConstants.RoleSysAdmin);
+        await userManager.AddToRoleAsync(user, AuthConstants.RoleServerHubAdmin);
     }
 }
