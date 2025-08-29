@@ -33,14 +33,65 @@ public static class ApplicationManagerExtensions
         this OpenIddictApplicationManager<SpaceApplication> manager,
         SpaceApplication app)
     {
+        return await manager.CheckSetting(app, OpenIdConstants.SigningAlgorithmSetting, OpenIddictConstants.Algorithms.RsaSsaPssSha256);
+    }
+
+    public static async ValueTask<bool> GetAllowPlainPkceSetting(
+        this OpenIddictApplicationManager<SpaceApplication> manager,
+        SpaceApplication app)
+    {
+        return await manager.CheckSetting(app, OpenIdConstants.AllowPlainPkce, "true");
+    }
+
+    public static async ValueTask<bool> IsDisabled(
+        this OpenIddictApplicationManager<SpaceApplication> manager,
+        SpaceApplication app)
+    {
+        return await manager.CheckSetting(app, OpenIdConstants.DisabledSetting, "true");
+    }
+
+    public static async ValueTask<bool> CheckSetting(this OpenIddictApplicationManager<SpaceApplication> manager,
+        SpaceApplication app,
+        string setting,
+        string comparand)
+    {
         var settings = await manager.GetSettingsAsync(app);
-        return settings.TryGetValue(OpenIdConstants.SigningAlgorithmSetting, out var value)
-               && value.Equals(OpenIddictConstants.Algorithms.RsaSsaPssSha256);
+        return settings.TryGetValue(setting, out var value)
+               && value.Equals(comparand);
     }
 
     public static async ValueTask<List<SpaceApplication>> FindApplicationsByUserId(this OpenIddictApplicationManager<SpaceApplication> manager, Guid userId, CancellationToken cancel = default)
     {
         return await manager.ListAsync(x => x.Where(a => a.SpaceUserId == userId)
             , cancel).ToListAsync(ct: cancel);
+    }
+
+    public static async ValueTask<int> GetAccessTokenLifetime(
+        this OpenIddictApplicationManager<SpaceApplication> manager,
+        SpaceApplication app)
+    {
+        return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.AccessToken);
+    }
+
+    public static async ValueTask<int> GetIdentityTokenLifetime(
+        this OpenIddictApplicationManager<SpaceApplication> manager,
+        SpaceApplication app)
+    {
+        return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.IdentityToken);
+    }
+
+    public static async ValueTask<int> GetRefreshTokenLifetime(
+        this OpenIddictApplicationManager<SpaceApplication> manager,
+        SpaceApplication app)
+    {
+        return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.RefreshToken);
+    }
+
+    private static async ValueTask<int> GetLifetime(OpenIddictApplicationManager<SpaceApplication> manager,
+        SpaceApplication app,
+        string settingName)
+    {
+        var settings = await manager.GetSettingsAsync(app);
+        return int.Parse(settings.GetValueOrDefault(settingName, "0"));
     }
 }

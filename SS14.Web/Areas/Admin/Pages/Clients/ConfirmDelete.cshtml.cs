@@ -18,7 +18,7 @@ public class ConfirmDelete : PageModel
     }
 
     public SpaceApplication? App { get; set; }
-    public string Title => App?.DisplayName ?? App?.ClientId ?? string.Empty;
+    public string? Title => App?.DisplayName ?? App?.ClientId;
 
     public async Task<IActionResult> OnGetAsync(string id)
     {

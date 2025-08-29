@@ -46,6 +46,8 @@ public class TokenSigningHandler : IOpenIddictServerHandler<GenerateTokenContext
             ? encryptionAlg
             : _config.DefaultEncryptionAlgorithm;
 
+        encryptionAlgorithm = string.IsNullOrEmpty(encryptionAlgorithm) ? _config.DefaultEncryptionAlgorithm : encryptionAlgorithm; ;
+
         if (encryptionAlgorithm is not null)
         {
             foreach (var credential in context.Options.EncryptionCredentials)
@@ -61,6 +63,8 @@ public class TokenSigningHandler : IOpenIddictServerHandler<GenerateTokenContext
         var signingAlgorithm = settings.TryGetValue(OpenIdConstants.SigningAlgorithmSetting, out var signingAlg)
             ? signingAlg
             : _config.DefaultSigningAlgorithm;
+
+        signingAlgorithm = string.IsNullOrEmpty(signingAlgorithm) ? _config.DefaultSigningAlgorithm : signingAlgorithm;
 
         if (signingAlgorithm is not null)
         {

@@ -4,14 +4,14 @@
 @{
     // TODO: Replace identityserver4 code in this file
 
-    //ViewData["Title"] = $"OAuth Client: {Model.Title}";
+    ViewData["Title"] = $"OAuth Client: {Model.Title}";
 }
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
         <li class="breadcrumb-item"><a asp-page="./Index">OAuth Clients</a></li>
-        @*<li class="breadcrumb-item active" aria-current="page">@Model.Title</li>*@
+        <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
     </ol>
 </nav>
 
@@ -39,8 +39,8 @@
 </div>
 
 <div class="form-group row">
-    <label asp-for="Input.ProtocolType" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.ProtocolType" class="form-control col-sm-9"/>
+    <label asp-for="Input.ConsentType" class="col-sm-3 col-form-label"></label>
+    <select asp-for="Input.ConsentType" class="form-control col-sm-9" asp-items="Model.ConsentTypes.Select(x => new SelectListItem(x, x))"></select>
 </div>
 
 <div class="form-group row">
@@ -56,42 +56,6 @@
 <div class="form-group row">
     <label asp-for="Input.AllowedGrantTypes" class="col-sm-3 col-form-label"></label>
     <textarea asp-for="Input.AllowedGrantTypes" class="form-control col-sm-9"></textarea>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.RequireClientSecret" class="form-check-input"/>
-            <label asp-for="Input.RequireClientSecret" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.RequireConsent" class="form-check-input"/>
-            <label asp-for="Input.RequireConsent" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.AllowRememberConsent" class="form-check-input"/>
-            <label asp-for="Input.AllowRememberConsent" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.AlwaysIncludeUserClaimsInIdToken" class="form-check-input"/>
-            <label asp-for="Input.AlwaysIncludeUserClaimsInIdToken" class="form-check-label"></label>
-        </div>
-    </div>
 </div>
 
 <div class="form-group row">
@@ -113,20 +77,6 @@
 </div>
 
 <div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.RequireRequestObject" class="form-check-input"/>
-            <label asp-for="Input.RequireRequestObject" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.Description" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.Description" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
     <label asp-for="Input.ClientUri" class="col-sm-3 col-form-label"></label>
     <input asp-for="Input.ClientUri" class="form-control col-sm-9"/>
 </div>
@@ -134,43 +84,6 @@
 <div class="form-group row">
     <label asp-for="Input.LogoUri" class="col-sm-3 col-form-label"></label>
     <input asp-for="Input.LogoUri" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.AllowAccessTokensViaBrowser" class="form-check-input"/>
-            <label asp-for="Input.AllowAccessTokensViaBrowser" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.FrontChannelLogoutUri" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.FrontChannelLogoutUri" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.FrontChannelLogoutSessionRequired" class="form-check-input"/>
-            <label asp-for="Input.FrontChannelLogoutSessionRequired" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.BackChannelLogoutUri" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.BackChannelLogoutUri" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.BackChannelLogoutSessionRequired" class="form-check-input"/>
-            <label asp-for="Input.BackChannelLogoutSessionRequired" class="form-check-label"></label>
-        </div>
-    </div>
 </div>
 
 <div class="form-group row">
@@ -188,134 +101,29 @@
 </div>
 
 <div class="form-group row">
-    <label asp-for="Input.IdentityTokenLifetime" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.IdentityTokenLifetime" class="form-control col-sm-9"/>
-</div>
-
-
-<div class="form-group row">
     <label asp-for="Input.AllowedIdentityTokenSigningAlgorithms" class="col-sm-4 col-form-label"></label>
     <input asp-for="Input.AllowedIdentityTokenSigningAlgorithms" class="form-control col-sm-8"/>
 </div>
-
+<div class="row">
+    <p class="col-sm-3 font-weight-bold">Lifetimes</p>
+    <p class="col-sm-9 text-muted">0 = default</p>
+</div>
+<div class="form-group row">
+    <label asp-for="Input.IdentityTokenLifetime" class="col-sm-3 col-form-label"></label>
+    <input asp-for="Input.IdentityTokenLifetime" class="form-control col-sm-9"/>
+</div>
 
 <div class="form-group row">
     <label asp-for="Input.AccessTokenLifetime" class="col-sm-3 col-form-label"></label>
     <input asp-for="Input.AccessTokenLifetime" class="form-control col-sm-9"/>
 </div>
 
-
 <div class="form-group row">
-    <label asp-for="Input.AuthorizationCodeLifetime" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.AuthorizationCodeLifetime" class="form-control col-sm-9"/>
+    <label asp-for="Input.RefreshTokenLifetime" class="col-sm-3 col-form-label"></label>
+    <input asp-for="Input.RefreshTokenLifetime" class="form-control col-sm-9"/>
 </div>
 
-
-<div class="form-group row">
-    <label asp-for="Input.ConsentLifetime" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.ConsentLifetime" class="form-control col-sm-9"/>
-</div>
-
-
-<div class="form-group row">
-    <label asp-for="Input.AbsoluteRefreshTokenLifetime" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.AbsoluteRefreshTokenLifetime" class="form-control col-sm-9"/>
-</div>
-
-
-<div class="form-group row">
-    <label asp-for="Input.SlidingRefreshTokenLifetime" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.SlidingRefreshTokenLifetime" class="form-control col-sm-9"/>
-</div>
-
-
-<div class="form-group row">
-    <label asp-for="Input.RefreshTokenUsage" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.RefreshTokenUsage" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.UpdateAccessTokenClaimsOnRefresh" class="form-check-input"/>
-            <label asp-for="Input.UpdateAccessTokenClaimsOnRefresh" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.RefreshTokenExpiration" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.RefreshTokenExpiration" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.AccessTokenType" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.AccessTokenType" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.EnableLocalLogin" class="form-check-input"/>
-            <label asp-for="Input.EnableLocalLogin" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.IncludeJwtId" class="form-check-input"/>
-            <label asp-for="Input.IncludeJwtId" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <div class="col-sm-9 offset-sm-3">
-        <div class="form-check">
-            <input asp-for="Input.AlwaysSendClientClaims" class="form-check-input"/>
-            <label asp-for="Input.AlwaysSendClientClaims" class="form-check-label"></label>
-        </div>
-    </div>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.ClientClaimsPrefix" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.ClientClaimsPrefix" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.PairWiseSubjectSalt" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.PairWiseSubjectSalt" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.UserSsoLifetime" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.UserSsoLifetime" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.UserCodeType" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.UserCodeType" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.DeviceCodeLifetime" class="col-sm-3 col-form-label"></label>
-    <input asp-for="Input.DeviceCodeLifetime" class="form-control col-sm-9"/>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.AllowedCorsOrigins" class="col-sm-3 col-form-label"></label>
-    <textarea asp-for="Input.AllowedCorsOrigins" class="form-control col-sm-9"></textarea>
-</div>
-
-<div class="form-group row">
-    <label asp-for="Input.IdentityProviderRestrictions" class="col-sm-3 col-form-label"></label>
-    <textarea asp-for="Input.IdentityProviderRestrictions" class="form-control col-sm-9"></textarea>
-</div>
-
-@*<button id="save-button" type="submit" asp-page-handler="Save" asp-route-id="@Model.DbClient.Id" class="btn btn-primary btn-sm">Save</button>*@
+<button id="save-button" type="submit" asp-page-handler="Save" asp-route-id="@Model.App?.Id" class="btn btn-primary btn-sm">Save</button>
 </form>
 
 <h5 class="mt-5">Secrets</h5>
@@ -324,18 +132,18 @@
     <thead>
     <tr>
         <th>Description</th>
-        <th>Type</th>
+        <th>Is Legacy?</th>
         <th>Created</th>
         <th></th>
     </tr>
     </thead>
     <tbody>
-    @*@foreach (var secret in Model.Secrets)
+    @foreach (var secret in Model.Secrets)
     {
         <tr>
             <td>@secret.Description</td>
-            <td>@secret.Type</td>
-            <td>@secret.Created.ToUniversalTime() UTC</td>
+            <td>@secret.Legacy</td>
+            <td>@secret.CreatedOn.ToUniversalTime() UTC</td>
             <td>
                 <form method="post">
                     <button type="submit"
@@ -344,7 +152,7 @@
                 </form>
             </td>
         </tr>
-    }*@
+    }
     </tbody>
 </table>
 
@@ -354,13 +162,9 @@
         <input asp-for="CreateSecretInput.Description" class="form-control col-md-3" placeholder="Description">
         <label asp-for="CreateSecretInput.Value" class="col-form-label col-md-1"></label>
         <input asp-for="CreateSecretInput.Value" class="form-control col-md-3" placeholder="Value">
-        <label asp-for="CreateSecretInput.Type" class="col-form-label col-md-1"></label>
-        <input asp-for="CreateSecretInput.Type" class="form-control col-md-2">
-        @*<button type="submit" asp-route-id="@Model.DbClient.Id" asp-page-handler="CreateSecret" class="btn btn-primary col-md-1">Create</button>*@
+        <button type="submit" asp-route-id="@Model.App?.Id" asp-page-handler="CreateSecret" class="btn btn-primary col-md-1">Create</button>
     </div>
 </form>
 
 <h5 class="mt-5">Actions</h5>
-@*
-<a asp-page="./ConfirmDelete" asp-route-id="@Model.DbClient.Id" class="btn btn-danger">Delete</a>
-*@
+<a asp-page="./ConfirmDelete" asp-route-id="@Model.App?.Id" class="btn btn-danger">Delete</a>

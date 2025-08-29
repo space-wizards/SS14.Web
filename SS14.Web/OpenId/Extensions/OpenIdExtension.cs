@@ -49,6 +49,9 @@ public static class OpenIdExtension
 
     private static void ConfigureCertificates(OpenIddictBuilder openId, WebApplicationBuilder builder)
     {
+        builder.Services.Add(AuthorizationPkceVerificationHandler.Descriptor.ServiceDescriptor);
+        openId.AddServer().AddEventHandler(AuthorizationPkceVerificationHandler.Descriptor);
+
         builder.Services.Add(TokenSigningHandler.Descriptor.ServiceDescriptor);
         openId.AddServer().AddEventHandler(TokenSigningHandler.Descriptor);
 

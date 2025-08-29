@@ -1,7 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿#nullable enable
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
+using SS14.Web.Models.Types;
+using SS14.Web.OpenId;
+using SS14.Web.OpenId.Extensions;
+using SS14.Web.OpenId.Services;
+using static OpenIddict.Abstractions.OpenIddictConstants.ConsentTypes;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
 
@@ -9,11 +21,11 @@ namespace SS14.Web.Areas.Admin.Pages.Clients;
 
 public class Client : PageModel
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly SpaceApplicationManager _appManager;
 
-    public Client(ApplicationDbContext dbContext)
+    public Client(SpaceApplicationManager appManager)
     {
-        _dbContext = dbContext;
+        _appManager = appManager;
     }
 
     [BindProperty] public InputModel Input { get; set; }
@@ -21,248 +33,159 @@ public class Client : PageModel
 
     [TempData] public string StatusMessage { get; set; }
 
-    //public DbClient DbClient { get; set; }
+    public SpaceApplication? App { get; set; }
 
-    //public string Title => DbClient.ClientName ?? DbClient.ClientId;
-
-    //public IEnumerable<ClientSecret> Secrets { get; set; }
+    public string? Title => App?.DisplayName ?? App?.ClientId;
+    public IEnumerable<ClientSecretInfo> Secrets { get; set; }
 
     public sealed class CreateSecretModel
     {
         [Display(Name = "Desc")]
-        public string Description { get; set; }
-        public string Value { get; set; }
-        public string Type { get; set; } = "SharedSecret";
+        public string? Description { get; set; }
+
+        public string? Value { get; set; }
     }
+
+    public string[] ConsentTypes = [Implicit, Explicit, Systematic];
 
     // That's a lotta options.
     public sealed class InputModel
     {
         public bool Enabled { get; set; }
-        public string ClientId { get; set; }
-        public string ClientName { get; set; }
-        public string ProtocolType { get; set; }
-        public bool RequireClientSecret { get; set; }
-        public bool RequireConsent { get; set; }
-        public bool AllowRememberConsent { get; set; }
-        public bool AlwaysIncludeUserClaimsInIdToken { get; set; }
+        [Display(Name = "Client Id")]
+        public string? ClientId { get; set; }
+        [Display(Name = "Client Name")]
+        public string? ClientName { get; set; }
+
+        // Explicit remembers the consent and Systematic forces a consent check every time
+        [Required]
+        [Display(Name = "Consent Type")]
+        [AllowedValues(Explicit, Implicit, Systematic)]
+        public string ConsentType { get; set; } = null!;
+        [Display(Name = "Require Pkce")]
         public bool RequirePkce { get; set; }
         public bool AllowPlainTextPkce { get; set; }
-        public bool RequireRequestObject { get; set; }
-        public string Description { get; set; }
-        public string ClientUri { get; set; }
-        public string LogoUri { get; set; }
-        public bool AllowAccessTokensViaBrowser { get; set; }
-        public string FrontChannelLogoutUri { get; set; }
-        public bool FrontChannelLogoutSessionRequired { get; set; }
-        public string BackChannelLogoutUri { get; set; }
-        public bool BackChannelLogoutSessionRequired { get; set; }
+        [Display(Name = "Home Page")]
+        public string? ClientUri { get; set; }
+        [Display(Name = "Logo Uri")]
+        public string? LogoUri { get; set; }
+        [Display(Name = "Allow Offline Access")]
         public bool AllowOfflineAccess { get; set; }
+        [Display(Name = "Identity Token Lifetime")]
         public int IdentityTokenLifetime { get; set; }
-        public string AllowedIdentityTokenSigningAlgorithms { get; set; }
+        [Display(Name = "Allowed ID Token Signing Alg.")]
+        public string? AllowedIdentityTokenSigningAlgorithms { get; set; }
+        [Display(Name = "Access Token Lifetime")]
         public int AccessTokenLifetime { get; set; }
-        public int AuthorizationCodeLifetime { get; set; }
-        public int? ConsentLifetime { get; set; } = null;
-        public int AbsoluteRefreshTokenLifetime { get; set; }
-        public int SlidingRefreshTokenLifetime { get; set; }
-        public int RefreshTokenUsage { get; set; }
-        public bool UpdateAccessTokenClaimsOnRefresh { get; set; }
-        public int RefreshTokenExpiration { get; set; }
-        public int AccessTokenType { get; set; }
-        public bool EnableLocalLogin { get; set; }
-        public bool IncludeJwtId { get; set; }
-        public bool AlwaysSendClientClaims { get; set; }
-        public string ClientClaimsPrefix { get; set; }
-        public string PairWiseSubjectSalt { get; set; }
-        public int? UserSsoLifetime { get; set; }
-        public string UserCodeType { get; set; }
-        public int DeviceCodeLifetime { get; set; }
-
+        [Display(Name = "Refresh Token Lifetime")]
+        public int RefreshTokenLifetime { get; set; }
         [Display(Name = "Redirect URIs (one per line)")]
-        public string RedirectUris { get; set; }
+        public string? RedirectUris { get; set; }
 
         [Display(Name = "Allowed Scopes (one per line)")]
-        public string AllowedScopes { get; set; }
+        public string? AllowedScopes { get; set; }
 
         [Display(Name = "Allowed Grant Types (one per line)")]
-        public string AllowedGrantTypes { get; set; }
+        public string? AllowedGrantTypes { get; set; }
 
-        public string PostLogoutRedirectUris { get; set; }
-        public string IdentityProviderRestrictions { get; set; }
-        public string AllowedCorsOrigins { get; set; }
+        [Display(Name = "Post Logout Redirect Uris")]
+        public string? PostLogoutRedirectUris { get; set; }
     }
 
-    /*public async Task<IActionResult> OnGetAsync(int id)
+    public async Task<IActionResult> OnGetAsync(string id)
     {
-        DbClient = await _dbContext.Clients
-            .Include(c => c.RedirectUris)
-            .Include(c => c.AllowedScopes)
-            .Include(c => c.ClientSecrets)
-            .Include(c => c.IdentityProviderRestrictions)
-            .Include(c => c.PostLogoutRedirectUris)
-            .Include(c => c.AllowedCorsOrigins)
-            .Include(c => c.AllowedGrantTypes)
-            .SingleOrDefaultAsync(c => c.Id == id);
-
-        if (DbClient == null)
-        {
+        App = await _appManager.FindByIdAsync(id);
+        if (App == null)
             return NotFound("Client not found");
-        }
+
+        var requirements = await _appManager.GetRequirementsAsync(App);
+        var settings = await _appManager.GetSettingsAsync(App);
+        var permissions = await _appManager.GetPermissionsAsync(App);
+        var redirectUris = await _appManager.GetRedirectUrisAsync(App);
+
+        var grantTypes = permissions
+            .Where(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType))
+            .Select(x => x[OpenIddictConstants.Permissions.Prefixes.GrantType.Length..]);
+
+        var scopes = permissions
+            .Where(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope))
+            .Select(x => x[OpenIddictConstants.Permissions.Prefixes.Scope.Length..]);
 
         Input = new InputModel
         {
-            Enabled = DbClient.Enabled,
-            ClientId = DbClient.ClientId,
-            ClientName = DbClient.ClientName,
-            ProtocolType = DbClient.ProtocolType,
-            RequireClientSecret = DbClient.RequireClientSecret,
-            RequireConsent = DbClient.RequireConsent,
-            AllowRememberConsent = DbClient.AllowRememberConsent,
-            AlwaysIncludeUserClaimsInIdToken = DbClient.AlwaysIncludeUserClaimsInIdToken,
-            RequirePkce = DbClient.RequirePkce,
-            AllowPlainTextPkce = DbClient.AllowPlainTextPkce,
-            RequireRequestObject = DbClient.RequireRequestObject,
-            Description = DbClient.Description,
-            ClientUri = DbClient.ClientUri,
-            LogoUri = DbClient.LogoUri,
-            AllowAccessTokensViaBrowser = DbClient.AllowAccessTokensViaBrowser,
-            FrontChannelLogoutUri = DbClient.FrontChannelLogoutUri,
-            FrontChannelLogoutSessionRequired = DbClient.FrontChannelLogoutSessionRequired,
-            BackChannelLogoutUri = DbClient.BackChannelLogoutUri,
-            BackChannelLogoutSessionRequired = DbClient.BackChannelLogoutSessionRequired,
-            AllowOfflineAccess = DbClient.AllowOfflineAccess,
-            IdentityTokenLifetime = DbClient.IdentityTokenLifetime,
-            AllowedIdentityTokenSigningAlgorithms = DbClient.AllowedIdentityTokenSigningAlgorithms,
-            AccessTokenLifetime = DbClient.AccessTokenLifetime,
-            AuthorizationCodeLifetime = DbClient.AuthorizationCodeLifetime,
-            ConsentLifetime = DbClient.ConsentLifetime,
-            AbsoluteRefreshTokenLifetime = DbClient.AbsoluteRefreshTokenLifetime,
-            SlidingRefreshTokenLifetime = DbClient.SlidingRefreshTokenLifetime,
-            RefreshTokenUsage = DbClient.RefreshTokenUsage,
-            UpdateAccessTokenClaimsOnRefresh = DbClient.UpdateAccessTokenClaimsOnRefresh,
-            RefreshTokenExpiration = DbClient.RefreshTokenExpiration,
-            AccessTokenType = DbClient.AccessTokenType,
-            EnableLocalLogin = DbClient.EnableLocalLogin,
-            IncludeJwtId = DbClient.IncludeJwtId,
-            AlwaysSendClientClaims = DbClient.AlwaysSendClientClaims,
-            ClientClaimsPrefix = DbClient.ClientClaimsPrefix,
-            PairWiseSubjectSalt = DbClient.PairWiseSubjectSalt,
-            UserSsoLifetime = DbClient.UserSsoLifetime,
-            UserCodeType = DbClient.UserCodeType,
-            DeviceCodeLifetime = DbClient.DeviceCodeLifetime,
-            RedirectUris = string.Join("\n", DbClient.RedirectUris.Select(c => c.RedirectUri)),
-            AllowedGrantTypes = string.Join("\n", DbClient.AllowedGrantTypes.Select(c => c.GrantType)),
-            AllowedScopes = string.Join("\n", DbClient.AllowedScopes.Select(c => c.Scope)),
-            IdentityProviderRestrictions =
-                string.Join("\n", DbClient.IdentityProviderRestrictions.Select(c => c.Provider)),
-            PostLogoutRedirectUris =
-                string.Join("\n", DbClient.PostLogoutRedirectUris.Select(c => c.PostLogoutRedirectUri)),
-            AllowedCorsOrigins = string.Join("\n", DbClient.AllowedCorsOrigins.Select(c => c.Origin)),
+            Enabled = !await  _appManager.IsDisabled(App),
+            ClientId = App.ClientId,
+            ClientName = App.DisplayName,
+            ConsentType = App.ConsentType ?? Explicit,
+            RequirePkce = requirements.Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange),
+            AllowPlainTextPkce = await _appManager.GetAllowPlainPkceSetting(App),
+            ClientUri = App.WebsiteUrl,
+            LogoUri = App.LogoUri,
+            AllowOfflineAccess = permissions.Contains(OpenIddictConstants.Permissions.GrantTypes.RefreshToken),
+            AllowedIdentityTokenSigningAlgorithms = settings.GetValueOrDefault(OpenIdConstants.SigningAlgorithmSetting),
+            IdentityTokenLifetime = await _appManager.GetIdentityTokenLifetime(App),
+            AccessTokenLifetime = await _appManager.GetAccessTokenLifetime(App),
+            RefreshTokenLifetime = await _appManager.GetRefreshTokenLifetime(App),
+            RedirectUris = string.Join("\n", redirectUris),
+            AllowedGrantTypes = string.Join("\n", grantTypes),
+            AllowedScopes = string.Join("\n", scopes),
+            PostLogoutRedirectUris = App.PostLogoutRedirectUris,
         };
 
         CreateSecretInput = new CreateSecretModel();
 
-        Secrets = DbClient.ClientSecrets;
+        Secrets = _appManager.ListSecrets(App);
 
         return Page();
     }
 
-    public async Task<IActionResult> OnPostSaveAsync(int id)
+    public async Task<IActionResult> OnPostSaveAsync(string id)
     {
-        DbClient = await _dbContext.Clients
-            .Include(c => c.RedirectUris)
-            .Include(c => c.AllowedScopes)
-            .Include(c => c.IdentityProviderRestrictions)
-            .Include(c => c.PostLogoutRedirectUris)
-            .Include(c => c.AllowedCorsOrigins)
-            .Include(c => c.AllowedGrantTypes)
-            .SingleOrDefaultAsync(c => c.Id == id);
-
-        if (DbClient == null)
-        {
+        var app = await _appManager.FindByIdAsync(id);
+        if (app == null)
             return NotFound("Client not found");
+
+        var descriptor = new OpenIddictApplicationDescriptor();
+        await _appManager.PopulateAsync(descriptor, app);
+
+        descriptor.ClientId = Input.ClientId;
+        descriptor.DisplayName = Input.ClientName;
+        descriptor.ConsentType = Input.ConsentType;
+        descriptor.Settings[OpenIdConstants.DisabledSetting] = Input.Enabled ? "false"  : "true";
+        descriptor.Settings[OpenIdConstants.AllowPlainPkce] = Input.AllowPlainTextPkce ? "true" : "false";
+        descriptor.Settings[OpenIdConstants.SigningAlgorithmSetting] = Input.AllowedIdentityTokenSigningAlgorithms ?? string.Empty;
+
+        descriptor.Permissions.RemoveWhere(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType));
+
+        foreach (var grantType in Input.AllowedGrantTypes?.Split("\n", StringSplitOptions.RemoveEmptyEntries) ?? [])
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.GrantType+grantType.Trim());
         }
 
-        DbClient.Enabled = Input.Enabled;
-        DbClient.ClientId = Input.ClientId;
-        DbClient.ClientName = Input.ClientName;
-        DbClient.ProtocolType = Input.ProtocolType;
-        DbClient.RequireClientSecret = Input.RequireClientSecret;
-        DbClient.RequireConsent = Input.RequireConsent;
-        DbClient.AllowRememberConsent = Input.AllowRememberConsent;
-        DbClient.AlwaysIncludeUserClaimsInIdToken = Input.AlwaysIncludeUserClaimsInIdToken;
-        DbClient.RequirePkce = Input.RequirePkce;
-        DbClient.AllowPlainTextPkce = Input.AllowPlainTextPkce;
-        DbClient.RequireRequestObject = Input.RequireRequestObject;
-        DbClient.Description = Input.Description;
-        DbClient.ClientUri = Input.ClientUri;
-        DbClient.LogoUri = Input.LogoUri;
-        DbClient.AllowAccessTokensViaBrowser = Input.AllowAccessTokensViaBrowser;
-        DbClient.FrontChannelLogoutUri = Input.FrontChannelLogoutUri;
-        DbClient.FrontChannelLogoutSessionRequired = Input.FrontChannelLogoutSessionRequired;
-        DbClient.BackChannelLogoutUri = Input.BackChannelLogoutUri;
-        DbClient.BackChannelLogoutSessionRequired = Input.BackChannelLogoutSessionRequired;
-        DbClient.AllowOfflineAccess = Input.AllowOfflineAccess;
-        DbClient.IdentityTokenLifetime = Input.IdentityTokenLifetime;
-        DbClient.AllowedIdentityTokenSigningAlgorithms = Input.AllowedIdentityTokenSigningAlgorithms;
-        DbClient.AccessTokenLifetime = Input.AccessTokenLifetime;
-        DbClient.AuthorizationCodeLifetime = Input.AuthorizationCodeLifetime;
-        DbClient.ConsentLifetime = Input.ConsentLifetime;
-        DbClient.AbsoluteRefreshTokenLifetime = Input.AbsoluteRefreshTokenLifetime;
-        DbClient.SlidingRefreshTokenLifetime = Input.SlidingRefreshTokenLifetime;
-        DbClient.RefreshTokenUsage = Input.RefreshTokenUsage;
-        DbClient.UpdateAccessTokenClaimsOnRefresh = Input.UpdateAccessTokenClaimsOnRefresh;
-        DbClient.RefreshTokenExpiration = Input.RefreshTokenExpiration;
-        DbClient.AccessTokenType = Input.AccessTokenType;
-        DbClient.EnableLocalLogin = Input.EnableLocalLogin;
-        DbClient.IncludeJwtId = Input.IncludeJwtId;
-        DbClient.AlwaysSendClientClaims = Input.AlwaysSendClientClaims;
-        DbClient.ClientClaimsPrefix = Input.ClientClaimsPrefix;
-        DbClient.PairWiseSubjectSalt = Input.PairWiseSubjectSalt;
-        DbClient.UserSsoLifetime = Input.UserSsoLifetime;
-        DbClient.UserCodeType = Input.UserCodeType;
-        DbClient.DeviceCodeLifetime = Input.DeviceCodeLifetime;
-        DbClient.RedirectUris = (Input.RedirectUris ?? "")
-            .Replace("\r", "")
-            .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => new ClientRedirectUri {RedirectUri = c})
-            .ToList();
-        DbClient.AllowedScopes = (Input.AllowedScopes ?? "")
-            .Replace("\r", "")
-            .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => new ClientScope {Scope = c})
-            .ToList();
-        DbClient.AllowedGrantTypes = (Input.AllowedGrantTypes ?? "")
-            .Replace("\r", "")
-            .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => new ClientGrantType {GrantType = c})
-            .ToList();
-        DbClient.IdentityProviderRestrictions = (Input.IdentityProviderRestrictions ?? "")
-            .Replace("\r", "")
-            .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => new ClientIdPRestriction {Provider = c})
-            .ToList();
-        DbClient.PostLogoutRedirectUris = (Input.PostLogoutRedirectUris ?? "")
-            .Replace("\r", "")
-            .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => new ClientPostLogoutRedirectUri {PostLogoutRedirectUri = c})
-            .ToList();
-        DbClient.AllowedCorsOrigins = (Input.AllowedCorsOrigins ?? "")
-            .Replace("\r", "")
-            .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-            .Select(c => new ClientCorsOrigin {Origin = c})
-            .ToList();
+        descriptor.Permissions.RemoveWhere(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope));
 
-        await _dbContext.SaveChangesAsync();
+        foreach (var scope in Input.AllowedScopes?.Split("\n", StringSplitOptions.RemoveEmptyEntries) ?? [])
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope+scope.Trim());
+        }
 
-        StatusMessage = "Changes saved";
+        if (Input.RequirePkce)
+            descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
+        else
+            descriptor.Requirements.Remove(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
 
+        if (Input.AllowOfflineAccess)
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.GrantTypes.RefreshToken);
+        else
+            descriptor.Permissions.Remove(OpenIddictConstants.Permissions.GrantTypes.RefreshToken);
+
+        await _appManager.UpdateAsync(app, descriptor);
         return RedirectToPage(new {id});
     }
 
     public async Task<IActionResult> OnPostCreateSecretAsync(int id)
     {
-        DbClient = await _dbContext.Clients
+        /*DbClient = await _dbContext.Clients
             .Include(c => c.RedirectUris)
             .SingleOrDefaultAsync(c => c.Id == id);
 
@@ -294,12 +217,13 @@ public class Client : PageModel
 
         StatusMessage = $"Secret created. Value: {value}";
 
-        return RedirectToPage(new {id});
+        return RedirectToPage(new {id});*/
+        return NotFound();
     }
 
     public async Task<IActionResult> OnPostDeleteSecretAsync(int secret)
     {
-        var dbSecret = await _dbContext.ClientSecrets
+        /*var dbSecret = await _dbContext.ClientSecrets
             .SingleOrDefaultAsync(c => c.Id == secret);
 
         if (dbSecret == null)
@@ -313,6 +237,7 @@ public class Client : PageModel
 
         StatusMessage = "Secret deleted.";
 
-        return RedirectToPage(new {id = dbSecret.ClientId});
-    }*/
+        return RedirectToPage(new {id = dbSecret.ClientId});*/
+        return NotFound();
+    }
 }

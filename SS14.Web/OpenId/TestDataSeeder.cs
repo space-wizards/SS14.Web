@@ -37,7 +37,11 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
             DisplayName = "Test Client",
             RedirectUris = { new Uri("https://localhost:5002/signin-oidc") },
             Requirements = { OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange },
-            Settings = {{OpenIdConstants.SigningAlgorithmSetting, "RS256"}},
+            Settings =
+            {
+                {OpenIdConstants.SigningAlgorithmSetting, "RS256"},
+                {OpenIdConstants.AllowPlainPkce, "true"},
+            },
             Permissions =
             {
                 OpenIddictConstants.Permissions.Endpoints.Authorization,

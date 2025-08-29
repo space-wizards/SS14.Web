@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
 using SS14.Web.Models;
+using SS14.Web.OpenId;
 using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps;
@@ -66,6 +67,7 @@ public class Create : PageModel
             DisplayName = Input.Name,
             RedirectUris = { new Uri(Input.CallbackUrl) },
             Requirements = { OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange },
+            Settings = {{OpenIdConstants.AllowPlainPkce, "true"}},
             Permissions =
             {
                 OpenIddictConstants.Permissions.Endpoints.Authorization,

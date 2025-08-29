@@ -1,15 +1,14 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
 using SS14.Web.Extensions;
+using SS14.Web.OpenId;
 using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
@@ -43,6 +42,7 @@ public class Index : PageModel
             ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
             DisplayName = "New Client",
             Requirements = { OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange },
+            Settings = {{OpenIdConstants.AllowPlainPkce, "true"}},
             Permissions =
             {
                 OpenIddictConstants.Permissions.Endpoints.Authorization,
