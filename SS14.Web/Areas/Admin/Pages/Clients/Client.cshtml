@@ -1,9 +1,6 @@
 ﻿@page
 @model SS14.Web.Areas.Admin.Pages.Clients.Client
-@* Oh god this file is going to be horrible to refactor for openiddict *@
 @{
-    // TODO: Replace identityserver4 code in this file
-
     ViewData["Title"] = $"OAuth Client: {Model.Title}";
 }
 
@@ -147,7 +144,7 @@
             <td>
                 <form method="post">
                     <button type="submit"
-                            asp-page-handler="DeleteSecret" asp-route-secret="@secret.Id"
+                            asp-page-handler="DeleteSecret" asp-route-id="@Model.App?.Id" asp-route-secret="@secret.Id"
                             class="btn btn-danger">Delete</button>
                 </form>
             </td>

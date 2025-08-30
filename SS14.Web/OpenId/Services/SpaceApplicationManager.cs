@@ -44,10 +44,10 @@ public class SpaceApplicationManager(
         return result;
     }
 
-    public async ValueTask<ClientSecretInfo> AddSecret(SpaceApplication app, string secret, CancellationToken ct = default)
+    public async ValueTask<ClientSecretInfo> AddSecret(SpaceApplication app, string secret, string? desc = null, CancellationToken ct = default)
     {
         var key = await base.ObfuscateClientSecretAsync(secret, ct);
-        var (secretsString, info) = Functions.AddSecret(app.ClientSecret, key, secret[^6..]);
+        var (secretsString, info) = Functions.AddSecret(app.ClientSecret, key, desc ?? secret[^6..]);
         await Store.SetClientSecretAsync(app, secretsString, ct);
         await base.UpdateAsync(app, ct);
         return info;
@@ -106,20 +106,11 @@ public class SpaceApplicationManager(
             if (!legacy && await base.ValidateClientSecretAsync(value, comparand, ct))
                 return true;
 
-            if (legacy && ValidateLegacySecret(value, comparand))
+            if (legacy && Functions.ValidateLegacySecret(value, comparand))
                 return true;
         }
 
         return false;
-    }
-
-    // TODO: Write a unit test for this.
-    private bool ValidateLegacySecret(string secret, string comparand)
-    {
-        var bytes = Encoding.UTF8.GetBytes(secret);
-        var hash = SHA256.HashData(bytes);
-        var comparandValue = Convert.FromBase64String(comparand.Remove(0, LegacySecretPrefix.Length));
-        return CryptographicOperations.FixedTimeEquals(hash, comparandValue);
     }
 
     public static class Functions
@@ -224,6 +215,15 @@ public class SpaceApplicationManager(
             }
 
             return secrets;
+        }
+        
+        // TODO: Write a unit test for this.
+        public static bool ValidateLegacySecret(string secret, string comparand)
+        {
+            var bytes = Encoding.UTF8.GetBytes(secret);
+            var hash = SHA256.HashData(bytes);
+            var comparandValue = Convert.FromBase64String(comparand.Remove(0, LegacySecretPrefix.Length));
+            return CryptographicOperations.FixedTimeEquals(hash, comparandValue);
         }
     }
 }

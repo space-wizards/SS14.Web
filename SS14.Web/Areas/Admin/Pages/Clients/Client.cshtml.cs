@@ -17,8 +17,6 @@ using static OpenIddict.Abstractions.OpenIddictConstants.ConsentTypes;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
 
-// TODO: Replace identityserver4 code in this file
-
 public class Client : PageModel
 {
     private readonly SpaceApplicationManager _appManager;
@@ -102,6 +100,7 @@ public class Client : PageModel
         var settings = await _appManager.GetSettingsAsync(App);
         var permissions = await _appManager.GetPermissionsAsync(App);
         var redirectUris = await _appManager.GetRedirectUrisAsync(App);
+        var postLogoutRedirectUris = await _appManager.GetPostLogoutRedirectUrisAsync(App);
 
         var grantTypes = permissions
             .Where(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType))
@@ -129,7 +128,7 @@ public class Client : PageModel
             RedirectUris = string.Join("\n", redirectUris),
             AllowedGrantTypes = string.Join("\n", grantTypes),
             AllowedScopes = string.Join("\n", scopes),
-            PostLogoutRedirectUris = App.PostLogoutRedirectUris,
+            PostLogoutRedirectUris = string.Join("\n", postLogoutRedirectUris),
         };
 
         CreateSecretInput = new CreateSecretModel();
@@ -155,6 +154,10 @@ public class Client : PageModel
         descriptor.Settings[OpenIdConstants.AllowPlainPkce] = Input.AllowPlainTextPkce ? "true" : "false";
         descriptor.Settings[OpenIdConstants.SigningAlgorithmSetting] = Input.AllowedIdentityTokenSigningAlgorithms ?? string.Empty;
 
+        descriptor.Settings[OpenIddictConstants.Settings.TokenLifetimes.AccessToken] = Input.AccessTokenLifetime.ToString();
+        descriptor.Settings[OpenIddictConstants.Settings.TokenLifetimes.IdentityToken] = Input.IdentityTokenLifetime.ToString();
+        descriptor.Settings[OpenIddictConstants.Settings.TokenLifetimes.RefreshToken] = Input.RefreshTokenLifetime.ToString();
+
         descriptor.Permissions.RemoveWhere(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType));
 
         foreach (var grantType in Input.AllowedGrantTypes?.Split("\n", StringSplitOptions.RemoveEmptyEntries) ?? [])
@@ -169,6 +172,18 @@ public class Client : PageModel
             descriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope+scope.Trim());
         }
 
+        descriptor.RedirectUris.Clear();
+        foreach (var redirectUri in Input.RedirectUris?.Split("\n", StringSplitOptions.RemoveEmptyEntries) ?? [])
+        {
+            descriptor.RedirectUris.Add(new Uri(redirectUri.Trim()));
+        }
+
+        descriptor.PostLogoutRedirectUris.Clear();
+        foreach (var redirectUri in Input.PostLogoutRedirectUris?.Split("\n", StringSplitOptions.RemoveEmptyEntries) ?? [])
+        {
+            descriptor.PostLogoutRedirectUris.Add(new Uri(redirectUri.Trim()));
+        }
+
         if (Input.RequirePkce)
             descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
         else
@@ -179,65 +194,41 @@ public class Client : PageModel
         else
             descriptor.Permissions.Remove(OpenIddictConstants.Permissions.GrantTypes.RefreshToken);
 
+        app.WebsiteUrl = Input.ClientUri;
+        app.LogoUri = Input.LogoUri;
+
         await _appManager.UpdateAsync(app, descriptor);
         return RedirectToPage(new {id});
     }
 
-    public async Task<IActionResult> OnPostCreateSecretAsync(int id)
+    public async Task<IActionResult> OnPostCreateSecretAsync(string id)
     {
-        /*DbClient = await _dbContext.Clients
-            .Include(c => c.RedirectUris)
-            .SingleOrDefaultAsync(c => c.Id == id);
-
-        if (DbClient == null)
-        {
+        var app = await _appManager.FindByIdAsync(id);
+        if (app == null)
             return NotFound("Client not found");
-        }
 
-        var value = CreateSecretInput.Value;
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            var bytes = new byte[24];
-            var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(bytes);
-            value = Convert.ToBase64String(bytes);
-        }
+        var secret = CreateSecretInput.Value;
+        if (string.IsNullOrWhiteSpace(secret))
+            secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(36));
 
-        var secret = new ClientSecret
-        {
-            Description = CreateSecretInput.Description,
-            Type = CreateSecretInput.Type,
-            Value = value.Sha256()
-        };
+        // Ensure an empty description is null.
+        var description = CreateSecretInput.Description;
+        if (string.IsNullOrWhiteSpace(description))
+            description = null;
 
-        DbClient.ClientSecrets ??= new List<ClientSecret>();
-        DbClient.ClientSecrets.Add(secret);
-
-        await _dbContext.SaveChangesAsync();
-
-        StatusMessage = $"Secret created. Value: {value}";
-
-        return RedirectToPage(new {id});*/
-        return NotFound();
+        await _appManager.AddSecret(app, secret, description);
+        StatusMessage = $"Secret created. Value: {secret}";
+        return RedirectToPage(new {id});
     }
 
-    public async Task<IActionResult> OnPostDeleteSecretAsync(int secret)
+    public async Task<IActionResult> OnPostDeleteSecretAsync(string id, int secret)
     {
-        /*var dbSecret = await _dbContext.ClientSecrets
-            .SingleOrDefaultAsync(c => c.Id == secret);
+        var app = await _appManager.FindByIdAsync(id);
+        if (app == null)
+            return NotFound("Client not found");
 
-        if (dbSecret == null)
-        {
-            return NotFound("Secret not found");
-        }
-
-        _dbContext.ClientSecrets.Remove(dbSecret);
-
-        await _dbContext.SaveChangesAsync();
-
+        await _appManager.RemoveSecret(app, secret);
         StatusMessage = "Secret deleted.";
-
-        return RedirectToPage(new {id = dbSecret.ClientId});*/
-        return NotFound();
+        return RedirectToPage(new {id});
     }
 }

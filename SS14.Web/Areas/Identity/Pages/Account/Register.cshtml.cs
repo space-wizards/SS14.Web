@@ -46,9 +46,8 @@ public class RegisterModel : PageModel
 
     [BindProperty] public InputModel Input { get; set; }
 
-    // TODO: Remove nullable when done developing
     [BindProperty(Name = "h-captcha-response")]
-    public string? HCaptchaResponse { get; set; }
+    public string HCaptchaResponse { get; set; }
 
     public string ReturnUrl { get; set; }
 
