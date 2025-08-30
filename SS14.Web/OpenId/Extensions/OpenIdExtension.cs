@@ -26,6 +26,7 @@ public static class OpenIdExtension
                 .ReplaceDefaultEntities<SpaceApplication, DefaultAuthorization, DefaultScope, DefaultToken, string>();
 
             options.ReplaceApplicationManager<SpaceApplication, SpaceApplicationManager>();
+            options.UseQuartz();
         });
 
         openId.AddValidation().UseLocalServer();

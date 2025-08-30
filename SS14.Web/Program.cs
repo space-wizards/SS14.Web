@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Prometheus;
+using Quartz;
 using Serilog;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
@@ -85,6 +86,15 @@ builder.AddPatreon();
 builder.AddOpenIdConnect();
 builder.Services.AddScoped<PersonalDataCollector>();
 builder.AddShared();
+
+// Required for openiddict pruning jobs
+builder.Services.AddQuartz(o =>
+{
+    o.UseSimpleTypeLoader();
+    o.UseInMemoryStore();
+});
+
+builder.Services.AddQuartzHostedService(o => o.WaitForJobsToComplete = true);
 
 builder.Services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
     options =>

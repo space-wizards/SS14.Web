@@ -93,7 +93,7 @@ public class SpaceApplicationManager(
         string comparand,
         CancellationToken ct = new())
     {
-        var secrets = secret.Split(',');
+        var secrets = comparand.Split(',');
         foreach (var pair in secrets)
         {
             var value = pair.Split('.')[2];
@@ -101,12 +101,12 @@ public class SpaceApplicationManager(
 
             // ReSharper disable once ConvertIfStatementToSwitchStatement
             if (legacy)
-                value = value[5..];
+                value = value[LegacySecretPrefix.Length..];
 
-            if (!legacy && await base.ValidateClientSecretAsync(value, comparand, ct))
+            if (!legacy && await base.ValidateClientSecretAsync(value, secret, ct))
                 return true;
 
-            if (legacy && Functions.ValidateLegacySecret(value, comparand))
+            if (legacy && Functions.ValidateLegacySecret(value, secret))
                 return true;
         }
 
@@ -216,13 +216,12 @@ public class SpaceApplicationManager(
 
             return secrets;
         }
-        
-        // TODO: Write a unit test for this.
+
         public static bool ValidateLegacySecret(string secret, string comparand)
         {
             var bytes = Encoding.UTF8.GetBytes(secret);
             var hash = SHA256.HashData(bytes);
-            var comparandValue = Convert.FromBase64String(comparand.Remove(0, LegacySecretPrefix.Length));
+            var comparandValue = Convert.FromBase64String(comparand);
             return CryptographicOperations.FixedTimeEquals(hash, comparandValue);
         }
     }
