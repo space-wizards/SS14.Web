@@ -51,12 +51,11 @@ public class IdentityClaimsProvider
     }
 
     /// <summary>
-    /// TODO: Document
-    ///
+    /// Returns whether the claim gets supplied in the ID token, the Access token or just via the introspection endpoint
     /// </summary>
-    /// <param name="claim"></param>
-    /// <returns></returns>
-    public IEnumerable<string> GetDestinations(Claim claim)  => claim.Type switch
+    /// <param name="claim">The claim to return the destinations for</param>
+    /// <returns>A list of destinations for the claim</returns>
+    public IEnumerable<string> GetDestinations(Claim claim) => claim.Type switch
     {
         Claims.Name or Claims.PreferredUsername => DestinationHelper.Destination(claim, OpenIddictConstants.Scopes.Profile),
         Claims.Email => DestinationHelper.Destination(claim, OpenIddictConstants.Scopes.Email),

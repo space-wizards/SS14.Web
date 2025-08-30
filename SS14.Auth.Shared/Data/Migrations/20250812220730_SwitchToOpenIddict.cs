@@ -12,7 +12,7 @@ namespace SS14.Auth.Shared.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
+            /*migrationBuilder.DropForeignKey(
                 name: "FK_UserOAuthClients_Clients_ClientId",
                 table: "UserOAuthClients");
 
@@ -106,7 +106,7 @@ namespace SS14.Auth.Shared.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "IdentityResources",
-                schema: "IS4");
+                schema: "IS4");*/
 
             migrationBuilder.CreateTable(
                 name: "OpenIddictApplications",
@@ -271,7 +271,7 @@ namespace SS14.Auth.Shared.Data.Migrations
             migrationBuilder.DropTable(
                 name: "OpenIddictApplications");
 
-            migrationBuilder.EnsureSchema(
+            /*migrationBuilder.EnsureSchema(
                 name: "IS4");
 
             migrationBuilder.CreateTable(
@@ -992,7 +992,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                 principalSchema: "IS4",
                 principalTable: "Clients",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade);*/
         }
     }
 }

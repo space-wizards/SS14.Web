@@ -6,15 +6,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Data;
 using SS14.Web.OpenId.Configuration;
 using SS14.Web.OpenId.EventHandlers;
 using SS14.Web.OpenId.Services;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
 namespace SS14.Web.OpenId.Extensions;
-// TODO: Add integration with quartz
+
 public static class OpenIdExtension
 {
     public static void AddOpenIdConnect(this WebApplicationBuilder builder)
