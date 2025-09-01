@@ -14,6 +14,7 @@ using SS14.Web.OpenId;
 using SS14.Web.OpenId.Extensions;
 using SS14.Web.OpenId.Services;
 using static OpenIddict.Abstractions.OpenIddictConstants.ConsentTypes;
+using static OpenIddict.Abstractions.OpenIddictConstants.Settings.TokenLifetimes;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
 
@@ -154,9 +155,9 @@ public class Client : PageModel
         descriptor.Settings[OpenIdConstants.AllowPlainPkce] = Input.AllowPlainTextPkce ? "true" : "false";
         descriptor.Settings[OpenIdConstants.SigningAlgorithmSetting] = Input.AllowedIdentityTokenSigningAlgorithms ?? string.Empty;
 
-        descriptor.Settings[OpenIddictConstants.Settings.TokenLifetimes.AccessToken] = Input.AccessTokenLifetime.ToString();
-        descriptor.Settings[OpenIddictConstants.Settings.TokenLifetimes.IdentityToken] = Input.IdentityTokenLifetime.ToString();
-        descriptor.Settings[OpenIddictConstants.Settings.TokenLifetimes.RefreshToken] = Input.RefreshTokenLifetime.ToString();
+        SetTokenLifetime(descriptor, AccessToken, Input.AccessTokenLifetime);
+        SetTokenLifetime(descriptor, IdentityToken, Input.IdentityTokenLifetime);
+        SetTokenLifetime(descriptor, RefreshToken, Input.RefreshTokenLifetime);
 
         descriptor.Permissions.RemoveWhere(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType));
 
@@ -199,6 +200,17 @@ public class Client : PageModel
 
         await _appManager.UpdateAsync(app, descriptor);
         return RedirectToPage(new {id});
+    }
+
+    private void SetTokenLifetime(OpenIddictApplicationDescriptor descriptor, string setting, int lifetime)
+    {
+        if (lifetime <= 0)
+        {
+            descriptor.Settings.Remove(setting);
+            return;
+        }
+
+        descriptor.Settings[setting] = lifetime.ToString();
     }
 
     public async Task<IActionResult> OnPostCreateSecretAsync(string id)

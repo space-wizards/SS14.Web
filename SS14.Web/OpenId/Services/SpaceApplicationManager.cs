@@ -103,10 +103,10 @@ public class SpaceApplicationManager(
             if (legacy)
                 value = value[LegacySecretPrefix.Length..];
 
-            if (!legacy && await base.ValidateClientSecretAsync(value, secret, ct))
+            if (!legacy && await base.ValidateClientSecretAsync(secret, value, ct))
                 return true;
 
-            if (legacy && Functions.ValidateLegacySecret(value, secret))
+            if (legacy && Functions.ValidateLegacySecret(secret, value))
                 return true;
         }
 

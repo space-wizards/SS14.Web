@@ -1,10 +1,13 @@
 ﻿#nullable enable
 using System;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
+using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
 using SS14.Web.OpenId.Configuration;
 using SS14.Web.OpenId.EventHandlers;
@@ -41,11 +44,6 @@ public static class OpenIdExtension
         builder.Services.AddScoped<OpenIdActionService>();
     }
 
-    public static void UseOpenIdConnect(this WebApplication app)
-    {
-
-    }
-
     private static void ConfigureCertificates(OpenIddictBuilder openId, WebApplicationBuilder builder)
     {
         builder.Services.Add(AuthorizationPkceVerificationHandler.Descriptor.ServiceDescriptor);
@@ -73,10 +71,37 @@ public static class OpenIdExtension
             openId.AddServer().AddEncryptionCertificate(encryptionCert, encryptionCertificate.Password);
         }
 
-        foreach (var signingCertificate in config.EncryptionCertificates)
+        foreach (var signingCertificate in config.SigningCertificates)
         {
-            using var signingCert = File.OpenRead(signingCertificate.Path);;
-            openId.AddServer().AddSigningCertificate(signingCert, signingCertificate.Password);
+            using var signingCert = File.OpenRead(signingCertificate.Path);
+
+            if (signingCertificate.Algorithm == null)
+            {
+                openId.AddServer().AddSigningCertificate(signingCert, signingCertificate.Password);
+            }
+            else
+            {
+                using var buffer = new MemoryStream();
+                signingCert.CopyTo(buffer);
+                var cert = X509CertificateLoader.LoadPkcs12(
+                    buffer.ToArray(),
+                    signingCertificate.Password,
+                    X509KeyStorageFlags.EphemeralKeySet);
+
+                var key = new X509SecurityKey(cert);
+                var credentials = new SigningCredentials(key, signingCertificate.Algorithm);
+                openId.AddServer().AddSigningCredentials(credentials);
+            }
         }
+    }
+
+    private static void AddCertificate(OpenIddictBuilder openId, FileStream cert, string password)
+    {
+
+    }
+
+    private static void AddCertificate(OpenIddictBuilder openId, FileStream cert, string password, string algorithm)
+    {
+
     }
 }

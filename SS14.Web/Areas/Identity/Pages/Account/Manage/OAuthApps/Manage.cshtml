@@ -96,7 +96,7 @@
             <a asp-page="./ConfirmDelete" class="btn btn-danger" asp-route-client="@Model.App.Id">Delete</a>
             @if (User.IsInRole(AuthConstants.RoleSysAdmin))
             {
-                <a asp-area="Admin" asp-page="/Clients/Client" class="btn btn-primary" asp-route-id="@Model.App.ClientId">Hub Admin</a>
+                <a asp-area="Admin" asp-page="/Clients/Client" class="btn btn-primary" asp-route-id="@Model.App.Id">Hub Admin</a>
             }
         </div>
     </div>

@@ -147,6 +147,4 @@ app.MapDefaultControllerRoute();
 app.MapRazorPages();
 app.MapMetrics();
 
-app.UseOpenIdConnect();
-
 app.Run();
