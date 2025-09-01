@@ -81,8 +81,7 @@ public sealed class AccountLogManager(
     private IPAddress? GetActorIP()
     {
         if (httpContextAccessor.HttpContext == null)
-            return null;
-            // TODO: Undo commenting this out throw new InvalidOperationException("Unable to get HttpContext!");
+            throw new InvalidOperationException("Unable to get HttpContext!");
 
         var address = httpContextAccessor.HttpContext.Connection.RemoteIpAddress;
         return address;
