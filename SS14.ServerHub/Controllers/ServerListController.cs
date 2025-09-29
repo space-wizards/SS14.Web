@@ -136,7 +136,7 @@ public class ServerListController : ControllerBase
 
             if (!isServerRenewingAdvertisement
                 && adverts.Count >= HubOptions.MaxServersPerIp
-                && !await CheckExceptFromMaxAdvertisements(parsedAddress))
+                && !await CheckExemptFromMaxAdvertisements(parsedAddress))
             {
                 return Unauthorized($"You cannot advertise more then {HubOptions.MaxServersPerIp} servers from one IP address, please contact us if you require an increase.");
             }
@@ -288,13 +288,13 @@ public class ServerListController : ControllerBase
             .SingleOrDefaultAsync(b => b.TrackedCommunity.IsBanned);
     }
 
-    private async Task<bool> CheckExceptFromMaxAdvertisements(Uri advertisementUri)
+    private async Task<bool> CheckExemptFromMaxAdvertisements(Uri advertisementUri)
     {
         var matched = new List<TrackedCommunity>();
 
         await CommunityMatcher.MatchCommunities(_dbContext, advertisementUri, matched, CancellationToken.None);
 
-        return matched.FirstOrDefault(x => x.IsExceptFromMaxAdvertisements) != null;
+        return matched.FirstOrDefault(x => x.IsExemptFromMaxAdvertisements) != null;
     }
 
     private static string[] InferTags(byte[] statusDataJson)

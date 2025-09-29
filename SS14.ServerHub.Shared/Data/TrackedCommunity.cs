@@ -38,7 +38,7 @@ public sealed class TrackedCommunity
     /// <summary>
     /// This community is except from only advertising a limited amount of servers from one IP address
     /// </summary>
-    public bool IsExceptFromMaxAdvertisements { get; set; }
+    public bool IsExemptFromMaxAdvertisements { get; set; }
 
     // Navigation properties
     public List<TrackedCommunityAddress> Addresses { get; set; } = default!;

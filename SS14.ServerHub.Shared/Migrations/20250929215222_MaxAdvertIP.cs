@@ -9,7 +9,7 @@ namespace SS14.ServerHub.Shared.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "IsExceptFromMaxAdvertisements",
+                name: "IsExemptFromMaxAdvertisements",
                 table: "TrackedCommunity",
                 type: "boolean",
                 nullable: false,
@@ -19,7 +19,7 @@ namespace SS14.ServerHub.Shared.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsExceptFromMaxAdvertisements",
+                name: "IsExemptFromMaxAdvertisements",
                 table: "TrackedCommunity");
         }
     }

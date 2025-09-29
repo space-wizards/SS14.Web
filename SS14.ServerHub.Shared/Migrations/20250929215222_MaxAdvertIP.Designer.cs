@@ -14,7 +14,7 @@ using SS14.ServerHub.Shared.Data;
 namespace SS14.ServerHub.Shared.Migrations
 {
     [DbContext(typeof(HubDbContext))]
-    [Migration("20250929170512_MaxAdvertIP")]
+    [Migration("20250929215222_MaxAdvertIP")]
     partial class MaxAdvertIP
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -136,7 +136,7 @@ namespace SS14.ServerHub.Shared.Migrations
                     b.Property<bool>("IsBanned")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsExceptFromMaxAdvertisements")
+                    b.Property<bool>("IsExemptFromMaxAdvertisements")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("LastUpdated")

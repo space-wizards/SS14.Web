@@ -134,7 +134,7 @@ namespace SS14.ServerHub.Migrations
                     b.Property<bool>("IsBanned")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsExceptFromMaxAdvertisements")
+                    b.Property<bool>("IsExemptFromMaxAdvertisements")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("LastUpdated")

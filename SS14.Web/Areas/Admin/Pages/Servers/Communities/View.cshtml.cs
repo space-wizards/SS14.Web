@@ -46,7 +46,7 @@ public sealed class View : PageModel
         public string Name { get; set; }
         public string Notes { get; set; }
         public bool IsBanned { get; set; }
-        public bool IsExceptFromMaxAdvertisements  { get; set; }
+        public bool IsExemptFromMaxAdvertisements  { get; set; }
     }
 
     public View(HubDbContext dbContext, HubAuditLogManager hubAuditLog)
@@ -71,7 +71,7 @@ public sealed class View : PageModel
         {
             Name = Community.Name,
             IsBanned = Community.IsBanned,
-            IsExceptFromMaxAdvertisements = Community.IsExceptFromMaxAdvertisements,
+            IsExemptFromMaxAdvertisements = Community.IsExemptFromMaxAdvertisements,
             Notes = Community.Notes
         };
 
@@ -110,10 +110,10 @@ public sealed class View : PageModel
             anyChange = true;
         }
 
-        if (Community.IsExceptFromMaxAdvertisements != Input.IsExceptFromMaxAdvertisements)
+        if (Community.IsExemptFromMaxAdvertisements != Input.IsExemptFromMaxAdvertisements)
         {
-            _hubAuditLog.Log(User, new HubAuditCommunityChangedBanned(Community, Community.IsExceptFromMaxAdvertisements, Input.IsExceptFromMaxAdvertisements));
-            Community.IsExceptFromMaxAdvertisements = Input.IsExceptFromMaxAdvertisements;
+            _hubAuditLog.Log(User, new HubAuditCommunityChangedBanned(Community, Community.IsExemptFromMaxAdvertisements, Input.IsExemptFromMaxAdvertisements));
+            Community.IsExemptFromMaxAdvertisements = Input.IsExemptFromMaxAdvertisements;
             anyChange = true;
         }
 
