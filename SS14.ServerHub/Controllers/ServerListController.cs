@@ -118,23 +118,29 @@ public class ServerListController : ControllerBase
                 return Unauthorized("Your server has been blocked from advertising on the hub. If you believe this to be in error, please contact us.");
         }
 
-        if (senderIp != null)
-        {
-            // Check the current number of advertised servers from this IP.
-            var amount = await _dbContext.AdvertisedServer
-                .Where(s => s.AdvertiserAddress == senderIp)
-                .Where(s => s.Expires > DateTime.UtcNow)
-                .CountAsync();
-
-            if (amount >= HubOptions.MaxServersPerIp && !await CheckExceptFromMaxAdvertisements(parsedAddress))
-                return Forbid($"You cannot advertise more then {amount} servers from one IP address, please contact us if you require an increase.");
-        }
-
         var inferredTags = InferTags(statusJson);
 
         // Check if a server with this address already exists.
         var addressEntity =
             await _dbContext.AdvertisedServer.SingleOrDefaultAsync(a => a.Address == advertise.Address);
+
+        if (senderIp != null)
+        {
+            // Check the current number of advertised servers from this IP.
+            var adverts = await _dbContext.AdvertisedServer
+                .Where(s => s.AdvertiserAddress == senderIp)
+                .Where(s => s.Expires > DateTime.UtcNow)
+                .ToListAsync();
+
+            var isServerRenewingAdvertisement = addressEntity != null && addressEntity.Expires > DateTime.UtcNow;
+
+            if (!isServerRenewingAdvertisement
+                && adverts.Count >= HubOptions.MaxServersPerIp
+                && !await CheckExceptFromMaxAdvertisements(parsedAddress))
+            {
+                return Unauthorized($"You cannot advertise more then {HubOptions.MaxServersPerIp} servers from one IP address, please contact us if you require an increase.");
+            }
+        }
 
         var timeNow = DateTime.UtcNow;
         var newExpireTime = timeNow + TimeSpan.FromMinutes(options.AdvertisementExpireMinutes);
