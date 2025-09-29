@@ -53,7 +53,7 @@ public class ServerListController : ControllerBase
 
         return dbInfos;
     }
-    
+
     [EnableCors(CorsPolicies.PolicyHubPublic)]
     [HttpGet("info")]
     public async Task<IActionResult> GetServerInfo(string url)
@@ -65,7 +65,7 @@ public class ServerListController : ControllerBase
 
         if (dbInfo == null)
             return NotFound();
-        
+
         return Ok((RawJson?) dbInfo.InfoData);
     }
 
@@ -118,6 +118,18 @@ public class ServerListController : ControllerBase
                 return Unauthorized("Your server has been blocked from advertising on the hub. If you believe this to be in error, please contact us.");
         }
 
+        if (senderIp != null)
+        {
+            // Check the current number of advertised servers from this IP.
+            var amount = await _dbContext.AdvertisedServer
+                .Where(s => s.AdvertiserAddress == senderIp)
+                .Where(s => s.Expires > DateTime.UtcNow)
+                .CountAsync();
+
+            if (amount >= HubOptions.MaxServersPerIp && !await CheckExceptFromMaxAdvertisements(parsedAddress))
+                return Forbid($"You cannot advertise more then {amount} servers from one IP address, please contact us if you require an increase.");
+        }
+
         var inferredTags = InferTags(statusJson);
 
         // Check if a server with this address already exists.
@@ -149,7 +161,7 @@ public class ServerListController : ControllerBase
             StatusData = statusJson,
             InferredTags = inferredTags
         });
-        
+
         await _dbContext.SaveChangesAsync();
         return NoContent();
     }
@@ -176,11 +188,11 @@ public class ServerListController : ControllerBase
             {
                 return (UnprocessableEntity($"/status response data was too large (max: {maxStatusSize} KiB)"), null, null);
             }
-            
+
             var statusData = JsonSerializer.Deserialize<ServerStatus>(statusResponse);
             if (statusData == null)
                 throw new InvalidDataException("Status cannot be null");
-            
+
             if (string.IsNullOrWhiteSpace(statusData.Name))
                 return (UnprocessableEntity("Server name cannot be empty"), null, null);
 
@@ -268,6 +280,15 @@ public class ServerListController : ControllerBase
     {
         return await CommunityMatcher.CheckIP(_dbContext, address)
             .SingleOrDefaultAsync(b => b.TrackedCommunity.IsBanned);
+    }
+
+    private async Task<bool> CheckExceptFromMaxAdvertisements(Uri advertisementUri)
+    {
+        var matched = new List<TrackedCommunity>();
+
+        await CommunityMatcher.MatchCommunities(_dbContext, advertisementUri, matched, CancellationToken.None);
+
+        return matched.FirstOrDefault(x => x.IsExceptFromMaxAdvertisements) != null;
     }
 
     private static string[] InferTags(byte[] statusDataJson)
