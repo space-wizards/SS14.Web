@@ -127,15 +127,15 @@ public class ServerListController : ControllerBase
         if (senderIp != null)
         {
             // Check the current number of advertised servers from this IP.
-            var adverts = await _dbContext.AdvertisedServer
+            var count = await _dbContext.AdvertisedServer
                 .Where(s => s.AdvertiserAddress == senderIp)
                 .Where(s => s.Expires > DateTime.UtcNow)
-                .ToListAsync();
+                .CountAsync();
 
             var isServerRenewingAdvertisement = addressEntity != null && addressEntity.Expires > DateTime.UtcNow;
 
             if (!isServerRenewingAdvertisement
-                && adverts.Count >= HubOptions.MaxServersPerIp
+                && count >= HubOptions.MaxServersPerIp
                 && !await CheckExemptFromMaxAdvertisements(parsedAddress))
             {
                 return Unauthorized($"You cannot advertise more then {HubOptions.MaxServersPerIp} servers from one IP address, please contact us if you require an increase.");
