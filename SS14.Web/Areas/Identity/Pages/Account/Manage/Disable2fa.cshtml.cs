@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
@@ -14,6 +15,7 @@ public class Disable2faModel : PageModel
 {
     private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly IEmailSender _emailSender;
     private readonly ILogger<Disable2faModel> _logger;
     private readonly ApplicationDbContext _dbContext;
     private readonly AccountLogManager _accountLogManager;
@@ -21,12 +23,14 @@ public class Disable2faModel : PageModel
     public Disable2faModel(
         SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager,
+        IEmailSender emailSender,
         ILogger<Disable2faModel> logger,
         ApplicationDbContext dbContext,
         AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _emailSender = emailSender;
         _logger = logger;
         _dbContext = dbContext;
         _accountLogManager = accountLogManager;
@@ -70,11 +74,18 @@ public class Disable2faModel : PageModel
         }
 
         await tx.CommitAsync();
-        
+
         await _signInManager.RefreshSignInAsync(user);
-        
+
         _logger.LogInformation("User with ID '{UserId}' has disabled 2FA.", _userManager.GetUserId(User));
         StatusMessage = "2FA has been disabled. You can re-enable 2FA when you setup an authenticator app";
+
+        var userEmail = await _userManager.GetEmailAsync(user);
+        await _emailSender.SendEmailAsync(userEmail,
+            "Your Space Station 14 account 2fa was disabled",
+            $"This email was sent to you to confirm that 2fa has been disabled on your account. If this was you feel free to ignore this email." +
+            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+
         return RedirectToPage("./TwoFactorAuthentication");
     }
 }
