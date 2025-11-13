@@ -122,6 +122,7 @@ public class EnableAuthenticatorModel : PageModel
         await _emailSender.SendEmailAsync(userEmail,
             "Your Space Station 14 account 2fa was enabled",
             $"This email was sent to you to confirm that 2fa has been enabled on your account. If this was you feel free to ignore this email." +
+            $"(And make sure you wrote down your recovery codes)" +
             $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
 
         if (await _userManager.CountRecoveryCodesAsync(user) == 0)

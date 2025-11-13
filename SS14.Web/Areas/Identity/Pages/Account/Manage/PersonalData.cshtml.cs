@@ -38,6 +38,7 @@ public class PersonalDataModel(
         Response.Headers.Add("Content-Disposition", $"attachment; filename={user.UserName}-PersonalData.zip");
 
         // TODO: Once net 9 is in, in order to not hit MaxEmailsPerHour. This should have a rate limit to only allow data download once per hour or 1 email per hour
+        // Not doing it now because i dont wanna do db migrations and mess up julians pr
         // var userEmail = await userManager.GetEmailAsync(user);
         // await emailSender.SendEmailAsync(userEmail,
         //     "Your Space Station 14 account data was requested",
