@@ -138,7 +138,7 @@ public class ServerListController : ControllerBase
                 && count >= HubOptions.MaxServersPerIp
                 && !await CheckExemptFromMaxAdvertisements(parsedAddress))
             {
-                return Unauthorized($"You cannot advertise more then {HubOptions.MaxServersPerIp} servers from one IP address, please contact us if you require an increase.");
+                return Unauthorized($"You cannot advertise more than {HubOptions.MaxServersPerIp} servers from one IP address, please contact us if you require an increase.");
             }
         }
 
