@@ -1,50 +1,73 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
-using DbClient = IdentityServer4.EntityFramework.Entities.Client;
+using SS14.Web.Extensions;
+using SS14.Web.OpenId;
+using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
 
 public class Index : PageModel
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly SpaceApplicationManager _appManager;
+    private readonly SpaceUserManager _userManager;
 
-    public IEnumerable<(DbClient, UserOAuthClient)> Clients { get; set; }
+    public IEnumerable<SpaceApplication> Apps { get; set; }
 
-    public Index(ApplicationDbContext dbContext)
+    public Index(SpaceApplicationManager appManager, SpaceUserManager userManager)
     {
-        _dbContext = dbContext;
+        _appManager = appManager;
+        _userManager = userManager;
     }
 
     public async Task OnGetAsync()
     {
-        // This is a left join
-        var query = from c in _dbContext.Clients
-            join uc in _dbContext.UserOAuthClients.Include(c => c.SpaceUser)
-                on c.Id equals uc.ClientId into grouping
-            from uc in grouping.DefaultIfEmpty()
-            orderby c.Created
-            select new { c, uc };
-            
-        Clients = (await query.ToListAsync()).Select(c => (c.c, c.uc));
+        Apps = await _appManager.ListAsync().ToListAsync();
     }
 
     public async Task<IActionResult> OnPostNewClientAsync()
     {
-        var client = new IdentityServer4.EntityFramework.Entities.Client
+
+        var appDescriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = Guid.NewGuid().ToString(),
+            ClientSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(36)),
+            ClientType = OpenIddictConstants.ClientTypes.Confidential,
+            ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
+            DisplayName = "New Client",
+            Requirements = { OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange },
+            Settings = {{OpenIdConstants.AllowPlainPkce, "true"}},
+            Permissions =
+            {
+                OpenIddictConstants.Permissions.Endpoints.Authorization,
+                OpenIddictConstants.Permissions.Endpoints.Token,
+                OpenIddictConstants.Permissions.Endpoints.Introspection,
+                OpenIddictConstants.Permissions.Endpoints.EndSession,
+                OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+                OpenIddictConstants.Permissions.ResponseTypes.Code,
+                OpenIddictConstants.Permissions.Scopes.Email,
+                OpenIddictConstants.Permissions.Scopes.Profile,
+                OpenIddictConstants.Permissions.Scopes.Roles,
+            },
         };
 
-        // ReSharper disable once MethodHasAsyncOverload
-        _dbContext.Clients.Add(client);
-        await _dbContext.SaveChangesAsync();
+        var app = await _appManager.CreateAsync(appDescriptor);
 
-        return RedirectToPage("./Client", new { id = client.Id });
+        TempData["ShowSecret"] = 0;
+        TempData["ShowSecretValue"] = appDescriptor.ClientSecret;
+        return RedirectToPage("./Client", new { id = app.Id });
+    }
+
+
+    public async Task<string?> GetUserNameAsync(Guid userId)
+    {
+        return (await _userManager.FindByIdAsync(userId.ToString()))?.UserName;
     }
 }

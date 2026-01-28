@@ -1,27 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <LangVersion>12</LangVersion>
+        <TargetFramework>net9.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="IdentityServer4" Version="4.1.2" />
-        <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.2" />
-        <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2" />
-        <PackageReference Include="AspNet.Security.OAuth.Patreon" Version="6.0.2" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
-        <PackageReference Include="NetEscapades.Configuration.Yaml" Version="2.1.0" />
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.1" Condition="'$(Configuration)' == 'Debug'" />
-        <PackageReference Include="prometheus-net" Version="7.0.0" />
-        <PackageReference Include="prometheus-net.AspNetCore" Version="7.0.0" />
+        <PackageReference Include="AspNet.Security.OAuth.Patreon" Version="9.4.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="9.0.8" />
+        <PackageReference Include="NetEscapades.Configuration.Yaml" Version="3.1.0" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" Condition="'$(Configuration)' == 'Debug'" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="7.0.0" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.0.0" />
+        <PackageReference Include="OpenIddict.Quartz" Version="7.0.0" />
+        <PackageReference Include="prometheus-net" Version="8.2.1" />
+        <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
+        <PackageReference Include="Quartz.Extensions.Hosting" Version="3.14.0" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <ProjectReference Include="..\SS14.Auth.Shared\SS14.Auth.Shared.csproj" />
       <ProjectReference Include="..\SS14.ServerHub.Shared\SS14.ServerHub.Shared.csproj" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Servers\BannedAddresses\Index.cshtml" />
     </ItemGroup>

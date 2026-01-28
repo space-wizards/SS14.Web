@@ -19,860 +19,10 @@ namespace SS14.Auth.Shared.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResource", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AllowedAccessTokenSigningAlgorithms")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("DisplayName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("LastAccessed")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("NonEditable")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ShowInDiscoveryDocument")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("Updated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("ApiResources", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceClaim", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApiResourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApiResourceId");
-
-                    b.ToTable("ApiResourceClaims", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceProperty", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApiResourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApiResourceId");
-
-                    b.ToTable("ApiResourceProperties", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceScope", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApiResourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Scope")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApiResourceId");
-
-                    b.ToTable("ApiResourceScopes", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceSecret", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApiResourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime?>("Expiration")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApiResourceId");
-
-                    b.ToTable("ApiResourceSecrets", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScope", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("DisplayName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("Emphasize")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("Required")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ShowInDiscoveryDocument")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("ApiScopes", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeClaim", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ScopeId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ScopeId");
-
-                    b.ToTable("ApiScopeClaims", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeProperty", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<int>("ScopeId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ScopeId");
-
-                    b.ToTable("ApiScopeProperties", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.Client", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AbsoluteRefreshTokenLifetime")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AccessTokenLifetime")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AccessTokenType")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("AllowAccessTokensViaBrowser")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("AllowOfflineAccess")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("AllowPlainTextPkce")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("AllowRememberConsent")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("AllowedIdentityTokenSigningAlgorithms")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<bool>("AlwaysIncludeUserClaimsInIdToken")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("AlwaysSendClientClaims")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("AuthorizationCodeLifetime")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("BackChannelLogoutSessionRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("BackChannelLogoutUri")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<string>("ClientClaimsPrefix")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("ClientName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("ClientUri")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<int?>("ConsentLifetime")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<int>("DeviceCodeLifetime")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("EnableLocalLogin")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("FrontChannelLogoutSessionRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("FrontChannelLogoutUri")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<int>("IdentityTokenLifetime")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IncludeJwtId")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("LastAccessed")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LogoUri")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<bool>("NonEditable")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("PairWiseSubjectSalt")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("ProtocolType")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("RefreshTokenExpiration")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RefreshTokenUsage")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("RequireClientSecret")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequireConsent")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequirePkce")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequireRequestObject")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("SlidingRefreshTokenLifetime")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("UpdateAccessTokenClaimsOnRefresh")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("Updated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserCodeType")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int?>("UserSsoLifetime")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId")
-                        .IsUnique();
-
-                    b.ToTable("Clients", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientClaim", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientClaims", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientCorsOrigin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Origin")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientCorsOrigins", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientGrantType", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("GrantType")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientGrantTypes", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientIdPRestriction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Provider")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientIdPRestrictions", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientPostLogoutRedirectUri", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("PostLogoutRedirectUri")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientPostLogoutRedirectUris", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientProperty", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientProperties", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientRedirectUri", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("RedirectUri")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientRedirectUris", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientScope", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Scope")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientScopes", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientSecret", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<DateTime?>("Expiration")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ClientSecrets", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.DeviceFlowCodes", b =>
-                {
-                    b.Property<string>("UserCode")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Data")
-                        .IsRequired()
-                        .HasMaxLength(50000)
-                        .HasColumnType("character varying(50000)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("DeviceCode")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime?>("Expiration")
-                        .IsRequired()
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SessionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("SubjectId")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("UserCode");
-
-                    b.HasIndex("DeviceCode")
-                        .IsUnique();
-
-                    b.HasIndex("Expiration");
-
-                    b.ToTable("DeviceCodes", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResource", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("DisplayName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("Emphasize")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("NonEditable")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Required")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ShowInDiscoveryDocument")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("Updated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("IdentityResources", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceClaim", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdentityResourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdentityResourceId");
-
-                    b.ToTable("IdentityResourceClaims", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceProperty", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IdentityResourceId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdentityResourceId");
-
-                    b.ToTable("IdentityResourceProperties", "IS4");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.PersistedGrant", b =>
-                {
-                    b.Property<string>("Key")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime?>("ConsumedTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Data")
-                        .IsRequired()
-                        .HasMaxLength(50000)
-                        .HasColumnType("character varying(50000)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime?>("Expiration")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SessionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("SubjectId")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Key");
-
-                    b.HasIndex("Expiration");
-
-                    b.HasIndex("SubjectId", "ClientId", "Type");
-
-                    b.HasIndex("SubjectId", "SessionId", "Type");
-
-                    b.ToTable("PersistedGrants", "IS4");
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
@@ -1164,6 +314,149 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.ToTable("ActiveSessions");
                 });
 
+            modelBuilder.Entity("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultAuthorization", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Scopes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId", "Status", "Subject", "Type");
+
+                    b.ToTable("OpenIddictAuthorizations", (string)null);
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultScope", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Descriptions")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DisplayNames")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Resources")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("OpenIddictScopes", (string)null);
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultToken", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AuthorizationId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RedemptionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReferenceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorizationId");
+
+                    b.HasIndex("ReferenceId")
+                        .IsUnique();
+
+                    b.HasIndex("ApplicationId", "Status", "Subject", "Type");
+
+                    b.ToTable("OpenIddictTokens", (string)null);
+                });
+
             modelBuilder.Entity("SS14.Auth.Shared.Data.PastAccountName", b =>
                 {
                     b.Property<int>("Id")
@@ -1238,6 +531,82 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Patrons");
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.SpaceApplication", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ClientId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ClientSecret")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClientType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ConsentType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DisplayNames")
+                        .HasColumnType("text");
+
+                    b.Property<string>("JsonWebKeySet")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LogoUri")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Permissions")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PostLogoutRedirectUris")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RedirectUris")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Requirements")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Settings")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("SpaceUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId")
+                        .IsUnique();
+
+                    b.HasIndex("SpaceUserId");
+
+                    b.ToTable("OpenIddictApplications", (string)null);
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.SpaceRole", b =>
@@ -1330,30 +699,6 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("SS14.Auth.Shared.Data.UserOAuthClient", b =>
-                {
-                    b.Property<int>("UserOAuthClientId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserOAuthClientId"));
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("SpaceUserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("UserOAuthClientId");
-
-                    b.HasIndex("ClientId")
-                        .IsUnique();
-
-                    b.HasIndex("SpaceUserId");
-
-                    b.ToTable("UserOAuthClients");
-                });
-
             modelBuilder.Entity("SS14.Auth.Shared.Data.WhitelistEmail", b =>
                 {
                     b.Property<int>("Id")
@@ -1371,193 +716,6 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("WhitelistEmails");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceClaim", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.ApiResource", "ApiResource")
-                        .WithMany("UserClaims")
-                        .HasForeignKey("ApiResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApiResource");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceProperty", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.ApiResource", "ApiResource")
-                        .WithMany("Properties")
-                        .HasForeignKey("ApiResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApiResource");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceScope", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.ApiResource", "ApiResource")
-                        .WithMany("Scopes")
-                        .HasForeignKey("ApiResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApiResource");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceSecret", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.ApiResource", "ApiResource")
-                        .WithMany("Secrets")
-                        .HasForeignKey("ApiResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApiResource");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeClaim", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.ApiScope", "Scope")
-                        .WithMany("UserClaims")
-                        .HasForeignKey("ScopeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Scope");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeProperty", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.ApiScope", "Scope")
-                        .WithMany("Properties")
-                        .HasForeignKey("ScopeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Scope");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientClaim", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("Claims")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientCorsOrigin", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("AllowedCorsOrigins")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientGrantType", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("AllowedGrantTypes")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientIdPRestriction", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("IdentityProviderRestrictions")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientPostLogoutRedirectUri", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("PostLogoutRedirectUris")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientProperty", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("Properties")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientRedirectUri", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("RedirectUris")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientScope", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("AllowedScopes")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientSecret", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany("ClientSecrets")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceClaim", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.IdentityResource", "IdentityResource")
-                        .WithMany("UserClaims")
-                        .HasForeignKey("IdentityResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IdentityResource");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceProperty", b =>
-                {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.IdentityResource", "IdentityResource")
-                        .WithMany("Properties")
-                        .HasForeignKey("IdentityResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IdentityResource");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -1670,6 +828,30 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Navigation("SpaceUser");
                 });
 
+            modelBuilder.Entity("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultAuthorization", b =>
+                {
+                    b.HasOne("SS14.Auth.Shared.Data.SpaceApplication", "Application")
+                        .WithMany("Authorizations")
+                        .HasForeignKey("ApplicationId");
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultToken", b =>
+                {
+                    b.HasOne("SS14.Auth.Shared.Data.SpaceApplication", "Application")
+                        .WithMany("Tokens")
+                        .HasForeignKey("ApplicationId");
+
+                    b.HasOne("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultAuthorization", "Authorization")
+                        .WithMany("Tokens")
+                        .HasForeignKey("AuthorizationId");
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Authorization");
+                });
+
             modelBuilder.Entity("SS14.Auth.Shared.Data.PastAccountName", b =>
                 {
                     b.HasOne("SS14.Auth.Shared.Data.SpaceUser", "SpaceUser")
@@ -1692,74 +874,30 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Navigation("SpaceUser");
                 });
 
-            modelBuilder.Entity("SS14.Auth.Shared.Data.UserOAuthClient", b =>
+            modelBuilder.Entity("SS14.Auth.Shared.Data.SpaceApplication", b =>
                 {
-                    b.HasOne("IdentityServer4.EntityFramework.Entities.Client", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SS14.Auth.Shared.Data.SpaceUser", "SpaceUser")
                         .WithMany()
-                        .HasForeignKey("SpaceUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
+                        .HasForeignKey("SpaceUserId");
 
                     b.Navigation("SpaceUser");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResource", b =>
-                {
-                    b.Navigation("Properties");
-
-                    b.Navigation("Scopes");
-
-                    b.Navigation("Secrets");
-
-                    b.Navigation("UserClaims");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScope", b =>
-                {
-                    b.Navigation("Properties");
-
-                    b.Navigation("UserClaims");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.Client", b =>
-                {
-                    b.Navigation("AllowedCorsOrigins");
-
-                    b.Navigation("AllowedGrantTypes");
-
-                    b.Navigation("AllowedScopes");
-
-                    b.Navigation("Claims");
-
-                    b.Navigation("ClientSecrets");
-
-                    b.Navigation("IdentityProviderRestrictions");
-
-                    b.Navigation("PostLogoutRedirectUris");
-
-                    b.Navigation("Properties");
-
-                    b.Navigation("RedirectUris");
-                });
-
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResource", b =>
-                {
-                    b.Navigation("Properties");
-
-                    b.Navigation("UserClaims");
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.Hwid", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.OpeniddictDefaultTypes+DefaultAuthorization", b =>
+                {
+                    b.Navigation("Tokens");
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.SpaceApplication", b =>
+                {
+                    b.Navigation("Authorizations");
+
+                    b.Navigation("Tokens");
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.SpaceUser", b =>

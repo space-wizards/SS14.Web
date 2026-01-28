@@ -1,48 +1,41 @@
-﻿using System.Threading.Tasks;
+﻿#nullable enable
+
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using SS14.Auth.Shared.Data;
-using DbClient = IdentityServer4.EntityFramework.Entities.Client;
+using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Admin.Pages.Clients;
 
 public class ConfirmDelete : PageModel
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly SpaceApplicationManager _applicationManager;
 
-    public ConfirmDelete(ApplicationDbContext dbContext)
+    public ConfirmDelete(SpaceApplicationManager applicationManager)
     {
-        _dbContext = dbContext;
+        _applicationManager = applicationManager;
     }
 
-    public DbClient DbClient { get; set; }
-    public string Title => DbClient.ClientName ?? DbClient.ClientId;
- 
-    public async Task<IActionResult> OnGetAsync(int id)
-    {
-        DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
+    public SpaceApplication? App { get; set; }
+    public string? Title => App?.DisplayName ?? App?.ClientId;
 
-        if (DbClient == null)
-        {
+    public async Task<IActionResult> OnGetAsync(string id)
+    {
+        App = await _applicationManager.FindByIdAsync(id);
+        if (App == null)
             return NotFound("Unknown client");
-        }
 
         return Page();
     }
 
-    public async Task<IActionResult> OnPostDeleteAsync(int id)
+    public async Task<IActionResult> OnPostDeleteAsync(string id)
     {
-        DbClient = await _dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id);
-
-        if (DbClient == null)
-        {
+        var app = await _applicationManager.FindByIdAsync(id);
+        if (app == null)
             return NotFound("Unknown client");
-        }
 
-        _dbContext.Clients.Remove(DbClient);
-
-        await _dbContext.SaveChangesAsync();
+        await _applicationManager.DeleteAsync(app);
 
         TempData["StatusMessage"] = "OAuth client deleted";
         return RedirectToPage("./Index");

@@ -27,3 +27,16 @@ AllowedHosts: "*"
 
 Account:
   UsernameChangeDays: 30
+
+OpenId:
+  Server:
+    AuthorizationEndpointUris: [ Identity/Account/Consent ]
+    TokenEndpointUris: [ connect/token ]
+    EndSessionEndpointUris: [ connect/endsession ]
+    UserInfoEndpointUris: [ connect/userinfo ]
+    IntrospectionEndpointUris: [ connect/introspect ]
+    GrantTypes:
+    - authorization_code
+    - refresh_token
+    ResponseTypes: [ code ]
+    Scopes: [ openid, profile, email, roles, offline_access ]

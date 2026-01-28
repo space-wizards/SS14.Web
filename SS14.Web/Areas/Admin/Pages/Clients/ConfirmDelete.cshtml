@@ -9,11 +9,11 @@
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
         <li class="breadcrumb-item"><a asp-page="./Index">OAuth Clients</a></li>
-        <li class="breadcrumb-item "><a asp-page="./ViewUser" asp-route-id="@Model.DbClient.Id">@Model.Title</a></li>
+        <li class="breadcrumb-item "><a asp-page="./ViewUser" asp-route-id="@Model.App?.Id">@Model.Title</a></li>
         <li class="breadcrumb-item active" aria-current="page">Confirm Deletion</li>
     </ol>
 </nav>
 
 <form method="post">
-    <button id="delete-button" type="submit" asp-page-handler="Delete" asp-route-id="@Model.DbClient.Id" class="btn btn-danger">Delete</button>
+    <button id="delete-button" type="submit" asp-page-handler="Delete" asp-route-id="@Model.App?.Id" class="btn btn-danger">Delete</button>
 </form>

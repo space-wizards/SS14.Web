@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using NpgsqlTypes;
 
 namespace SS14.ServerHub.Shared.Helpers;
 
@@ -8,15 +9,15 @@ namespace SS14.ServerHub.Shared.Helpers;
 /// </summary>
 public static class IPHelper
 {
-    public static bool TryParseIpOrCidr(string str, out (IPAddress, int) cidr)
+    public static bool TryParseIpOrCidr(string str, out NpgsqlCidr cidr)
     {
         if (IPAddress.TryParse(str, out var addr))
         {
-            cidr = (addr, addr.AddressFamily switch
+            cidr = new NpgsqlCidr(addr, addr.AddressFamily switch
             {
                 AddressFamily.InterNetwork => 32,
                 AddressFamily.InterNetworkV6 => 128,
-                _ => throw new ArgumentException(nameof(str))
+                _ => throw new ArgumentException(null, nameof(str)),
             });
             return true;
         }
@@ -24,7 +25,7 @@ public static class IPHelper
         return TryParseCidr(str, out cidr);
     }
 
-    public static bool TryParseCidr(string str, out (IPAddress, int) cidr)
+    public static bool TryParseCidr(string str, out NpgsqlCidr cidr)
     {
         cidr = default;
 
@@ -32,16 +33,18 @@ public static class IPHelper
         if (split.Length != 2)
             return false;
 
-        if (!IPAddress.TryParse(split[0], out cidr.Item1!))
+        if (!IPAddress.TryParse(split[0], out var address))
             return false;
 
-        if (!int.TryParse(split[1], out cidr.Item2))
+        if (!byte.TryParse(split[1], out var mask))
             return false;
+
+        cidr = new NpgsqlCidr(address, mask);
 
         return true;
     }
 
-    public static string FormatCidr(this (IPAddress, int) cidr)
+    public static string FormatCidr(this NpgsqlCidr cidr)
     {
         var (addr, range) = cidr;
 

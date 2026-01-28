@@ -18,8 +18,8 @@
 </p>
 
 <div class="list-group-flush">
-    @foreach (var app in Model.OAuthClients)
+    @foreach (var app in Model.Apps)
     {
-        <a asp-page="./OAuthApps/Manage" asp-route-client="@app.UserOAuthClientId" class="list-group-item">@app.Client.ClientName</a>
+        <a asp-page="./OAuthApps/Manage" asp-route-client="@app.Id" class="list-group-item">@app.DisplayName</a>
     }
 </div>

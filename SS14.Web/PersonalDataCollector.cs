@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -6,11 +7,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Dapper;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
+using SS14.Web.Extensions;
+using SS14.Web.OpenId.Extensions;
 using SS14.WebEverythingShared;
 
 namespace SS14.Web;
@@ -18,7 +21,12 @@ namespace SS14.Web;
 /// <summary>
 /// Helper class that wraps up all the personal data for a user into a neat little zip file!
 /// </summary>
-public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogger<PersonalDataCollector> logger)
+public sealed class PersonalDataCollector(
+    ApplicationDbContext dbContext,
+    OpenIddictApplicationManager<SpaceApplication> applicationManager,
+    OpenIddictAuthorizationManager<OpeniddictDefaultTypes.DefaultAuthorization> authorizationManager,
+    OpenIddictTokenManager<OpeniddictDefaultTypes.DefaultToken> tokenManager,
+    ILogger<PersonalDataCollector> logger)
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -41,7 +49,8 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
             await CollectPastAccountNames(zip, user, cancel);
             await CollectPatrons(zip, user, cancel);
             await CollectUserOAuthClients(zip, user, cancel);
-            await CollectIS4PersistedGrants(zip, user, cancel);
+            await CollectAuthorizations(zip, user, cancel);
+            await CollectTokens(zip, user, cancel);
             await CollectHwidUsers(zip, user, cancel);
         }
 
@@ -128,52 +137,68 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
 
     private async Task CollectUserOAuthClients(ZipArchive zip, SpaceUser user, CancellationToken cancel)
     {
-        var dbConnection = dbContext.Database.GetDbConnection();
-        var data = await dbConnection.QuerySingleAsync<string>("""
-            SELECT
-                COALESCE(json_agg(to_jsonb(data)), '[]') #>> '{}'
-            FROM (
-                SELECT
-                    *,
-                    (SELECT to_jsonb(client) FROM (
-                        SELECT
-                            *,
-                            (SELECT COALESCE(json_agg(to_jsonb(client_scopeq)), '[]') FROM (
-                                SELECT * FROM "IS4"."ClientScopes" cs WHERE cs."ClientId" = c."Id"
-                            ) client_scopeq)
-                            as "Scopes",
-                            (SELECT COALESCE(json_agg(to_jsonb(client_redirectq)), '[]') FROM (
-                                SELECT * FROM "IS4"."ClientRedirectUris" cru WHERE cru."ClientId" = c."Id"
-                            ) client_redirectq)
-                            as "RedirectUris",
-                            (SELECT COALESCE(json_agg(to_jsonb(client_grantq)), '[]') FROM (
-                                SELECT * FROM "IS4"."ClientGrantTypes" cgt WHERE cgt."ClientId" = c."Id"
-                            ) client_grantq)
-                            as "GrantTypes"
-                        FROM
-                            "IS4"."Clients" c
-                        WHERE c."Id" = a."ClientId"
-                    ) client)
-                    as "Client"
-                FROM
-                    "UserOAuthClients" a
-                WHERE
-                    "SpaceUserId" = @UserId
-            ) as data
-            """,
-            new
-            {
-                UserId = user.Id,
-            });
+        var applications = await applicationManager.FindApplicationsByUserId(user.Id, cancel);
 
-        StringToFile(zip, "UserOAuthClients.json", data);
+        var data = applications.Select(x => new SpaceApplicationData(
+           Id: x.Id,
+           UserId: x.SpaceUserId,
+           ClientId: x.ClientId,
+           ClientType: x.ClientType,
+           ApplicationType: x.ApplicationType,
+           LogoUri: x.LogoUri,
+           DisplayName: x.DisplayName,
+           Permissions: x.Permissions,
+           PostLogoutRedirectUris: x.PostLogoutRedirectUris,
+           RedirectUris: x.RedirectUris,
+           Properties: x.Properties,
+           Requirements: x.Requirements,
+           Settings: x.Settings,
+           HomePageUrl: x.WebsiteUrl
+       ));
+
+       SerializeToFile(zip, "OAuthClients.json", data);
     }
 
-    private async Task CollectIS4PersistedGrants(ZipArchive zip, SpaceUser user, CancellationToken cancel)
+    private async Task CollectAuthorizations(ZipArchive zip, SpaceUser user, CancellationToken cancel)
     {
-        var grants = await dbContext.PersistedGrants.Where(x => x.SubjectId == user.Id.ToString()).ToListAsync(cancel);
+        var authorizations = await authorizationManager.FindBySubjectAsync(user.Id.ToString(), cancel)
+            .ToListAsync(ct: cancel);
 
-        SerializeToFile(zip, "IS4.PersistedGrants.json", grants);
+        var data = authorizations.Select(x => new AuthorizationData(
+            Id: x.Id,
+            Subject: x.Subject,
+            ApplicationId: x.Application?.Id,
+            ApplicationName: x.Application?.DisplayName,
+            Type: x.Type,
+            Status: x.Status,
+            CreationDate: x.CreationDate,
+            Scopes: x.Scopes
+            ));
+
+        SerializeToFile(zip, "OAuthAuthorizations.json", data);
+    }
+
+    private async Task CollectTokens(ZipArchive zip, SpaceUser user, CancellationToken cancel)
+    {
+        var tokens = await tokenManager.FindBySubjectAsync(user.Id.ToString(), cancel)
+            .ToListAsync(ct: cancel);
+
+        var data = tokens.Select(x => new TokenData(
+            Id: x.Id,
+            Subject: x.Subject,
+            AuthorizationId: x.Authorization?.Id,
+            ApplicationId: x.Application?.Id,
+            ApplicationName: x.Application?.DisplayName,
+            Status: x.Status,
+            Type: x.Type,
+            ReferenceId: x.ReferenceId,
+            Payload: x.Payload,
+            CreationDate: x.CreationDate,
+            ExpirationDate: x.ExpirationDate,
+            RedemptionDate: x.RedemptionDate
+        ));
+
+        SerializeToFile(zip, "OAuthTokens.json", data);
     }
 
     private async Task CollectHwidUsers(ZipArchive zip, SpaceUser user, CancellationToken cancel)
@@ -203,13 +228,58 @@ public sealed class PersonalDataCollector(ApplicationDbContext dbContext, ILogge
     [UsedImplicitly]
     private sealed record SpaceUserData(
         Guid Id,
-        string UserName,
+        string? UserName,
         DateTimeOffset CreatedTime,
         bool EmailConfirmed,
-        string NormalizedEmail,
+        string? NormalizedEmail,
         bool TwoFactorEnabled,
-        string NormalizedUserName,
+        string? NormalizedUserName,
         bool AdminLocked,
         string AdminNotes,
         DateTimeOffset? LastUsernameChange);
+
+    [UsedImplicitly]
+    private sealed record SpaceApplicationData(
+        string? Id,
+        Guid? UserId,
+        string? ClientId,
+        string? ClientType,
+        string? ApplicationType,
+        string? LogoUri,
+        string? DisplayName,
+        string? Permissions,
+        string? PostLogoutRedirectUris,
+        string? RedirectUris,
+        string? HomePageUrl,
+        string? Properties,
+        string? Requirements,
+        string? Settings);
+
+    [UsedImplicitly]
+    private sealed record AuthorizationData(
+        string? Id,
+        string? Subject,
+        string? ApplicationId,
+        string? ApplicationName,
+        string? Type,
+        string? Status,
+        DateTime? CreationDate,
+        string? Scopes
+        );
+
+    [UsedImplicitly]
+    private sealed record TokenData(
+        string? Id,
+        string? Subject,
+        string? AuthorizationId,
+        string? ApplicationId,
+        string? ApplicationName,
+        string? Status,
+        string? Type,
+        string? ReferenceId,
+        string? Payload,
+        DateTime? CreationDate,
+        DateTime? ExpirationDate,
+        DateTime? RedemptionDate
+    );
 }
