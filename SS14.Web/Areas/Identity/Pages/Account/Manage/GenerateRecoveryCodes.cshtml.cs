@@ -5,23 +5,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class GenerateRecoveryCodesModel : PageModel
 {
     private readonly SpaceUserManager _userManager;
+    private readonly IEmailSender _emailSender;
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<GenerateRecoveryCodesModel> _logger;
     private readonly AccountLogManager _accountLogManager;
 
     public GenerateRecoveryCodesModel(
         SpaceUserManager userManager,
+        IEmailSender emailSender,
         ApplicationDbContext dbContext,
         ILogger<GenerateRecoveryCodesModel> logger,
         AccountLogManager accountLogManager)
     {
         _userManager = userManager;
+        _emailSender = emailSender;
         _dbContext = dbContext;
         _logger = logger;
         _accountLogManager = accountLogManager;
@@ -71,14 +75,21 @@ public class GenerateRecoveryCodesModel : PageModel
         await _accountLogManager.LogAndSave(user, new AccountLogRecoveryCodesGenerated());
 
         await _userManager.UpdateAsync(user);
-        
+
         var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
         RecoveryCodes = recoveryCodes.ToArray();
 
         await tx.CommitAsync();
-        
+
         _logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
         StatusMessage = "You have generated new recovery codes.";
+
+        var userEmail = await _userManager.GetEmailAsync(user);
+        await _emailSender.SendEmailAsync(userEmail,
+            "Your Space Station 14 account 2fa recovery codes were regenerated",
+            $"This email was sent to you to confirm that 2fa recovery codes have been regenerated on your account. If this was you feel free to ignore this email." +
+            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+
         return RedirectToPage("./ShowRecoveryCodes");
     }
 }
