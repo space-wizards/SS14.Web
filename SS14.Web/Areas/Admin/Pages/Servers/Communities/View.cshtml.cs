@@ -29,7 +29,7 @@ public sealed class View : PageModel
     {
         public string Address { get; set; }
     }
-    
+
     public sealed class AddDomainModel
     {
         public string Domain { get; set; }
@@ -46,14 +46,15 @@ public sealed class View : PageModel
         public string Name { get; set; }
         public string Notes { get; set; }
         public bool IsBanned { get; set; }
+        public bool IsExemptFromMaxAdvertisements  { get; set; }
     }
-    
+
     public View(HubDbContext dbContext, HubAuditLogManager hubAuditLog)
     {
         _dbContext = dbContext;
         _hubAuditLog = hubAuditLog;
     }
-    
+
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Community = await _dbContext.TrackedCommunity
@@ -62,7 +63,7 @@ public sealed class View : PageModel
             .Include(c => c.InfoMatches)
             .AsSplitQuery()
             .SingleOrDefaultAsync(u => u.Id == id);
-        
+
         if (Community == null)
             return NotFound("Community not found");
 
@@ -70,9 +71,10 @@ public sealed class View : PageModel
         {
             Name = Community.Name,
             IsBanned = Community.IsBanned,
+            IsExemptFromMaxAdvertisements = Community.IsExemptFromMaxAdvertisements,
             Notes = Community.Notes
         };
-        
+
         return Page();
     }
 
@@ -86,7 +88,7 @@ public sealed class View : PageModel
         var inputNotes = Input.Notes ?? "";
 
         var anyChange = false;
-        
+
         if (Community.Name != inputName)
         {
             _hubAuditLog.Log(User, new HubAuditCommunityChangedName(Community, Community.Name, inputName));
@@ -108,6 +110,13 @@ public sealed class View : PageModel
             anyChange = true;
         }
 
+        if (Community.IsExemptFromMaxAdvertisements != Input.IsExemptFromMaxAdvertisements)
+        {
+            _hubAuditLog.Log(User, new HubAuditCommunityChangedBanned(Community, Community.IsExemptFromMaxAdvertisements, Input.IsExemptFromMaxAdvertisements));
+            Community.IsExemptFromMaxAdvertisements = Input.IsExemptFromMaxAdvertisements;
+            anyChange = true;
+        }
+
         if (!anyChange)
             return RedirectToPage(new { id = Community.Id });
 
@@ -119,11 +128,11 @@ public sealed class View : PageModel
 
         return RedirectToPage(new { id = Community.Id });
     }
-    
+
     public async Task<IActionResult> OnPostAddAddressAsync(int id)
     {
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
-        
+
         Community = await _dbContext.TrackedCommunity.SingleOrDefaultAsync(c => c.Id == id);
         if (Community == null)
             return NotFound("Community not found");
@@ -138,29 +147,29 @@ public sealed class View : PageModel
         {
             Address = cidr, TrackedCommunityId = id
         };
-        
+
         _dbContext.TrackedCommunityAddress.Add(address);
         Community.LastUpdated = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
 
         _hubAuditLog.Log(User, new HubAuditCommunityAddressAdd(Community, address));
-        
+
         await _dbContext.SaveChangesAsync();
 
         await tx.CommitAsync();
-        
+
         StatusMessage = "Address added";
 
         return RedirectToPage(new { id = Community.Id });
     }
-    
+
     public async Task<IActionResult> OnPostDeleteAddressAsync(int address)
     {
         var addressEnt = await _dbContext.TrackedCommunityAddress
             .Include(c => c.TrackedCommunity)
             .SingleOrDefaultAsync(c => c.Id == address);
-        
+
         if (addressEnt == null)
             return NotFound("Address not found");
 
@@ -174,7 +183,7 @@ public sealed class View : PageModel
 
         return RedirectToPage(new { id = addressEnt.TrackedCommunityId });
     }
-        
+
     public async Task<IActionResult> OnPostAddDomainAsync(int id)
     {
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
@@ -200,22 +209,22 @@ public sealed class View : PageModel
         await _dbContext.SaveChangesAsync();
 
         _hubAuditLog.Log(User, new HubAuditCommunityDomainAdd(Community, domainEnt));
-        
+
         await _dbContext.SaveChangesAsync();
-        
+
         await tx.CommitAsync();
-        
+
         StatusMessage = "Domain added";
 
         return RedirectToPage(new { id = Community.Id });
     }
-    
+
     public async Task<IActionResult> OnPostDeleteDomainAsync(int domain)
     {
         var domainEnt = await _dbContext.TrackedCommunityDomain
             .Include(c => c.TrackedCommunity)
             .SingleOrDefaultAsync(c => c.Id == domain);
-        
+
         if (domainEnt == null)
             return NotFound("Domain not found");
 

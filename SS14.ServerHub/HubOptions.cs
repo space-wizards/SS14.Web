@@ -3,7 +3,7 @@
 public sealed class HubOptions
 {
     public const string Position = "Hub";
-        
+
     public float AdvertisementExpireMinutes { get; set; } = 3;
 
     /// <summary>
@@ -22,9 +22,14 @@ public sealed class HubOptions
     /// When fetching <code>/status</code> from advertised servers, maximum size of response bodies in kilobytes.
     /// </summary>
     public int MaxStatusResponseSize = 2;
-    
+
     /// <summary>
     /// When fetching <code>/info</code> from advertised servers, maximum size of response bodies in kilobytes.
     /// </summary>
     public int MaxInfoResponseSize = 10;
+
+    /// <summary>
+    /// What is the maximum number of servers one ip address can advertise?
+    /// </summary>
+    public const int MaxServersPerIp = 2;
 }
