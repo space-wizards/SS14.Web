@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -55,10 +56,11 @@ public class Index : PageModel
         {
             var search = searchString.Trim();
             var normalized = search.ToUpperInvariant();
+            var uuid = Guid.TryParse(search, out var guid) ? guid : Guid.Empty;
             userQuery = userQuery.Where(u =>
-                u.NormalizedEmail.Contains(normalized) || u.NormalizedUserName.Contains(normalized));
+                u.NormalizedEmail.Contains(normalized) || u.NormalizedUserName.Contains(normalized) || u.Id == uuid);
         }
-            
+
         switch (sortOrder)
         {
             case "name_desc":
@@ -86,7 +88,7 @@ public class Index : PageModel
                 userQuery = userQuery.OrderBy(s => s.UserName);
                 break;
         }
-            
+
         UsersList = await PaginatedList<SpaceUser>.CreateAsync(userQuery, pageIndex ?? 0, PerPage);
     }
 }
