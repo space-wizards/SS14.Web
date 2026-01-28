@@ -1,4 +1,5 @@
 @page
+@using Humanizer
 @model IndexModel
 @{
     ViewData["Title"] = "Profile";
@@ -8,6 +9,15 @@
 
 <h4>@ViewData["Title"]</h4>
 <partial name="_StatusMessage" model="Model.StatusMessage"/>
+<div class="row">
+    <div class="col-md-6">
+        <h5>Profile details</h5>
+    </div>
+</div>
+<p>This account was created on
+    @TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedTime.DateTime, TimeZoneInfo.Local).ToString("MMMM d, yyyy h:mm tt zzz")
+    (@( (DateTimeOffset.Now - Model.CreatedTime).Humanize(3, countEmptyUnits:true)) ago)</p>
+
 <div class="row">
     <div class="col-md-6">
         <h5>Username</h5>
