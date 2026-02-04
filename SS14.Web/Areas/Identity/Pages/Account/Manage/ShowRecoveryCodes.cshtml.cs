@@ -3,10 +3,8 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Serilog;
 using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
