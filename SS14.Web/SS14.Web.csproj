@@ -16,10 +16,12 @@
         <PackageReference Include="prometheus-net" Version="7.0.0" />
         <PackageReference Include="prometheus-net.AspNetCore" Version="7.0.0" />
     </ItemGroup>
+    
     <ItemGroup>
       <ProjectReference Include="..\SS14.Auth.Shared\SS14.Auth.Shared.csproj" />
       <ProjectReference Include="..\SS14.ServerHub.Shared\SS14.ServerHub.Shared.csproj" />
     </ItemGroup>
+    
     <ItemGroup>
       <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Servers\BannedAddresses\Index.cshtml" />
     </ItemGroup>
