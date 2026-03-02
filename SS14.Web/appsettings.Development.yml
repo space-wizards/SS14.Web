@@ -1,3 +1,10 @@
+Serilog:
+  Using: [ "Serilog.Sinks.Console", "Serilog.Sinks.Loki" ]
+  MinimumLevel:
+    Override:
+      OpenIddict: Information
+
+
 ConnectionStrings:
   DefaultConnection: "Server=127.0.0.1;Port=5432;Database=ss14-auth-test"
 
