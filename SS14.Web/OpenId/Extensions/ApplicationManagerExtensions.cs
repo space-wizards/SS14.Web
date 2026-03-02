@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Extensions;
 
 namespace SS14.Web.OpenId.Extensions;
 
@@ -63,7 +62,7 @@ public static class ApplicationManagerExtensions
     public static async ValueTask<List<SpaceApplication>> FindApplicationsByUserId(this OpenIddictApplicationManager<SpaceApplication> manager, Guid userId, CancellationToken cancel = default)
     {
         return await manager.ListAsync(x => x.Where(a => a.SpaceUserId == userId)
-            , cancel).ToListAsync(ct: cancel);
+            , cancel).ToListAsync(cancellationToken: cancel);
     }
 
     public static async ValueTask<int> GetAccessTokenLifetime(

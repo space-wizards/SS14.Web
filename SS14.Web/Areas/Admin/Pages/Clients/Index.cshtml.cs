@@ -1,13 +1,13 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Extensions;
 using SS14.Web.OpenId;
 using SS14.Web.OpenId.Services;
 

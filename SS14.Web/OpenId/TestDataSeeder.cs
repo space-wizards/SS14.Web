@@ -95,7 +95,16 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
             EmailConfirmed = true,
         };
 
-        await userManager.CreateAsync(user, "Test123456$");
+
+        // Logging throws an invalid operation exception if an account gets created by something like an I Hosted service
+        // for seeding data. Throwing here doesn't prevent creating the account so it gets logged as an error instead
+        // TODO: Ask if I can make the GetActorIP method log an error instead of throwing instead
+        try
+        {
+            await userManager.CreateAsync(user, "Test123456$");
+        }
+        catch (InvalidOperationException e) { }
+
         await userManager.AddToRoleAsync(user, AuthConstants.RoleSysAdmin);
         await userManager.AddToRoleAsync(user, AuthConstants.RoleServerHubAdmin);
     }

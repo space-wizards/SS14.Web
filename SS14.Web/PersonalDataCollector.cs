@@ -162,7 +162,7 @@ public sealed class PersonalDataCollector(
     private async Task CollectAuthorizations(ZipArchive zip, SpaceUser user, CancellationToken cancel)
     {
         var authorizations = await authorizationManager.FindBySubjectAsync(user.Id.ToString(), cancel)
-            .ToListAsync(ct: cancel);
+            .ToListAsync(cancellationToken: cancel);
 
         var data = authorizations.Select(x => new AuthorizationData(
             Id: x.Id,
@@ -181,7 +181,7 @@ public sealed class PersonalDataCollector(
     private async Task CollectTokens(ZipArchive zip, SpaceUser user, CancellationToken cancel)
     {
         var tokens = await tokenManager.FindBySubjectAsync(user.Id.ToString(), cancel)
-            .ToListAsync(ct: cancel);
+            .ToListAsync(cancellationToken: cancel);
 
         var data = tokens.Select(x => new TokenData(
             Id: x.Id,
