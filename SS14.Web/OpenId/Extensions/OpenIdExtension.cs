@@ -38,10 +38,12 @@ public static class OpenIdExtension
         ConfigureCertificates(openId, builder);
 
         builder.Services.AddScoped<SpaceApplicationManager>();
-        builder.Services.AddHostedService<TestDataSeeder>();
         builder.Services.AddScoped<IdentityClaimsProvider>();
         builder.Services.AddScoped<SignedInIdentityService>();
         builder.Services.AddScoped<OpenIdActionService>();
+
+        if (builder.Configuration.GetValue("SeedTestData", false))
+            builder.Services.AddHostedService<TestDataSeeder>();
     }
 
     private static void ConfigureCertificates(OpenIddictBuilder openId, WebApplicationBuilder builder)

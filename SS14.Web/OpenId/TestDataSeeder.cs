@@ -11,7 +11,6 @@ using SS14.Auth.Shared.Data;
 
 namespace SS14.Web.OpenId;
 
-// TODO: Remove after development
 public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedService
 {
     public async Task StartAsync(CancellationToken ct)
@@ -94,7 +93,6 @@ public sealed class TestDataSeeder(IServiceProvider serviceProvider) : IHostedSe
             Email = "test@example.test",
             EmailConfirmed = true,
         };
-
 
         // Logging throws an invalid operation exception if an account gets created by something like an I Hosted service
         // for seeding data. Throwing here doesn't prevent creating the account so it gets logged as an error instead
