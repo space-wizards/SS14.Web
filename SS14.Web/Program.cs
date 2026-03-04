@@ -3,6 +3,7 @@ using System;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,6 @@ using Prometheus;
 using Quartz;
 using Serilog;
 using SS14.Auth.Shared;
-using SS14.Auth.Shared.Data;
 using SS14.ServerHub.Shared.Data;
 using SS14.Web;
 using SS14.Web.Data;
@@ -19,7 +19,6 @@ using SS14.Web.Extensions;
 using SS14.Web.HCaptcha;
 using SS14.Web.OpenId.Extensions;
 using SS14.WebEverythingShared;
-using static SS14.Auth.Shared.Data.OpeniddictDefaultTypes;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -146,5 +145,10 @@ app.UseAuthorization();
 app.MapDefaultControllerRoute();
 app.MapRazorPages();
 app.MapMetrics();
+
+var options = new RewriteOptions()
+    .AddRewrite("^connect/authorize", "/Identity/Account/Consent", skipRemainingRules: true);
+
+app.UseRewriter(options);
 
 app.Run();

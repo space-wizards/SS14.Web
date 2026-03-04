@@ -31,7 +31,7 @@ Account:
 
 OpenId:
   Server:
-    AuthorizationEndpointUris: [ Identity/Account/Consent ]
+    AuthorizationEndpointUris: [ connect/authorize, Identity/Account/Consent ]
     TokenEndpointUris: [ connect/token ]
     EndSessionEndpointUris: [ connect/endsession ]
     UserInfoEndpointUris: [ connect/userinfo ]
