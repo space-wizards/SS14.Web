@@ -19,10 +19,12 @@ using Void = SS14.Web.Models.Types.Void;
 
 namespace SS14.Web.OpenId.Services;
 
+/**
+ * Handles all the OpenIddict action plumbing. Used inside the consent page.
+ */
 public class OpenIdActionService
 {
     public const string ApplicationNotFoundError = "application_not_found";
-    private const string IgnoreChallengeKey = "IgnoreAuthenticationChallenge";
 
     private readonly SignedInIdentityService _signedInIdentity;
     private readonly IdentityClaimsProvider _claimsProvider;
@@ -46,6 +48,18 @@ public class OpenIdActionService
         _scopeManager = scopeManager;
     }
 
+    /// <summary>
+    /// Validates the current authentication state for an OpenID Connect request and determines whether
+    /// the request can continue, must fail silently, or requires an interactive authentication challenge.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="ignoreChallenge">Whether to ignore the challenge. Set when the user was redirected already to prevent redirection loops.</param>
+    /// <param name="auth">The authentication result for the current request.</param>
+    /// <param name="request">The OpenIddict request (e.g., prompt/max_age).</param>
+    /// <returns>
+    /// A successful result when authentication is enough. Otherwise, a failure describing either
+    /// a login requirement (e.g., <c>prompt=none</c>) or a challenge with redirect properties.
+    /// </returns>
     public Result<Void, AuthenticationValidationFailure> ValidateOpenIdAuthentication(
         HttpContext context,
         bool ignoreChallenge,
@@ -73,6 +87,13 @@ public class OpenIdActionService
         return Result<Void, AuthenticationValidationFailure>.Failure(AuthenticationValidationFailure.Challenge(properties));
     }
 
+    /// <summary>
+    /// Processes an authorization request and decides whether to sign in immediately, require user consent,
+    /// or deny the request based on the application's consent type, prompt values, and existing authorizations.
+    /// </summary>
+    /// <param name="request">The OpenIddict authorization request.</param>
+    /// <param name="scopes">The requested scopes.</param>
+    /// <returns>An <see cref="AuthorizationResult"/> representing SignIn/Consent/Forbidden/Error.</returns>
     public async Task<AuthorizationResult> AuthorizeActionAsync(OpenIddictRequest request, ImmutableArray<string> scopes)
     {
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!);
@@ -114,6 +135,12 @@ public class OpenIdActionService
         };
     }
 
+    /// <summary>
+    /// Accepts the consent decision and returns a sign-in result containing an authorized principal for token issuance.
+    /// </summary>
+    /// <param name="request">The OpenIddict authorization request.</param>
+    /// <param name="scopes">The approved scopes.</param>
+    /// <returns>A <see cref="ConsentResult"/> representing SignIn/Forbid/Error.</returns>
     public async Task<ConsentResult> AcceptActionAsync(OpenIddictRequest request, ImmutableArray<string> scopes)
     {
         var application = await _applicationManager.FindByClientIdAsync(request.ClientId!);
