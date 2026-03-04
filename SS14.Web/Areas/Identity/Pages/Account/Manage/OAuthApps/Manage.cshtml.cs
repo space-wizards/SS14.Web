@@ -2,29 +2,33 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.Entities;
-using IdentityServer4.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
+using SS14.Web.Models;
+using SS14.Web.Models.Types;
+using SS14.Web.OpenId;
+using SS14.Web.OpenId.Extensions;
+using SS14.Web.OpenId.Services;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage.OAuthApps;
 
 public class Manage : PageModel
 {
-    private readonly ApplicationDbContext _dbContext;
     private readonly UserManager<SpaceUser> _userManager;
+    private readonly SpaceApplicationManager _appManager;
 
-    public UserOAuthClient App { get; set; }
+    public SpaceApplication App { get; set; }
 
     [BindProperty] public InputModel Input { get; set; }
 
-    [TempData] public int ShowSecret { get; set; }
+    public List<ClientSecretInfo> Secrets { get; set; }
+
+    [TempData] public int? ShowSecret { get; set; }
     [TempData] public string ShowSecretValue { get; set; }
 
     public sealed class InputModel
@@ -34,117 +38,116 @@ public class Manage : PageModel
         public string Name { get; set; }
 
         [Required]
+        [SpaceUrl]
         [DisplayName("Homepage URL")]
         public string HomepageUrl { get; set; }
 
         [Required]
+        [SpaceUrl]
         [DisplayName("Authorization callback URL")]
         public string CallbackUrl { get; set; }
 
         [Required]
         [DisplayName("Require PKCE")]
         public bool RequirePkce { get; set; }
-        
+
         [Required]
         [DisplayName("Allow PS256 signing")]
         public bool AllowPS256 { get; set; } = true;
     }
 
-    public Manage(ApplicationDbContext dbContext, UserManager<SpaceUser> userManager)
+    public Manage(UserManager<SpaceUser> userManager, SpaceApplicationManager appManager)
     {
-        _dbContext = dbContext;
         _userManager = userManager;
+        _appManager = appManager;
     }
 
-    public async Task<IActionResult> OnGetAsync(int client)
+    public async Task<IActionResult> OnGetAsync(string client)
     {
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
         Input = new InputModel
         {
-            Name = App.Client.ClientName,
-            CallbackUrl = App.Client.RedirectUris.FirstOrDefault()?.RedirectUri ?? "",
-            HomepageUrl = App.Client.ClientUri,
-            RequirePkce = App.Client.RequirePkce,
-            AllowPS256 = App.Client.AllowedIdentityTokenSigningAlgorithms?.Contains("PS256") ?? false
+            Name = App.DisplayName,
+            CallbackUrl = await _appManager.GetFirstRedirectUrl(App) ?? "",
+            HomepageUrl = App.WebsiteUrl ?? "",
+            RequirePkce = await _appManager.GetRequiresPkce(App),
+            AllowPS256 = await _appManager.GetPs256Setting(App),
         };
+
+        Secrets = _appManager.ListSecrets(App);
 
         return Page();
     }
 
-    public async Task<IActionResult> OnPostUpdateAsync(int client)
+    public async Task<IActionResult> OnPostUpdateAsync(string client)
     {
+        if (!ModelState.IsValid)
+            return Page();
+
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
-        App.Client.ClientName = Input.Name;
-        App.Client.RedirectUris = new List<ClientRedirectUri> { new() { RedirectUri = Input.CallbackUrl } };
-        App.Client.ClientUri = Input.HomepageUrl;
-        App.Client.RequirePkce = Input.RequirePkce;
-        App.Client.AllowedIdentityTokenSigningAlgorithms = Input.AllowPS256 ? "PS256" : null;
+        var descriptor = new OpenIddictApplicationDescriptor();
+        await _appManager.PopulateAsync(descriptor, App);
+        descriptor.DisplayName = Input.Name;
+        descriptor.RedirectUris.Clear();
+        descriptor.RedirectUris.Add(new Uri(Input.CallbackUrl));
 
-        await _dbContext.SaveChangesAsync();
+        if (Input.RequirePkce)
+        {
+            descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
+        }
+        else
+        {
+            descriptor.Requirements.Remove(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
+        }
 
+        descriptor.Settings[OpenIdConstants.SigningAlgorithmSetting] = Input.AllowPS256
+            ? OpenIddictConstants.Algorithms.RsaSsaPssSha256
+            : null;
+
+        App.WebsiteUrl = Input.HomepageUrl;
+
+        await _appManager.UpdateAsync(App, descriptor);
         return RedirectToPage(new { client });
     }
 
-    public async Task<IActionResult> OnPostCreateSecretAsync(int client)
+    public async Task<IActionResult> OnPostCreateSecretAsync(string client)
     {
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
         var secretVal = Convert.ToBase64String(RandomNumberGenerator.GetBytes(36));
-        
-        var secret = new ClientSecret
-        {
-            Created = DateTime.UtcNow,
-            Type = "SharedSecret",
-            Description = $"*****{secretVal[^6..]}",
-            Value = secretVal.Sha256()
-        };
-        
-        App.Client.ClientSecrets ??= new List<ClientSecret>();
-        App.Client.ClientSecrets.Add(secret);
 
-        await _dbContext.SaveChangesAsync();
-
-        ShowSecret = secret.Id;
+        var secretInfo = await _appManager.AddSecret(App, secretVal);
+        ShowSecret = secretInfo.Id;
         ShowSecretValue = secretVal;
-        
+
         return RedirectToPage(new { client });
     }
-    
-    public async Task<IActionResult> OnPostDeleteSecretAsync(int client, int secret)
+
+    public async Task<IActionResult> OnPostDeleteSecretAsync(string client, int secret)
     {
         if (await GetAppAndVerifyAccess(client) is { } err)
             return err;
 
-        var dbSecret = App.Client.ClientSecrets.Find(p => p.Id == secret);
-        if (dbSecret == null)
-            return NotFound("Secret not found");
+        await _appManager.RemoveSecret(App, secret);
 
-        _dbContext.ClientSecrets.Remove(dbSecret);
-
-        await _dbContext.SaveChangesAsync();
-        
         return RedirectToPage(new {id = client});
     }
 
     // Null return indicates everything good.
-    private async Task<IActionResult> GetAppAndVerifyAccess(int client)
+    private async Task<IActionResult> GetAppAndVerifyAccess(string client)
     {
         var user = await _userManager.GetUserAsync(User);
-        App = await _dbContext.UserOAuthClients
-            .Include(c => c.Client)
-            .ThenInclude(c => c.RedirectUris)
-            .Include(c => c.Client)
-            .ThenInclude(c => c.ClientSecrets)
-            .SingleOrDefaultAsync(oa => oa.UserOAuthClientId == client);
 
+        App = await _appManager.FindByIdAsync(client);
         if (App == null)
             return NotFound();
 
+        // ReSharper disable once ConvertIfStatementToReturnStatement
         if (!VerifyAppAccess(user, App))
             return Forbid();
 
@@ -153,8 +156,8 @@ public class Manage : PageModel
 
     public static bool VerifyAppAccess(
         SpaceUser user,
-        UserOAuthClient userClient)
+        SpaceApplication app)
     {
-        return user == userClient.SpaceUser;
+        return user == app.SpaceUser;
     }
 }

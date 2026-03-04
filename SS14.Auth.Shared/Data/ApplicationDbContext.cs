@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.Entities;
-using IdentityServer4.EntityFramework.Extensions;
-using IdentityServer4.EntityFramework.Interfaces;
-using IdentityServer4.EntityFramework.Options;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace SS14.Auth.Shared.Data;
 
 public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid>,
-    IDataProtectionKeyContext,
-    IConfigurationDbContext,
-    IPersistedGrantDbContext
+    IDataProtectionKeyContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -61,10 +54,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .HasIndex(p => p.SpaceUserId)
             .IsUnique();
 
-        builder.Entity<UserOAuthClient>()
-            .HasIndex(p => new { p.ClientId })
-            .IsUnique();
-
         builder.Entity<Hwid>()
             .HasIndex(h => h.ClientData)
             .IsUnique();
@@ -72,38 +61,6 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
         builder.Entity<HwidUser>()
             .HasIndex(h => new { h.HwidId, h.SpaceUserId })
             .IsUnique();
-
-        var cfgStoreOptions = new ConfigurationStoreOptions
-        {
-            IdentityResource = new TableConfiguration("IdentityResources", "IS4"),
-            IdentityResourceClaim = new TableConfiguration("IdentityResourceClaims", "IS4"),
-            IdentityResourceProperty = new TableConfiguration("IdentityResourceProperties", "IS4"),
-            ApiResource = new TableConfiguration("ApiResources", "IS4"),
-            ApiResourceSecret = new TableConfiguration("ApiResourceSecrets", "IS4"),
-            ApiResourceScope = new TableConfiguration("ApiResourceScopes", "IS4"),
-            ApiResourceClaim = new TableConfiguration("ApiResourceClaims", "IS4"),
-            ApiResourceProperty = new TableConfiguration("ApiResourceProperties", "IS4"),
-            Client = new TableConfiguration("Clients", "IS4"),
-            ClientGrantType = new TableConfiguration("ClientGrantTypes", "IS4"),
-            ClientRedirectUri = new TableConfiguration("ClientRedirectUris", "IS4"),
-            ClientPostLogoutRedirectUri = new TableConfiguration("ClientPostLogoutRedirectUris", "IS4"),
-            ClientScopes = new TableConfiguration("ClientScopes", "IS4"),
-            ClientSecret = new TableConfiguration("ClientSecrets", "IS4"),
-            ClientClaim = new TableConfiguration("ClientClaims", "IS4"),
-            ClientIdPRestriction = new TableConfiguration("ClientIdPRestrictions", "IS4"),
-            ClientCorsOrigin = new TableConfiguration("ClientCorsOrigins", "IS4"),
-            ClientProperty = new TableConfiguration("ClientProperties", "IS4"),
-            ApiScope = new TableConfiguration("ApiScopes", "IS4"),
-            ApiScopeClaim = new TableConfiguration("ApiScopeClaims", "IS4"),
-            ApiScopeProperty = new TableConfiguration("ApiScopeProperties", "IS4")
-        };
-        builder.ConfigureClientContext(cfgStoreOptions);
-        builder.ConfigureResourcesContext(cfgStoreOptions);
-        builder.ConfigurePersistedGrantContext(new OperationalStoreOptions
-        {
-            PersistedGrants = new TableConfiguration("PersistedGrants", "IS4"),
-            DeviceFlowCodes = new TableConfiguration("DeviceCodes", "IS4"),
-        });
     }
 
     public DbSet<LoginSession> ActiveSessions { get; set; }
@@ -113,26 +70,8 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<WhitelistEmail> WhitelistEmails { get; set; }
     public DbSet<Patron> Patrons { get; set; }
     public DbSet<PatreonWebhookLog> PatreonWebhookLogs { get; set; }
-    public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
     public DbSet<PastAccountName> PastAccountNames { get; set; }
     public DbSet<AccountLog> AccountLogs { get; set; }
     public DbSet<Hwid> Hwids { get; set; }
     public DbSet<HwidUser> HwidUsers { get; set; }
-
-    // IS4 configuration.
-    public DbSet<Client> Clients { get; set; }
-    public DbSet<ClientSecret> ClientSecrets { get; set; }
-    public DbSet<ClientCorsOrigin> ClientCorsOrigins { get; set; }
-    public DbSet<IdentityResource> IdentityResources { get; set; }
-    public DbSet<ApiResource> ApiResources { get; set; }
-    public DbSet<ApiScope> ApiScopes { get; set; }
-
-    // IS4 operational.
-    public DbSet<PersistedGrant> PersistedGrants { get; set; }
-    public DbSet<DeviceFlowCodes> DeviceFlowCodes { get; set; }
-
-    Task<int> IPersistedGrantDbContext.SaveChangesAsync()
-    {
-        return base.SaveChangesAsync();
-    }
 }

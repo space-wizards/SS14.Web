@@ -26,7 +26,13 @@ ConnectionStrings:
 Mutex:
   # Change this to something local on disk.
   DbPath: 'C:\Users\Pieter-Jan Briers\Projects\ss14\web\mutex.db'
-``` 
+```
 
 * Create the mutex DB mentioned above manually, and run `init_mutex.sql` on it. (I recommend https://sqlitebrowser.org/ for this task)
 * If I didn't forget anything you should now be able to start both services and it should work:tm:.
+
+### Handling migrations
+The following ef core commands can be used:
+- Creating a migration: `dotnet ef migrations add <migration name> -p SS14.Auth.Shared`
+- Removing migrations: `dotnet ef migrations remove -p SS14.Auth.Shared --connection "<connection string>"`
+- Updating the database: `dotnet ef database update -p SS14.Auth.Shared -s .\SS14.Web\ --connection "<connection string>"`

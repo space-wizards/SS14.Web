@@ -41,6 +41,7 @@ public sealed class SpaceUserManager(
         // Whoopsie.
         var accountLogManager = _services.GetRequiredService<AccountLogManager>();
         await accountLogManager.LogAndSave(user, new AccountLogCreated(), accountLogManager.NoActor());
+
         return result;
     }
 
