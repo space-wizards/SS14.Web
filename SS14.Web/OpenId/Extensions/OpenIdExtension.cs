@@ -96,14 +96,4 @@ public static class OpenIdExtension
             }
         }
     }
-
-    private static void AddCertificate(OpenIddictBuilder openId, FileStream cert, string password)
-    {
-
-    }
-
-    private static void AddCertificate(OpenIddictBuilder openId, FileStream cert, string password, string algorithm)
-    {
-
-    }
 }
