@@ -301,7 +301,7 @@ public enum AuthenticateDenyResponseCode
 public sealed record RegisterRequest(
     [Required, StringLength(32, MinimumLength = 3)] string Username,
     [Required, EmailAddress] string Email,
-    [Required, StringLength(128, MinimumLength = 8)] string Password);
+    [Required, StringLength(100, MinimumLength = 6)] string Password);
 
 public sealed record ResetPasswordRequest([Required, EmailAddress] string Email);
 
