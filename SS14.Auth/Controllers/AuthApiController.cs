@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +28,7 @@ public class AuthApiController : ControllerBase
 {
     private readonly SessionManager _sessionManager;
     private readonly IEmailSender _emailSender;
-    private readonly TimeProvider _systemClock;
+    private readonly ISystemClock _systemClock;
     private readonly IConfiguration _cfg;
 
     private readonly SpaceUserManager _userManager;
@@ -45,7 +46,7 @@ public class AuthApiController : ControllerBase
     private const string DuplicateEmailCode = "DuplicateEmail";
 
     public AuthApiController(SpaceUserManager userManager, SignInManager<SpaceUser> signInManager,
-        SessionManager sessionManager, IEmailSender emailSender, TimeProvider systemClock, IConfiguration cfg)
+        SessionManager sessionManager, IEmailSender emailSender, ISystemClock systemClock, IConfiguration cfg)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -153,7 +154,7 @@ public class AuthApiController : ControllerBase
         var userName = request.Username.Trim();
         var email = request.Email.Trim();
 
-        var user = ModelShared.CreateNewUser(userName, email, _systemClock.GetUtcNow());
+        var user = ModelShared.CreateNewUser(userName, email, _systemClock);
         var result = await _userManager.CreateAsync(user, request.Password);
 
         var successStatus = _userManager.Options.SignIn.RequireConfirmedEmail

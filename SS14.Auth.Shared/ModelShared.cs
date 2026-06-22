@@ -1,6 +1,6 @@
-using System;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 
@@ -36,8 +36,8 @@ public static class ModelShared
             $"\n<p><small>If the above link is not working, try this one {HtmlEncoder.Default.Encode(callbackUrl)}</small></p");
     }
 
-    public static SpaceUser CreateNewUser(string userName, string email, DateTimeOffset timeOffset)
+    public static SpaceUser CreateNewUser(string userName, string email, ISystemClock systemClock)
     {
-        return new SpaceUser { UserName = userName, Email = email, CreatedTime = timeOffset };
+        return new SpaceUser { UserName = userName, Email = email, CreatedTime = systemClock.UtcNow };
     }
 }
