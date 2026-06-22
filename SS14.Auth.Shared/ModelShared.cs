@@ -19,7 +19,7 @@ public static class ModelShared
     {
         await sender.SendEmailAsync(address, "Registration attempt on your Space Station 14 account",
             "Someone just tried to register a new Space Station 14 account using this email address, " +
-            "but an account already exists for it. No new account was created." +
+            "but an account already exists for it. No new account was created.<br />" +
             $"\n<p>If this was you: you already have an account - just <a href='{loginUrl}'>log in</a>, " +
             "or reset your password from the login page if you've forgotten it.</p>" +
             "\n<p>If this wasn't you, you don't need to do anything. Your account is unaffected.</p>" +
@@ -33,7 +33,7 @@ public static class ModelShared
             "A password reset has been requested for your account.<br />" +
             $"If you did indeed request this, <a href='{callbackUrl}'>click here</a> to reset your password.<br />" +
             "If you did not request this, simply ignore this email." +
-            $"\n<p><small>If the above link is not working, try this one {HtmlEncoder.Default.Encode(callbackUrl)}</small></p");
+            $"\n<p><small>If the above link is not working, try this one {HtmlEncoder.Default.Encode(callbackUrl)}</small></p>");
     }
 
     public static SpaceUser CreateNewUser(string userName, string email, DateTimeOffset timeOffset)
