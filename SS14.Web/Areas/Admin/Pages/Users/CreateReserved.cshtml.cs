@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
@@ -47,7 +47,7 @@ public class CreateReserved : PageModel
 
         var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
 
-        var user = ModelShared.CreateNewUser(userName, $"reserved+{userName}@playss14.com", _systemClock);
+        var user = ModelShared.CreateNewUser(userName, $"reserved+{userName}@playss14.com", _systemClock.UtcNow);
         user.AdminLocked = true;
         user.AdminNotes = "Account reserved via admin panel. If unlocking, change email and password!";
         user.EmailConfirmed = true;

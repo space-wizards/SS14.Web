@@ -101,7 +101,7 @@ public class RegisterModel : PageModel
         if (!await _hCaptcha.ValidateHCaptcha(HCaptchaResponse, ModelState))
             return Page();
 
-        var user = ModelShared.CreateNewUser(userName, email, _systemClock);
+        var user = ModelShared.CreateNewUser(userName, email, _systemClock.UtcNow);
         var result = await _userManager.CreateAsync(user, Input.Password);
         if (result.Succeeded)
         {

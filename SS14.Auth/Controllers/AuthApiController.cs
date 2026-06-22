@@ -1,19 +1,20 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
+using SS14.Auth.Shared;
+using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
+using SS14.Auth.Shared.Sessions;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Internal;
-using SS14.Auth.Shared;
-using SS14.Auth.Shared.Data;
-using SS14.Auth.Shared.Emails;
-using SS14.Auth.Shared.Sessions;
 
 namespace SS14.Auth.Controllers;
 
@@ -26,16 +27,25 @@ public class AuthApiController : ControllerBase
 {
     private readonly SessionManager _sessionManager;
     private readonly IEmailSender _emailSender;
-    private readonly ISystemClock _systemClock;
+    private readonly TimeProvider _systemClock;
     private readonly IConfiguration _cfg;
 
     private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
 
+    private readonly Lazy<SpaceUser> _dummyUser = new(() =>
+    {
+        var u = new SpaceUser();
+        u.PasswordHash = new PasswordHasher<SpaceUser>().HashPassword(u, "timing-equalizer");
+        return u;
+    });
+
     private string WebBaseUrl => _cfg.GetValue<string>("WebBaseUrl") ?? "";
 
+    private const string DuplicateEmailCode = "DuplicateEmail";
+
     public AuthApiController(SpaceUserManager userManager, SignInManager<SpaceUser> signInManager,
-        SessionManager sessionManager, IEmailSender emailSender, ISystemClock systemClock, IConfiguration cfg)
+        SessionManager sessionManager, IEmailSender emailSender, TimeProvider systemClock, IConfiguration cfg)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -45,17 +55,17 @@ public class AuthApiController : ControllerBase
         _cfg = cfg;
     }
 
+    [EnableRateLimiting("authenticate")]
     [HttpPost("authenticate")]
     public async Task<IActionResult> Authenticate(AuthenticateRequest request)
     {
         // Password may never be null, and only either username OR userID can be used for login, not both.
         if (!(request.Username == null ^ request.UserId == null))
-        {
-            return BadRequest();
-        }
-
-        // Console.WriteLine(Request.Headers["SS14-Launcher-Fingerprint"]);
-        // Console.WriteLine(Request.Headers["User-Agent"]);
+            return BadRequest(new
+            {
+                Error = "invalid_request",
+                Message = "Exactly one of Username or UserId must be provided."
+            });
 
         SpaceUser? user;
         if (request.Username != null)
@@ -65,12 +75,13 @@ public class AuthApiController : ControllerBase
         else
         {
             Debug.Assert(request.UserId != null);
-
             user = await _userManager.FindByIdAsync(request.UserId!.Value.ToString());
         }
 
         if (user == null)
         {
+            await _signInManager.CheckPasswordSignInAsync(_dummyUser.Value, request.Password, false);
+
             return Unauthorized(new AuthenticateDenyResponse(
                 new[] { "Invalid login credentials." },
                 AuthenticateDenyResponseCode.InvalidCredentials));
@@ -113,42 +124,57 @@ public class AuthApiController : ControllerBase
                     new[] { "" },
                     AuthenticateDenyResponseCode.TfaRequired));
             }
-            
+
             var verify = await _userManager.VerifyTwoFactorTokenAsync(
                 user, 
                 _userManager.Options.Tokens.AuthenticatorTokenProvider,
                 request.TfaCode);
-            
+
             if (!verify)
             {
                 return Unauthorized(new AuthenticateDenyResponse(
                     new[] { "" },
                     AuthenticateDenyResponseCode.TfaInvalid));
             }
-            
+
             // 2FA passed, we're good.
         }
-        
+
         var (token, expireTime) =
             await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
 
         return Ok(new AuthenticateResponse(token.AsBase64, user.UserName!, user.Id, expireTime));
     }
 
-    // Launcher registration disabled due to spam risk.
-    /*
+    [EnableRateLimiting("registration")]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
         var userName = request.Username.Trim();
         var email = request.Email.Trim();
 
-        var user = ModelShared.CreateNewUser(userName, email, _systemClock);
+        var user = ModelShared.CreateNewUser(userName, email, _systemClock.GetUtcNow());
         var result = await _userManager.CreateAsync(user, request.Password);
+
+        var successStatus = _userManager.Options.SignIn.RequireConfirmedEmail
+            ? RegisterResponseStatus.RegisteredNeedConfirmation
+            : RegisterResponseStatus.Registered;
 
         if (!result.Succeeded)
         {
-            var errors = result.Errors.Select(p => p.Description).ToArray();
+            var errors = result.Errors
+                .Where(e => e.Code != DuplicateEmailCode)
+                .Select(e => e.Description)
+                .ToArray();
+
+            if (errors.Length == 0)
+            {
+                var loginUrl = $"{WebBaseUrl}Identity/Account/Login";
+                await ModelShared.SendAccountExistsEmail(_emailSender, email, loginUrl);
+
+                return Ok(new RegisterResponse(successStatus));
+            }
+
             return UnprocessableEntity(new RegisterResponseError(errors));
         }
 
@@ -156,14 +182,10 @@ public class AuthApiController : ControllerBase
 
         await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
-        var status = _userManager.Options.SignIn.RequireConfirmedAccount
-            ? RegisterResponseStatus.RegisteredNeedConfirmation
-            : RegisterResponseStatus.Registered;
-
-        return Ok(new RegisterResponse(status));
+        return Ok(new RegisterResponse(successStatus));
     }
-    */
 
+    [EnableRateLimiting("reset-password")]
     [HttpPost("resetPassword")]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
     {
@@ -185,8 +207,7 @@ public class AuthApiController : ControllerBase
         return Ok();
     }
 
-    // Launcher resend confirmation disabled due to spam risk.
-    /*
+    [EnableRateLimiting("resend-confirmation")]
     [HttpPost("resendConfirmation")]
     public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request)
     {
@@ -194,18 +215,14 @@ public class AuthApiController : ControllerBase
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user == null)
+        if (user != null && !await _userManager.IsEmailConfirmedAsync(user))
         {
-            return Ok();
+            var confirmLink = await GenerateEmailConfirmLink(user);
+            await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
         }
-
-        var confirmLink = await GenerateEmailConfirmLink(user);
-
-        await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
 
         return Ok();
     }
-    */
 
     [Authorize(AuthenticationSchemes = "SS14Auth")]
     [HttpGet("ping")]
@@ -281,37 +298,24 @@ public enum AuthenticateDenyResponseCode
     // @formatter:on
 }
 
-public sealed record RegisterRequest(string Username, string Email, string Password)
-{
-}
+public sealed record RegisterRequest(
+    [Required, StringLength(32, MinimumLength = 3)] string Username,
+    [Required, EmailAddress] string Email,
+    [Required, StringLength(128, MinimumLength = 8)] string Password);
 
-public sealed record ResetPasswordRequest(string Email)
-{
-}
+public sealed record ResetPasswordRequest([Required, EmailAddress] string Email);
 
-public sealed record ResendConfirmationRequest(string Email)
-{
-}
+public sealed record ResendConfirmationRequest([Required, EmailAddress] string Email);
 
-public sealed record RegisterResponse(RegisterResponseStatus Status)
-{
-}
+public sealed record RegisterResponse(RegisterResponseStatus Status);
 
-public sealed record RegisterResponseError(string[] Errors)
-{
-}
+public sealed record RegisterResponseError(string[] Errors);
 
-public sealed record LogoutRequest(string Token)
-{
-}
+public sealed record LogoutRequest(string Token);
 
-public sealed record RefreshRequest(string Token)
-{
-}
+public sealed record RefreshRequest(string Token);
 
-public sealed record RefreshResponse(DateTimeOffset ExpireTime, string NewToken)
-{
-}
+public sealed record RefreshResponse(DateTimeOffset ExpireTime, string NewToken);
 
 public enum RegisterResponseStatus
 {
