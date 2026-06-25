@@ -54,8 +54,8 @@ public static class StartupHelpers
                 o.Password.RequireLowercase = false;
                 o.Password.RequireUppercase = false;
                 o.Password.RequireNonAlphanumeric = false;
-                o.SignIn.RequireConfirmedEmail = true;
-                o.SignIn.RequireConfirmedAccount = true;
+                o.SignIn.RequireConfirmedEmail = config.GetValue("Account:RequireConfirmedEmail", false);
+                o.SignIn.RequireConfirmedAccount = config.GetValue("Account:RequireConfirmedAccount", false);
                 o.User.RequireUniqueEmail = true;
                 // We use our own username validation logic.
                 // See SS14UserValidator.

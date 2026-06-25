@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${SS220_POSTGRES_USER:-ss220}
+      POSTGRES_PASSWORD: ${SS220_POSTGRES_PASSWORD:-ss220-dev}
+      POSTGRES_DB: ${SS220_POSTGRES_DB:-ss220}
+    ports:
+      - "${SS220_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ss220-postgres:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  auth:
+    build:
+      context: .
+      dockerfile: SS14.Auth/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      urls: http://0.0.0.0:5000
+      WebBaseUrl: ${SS220_WEB_BASE_URL:-http://localhost:5000/}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${SS220_AUTH_DB:-ss220_auth};Username=${SS220_POSTGRES_USER:-ss220};Password=${SS220_POSTGRES_PASSWORD:-ss220-dev}
+      Account__RequireConfirmedEmail: ${SS220_REQUIRE_CONFIRMED_EMAIL:-false}
+      Account__RequireConfirmedAccount: ${SS220_REQUIRE_CONFIRMED_ACCOUNT:-false}
+    ports:
+      - "${SS220_AUTH_PORT:-5000}:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  hub:
+    build:
+      context: .
+      dockerfile: SS14.ServerHub/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      urls: http://0.0.0.0:21953
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${SS220_HUB_DB:-ss220_hub};Username=${SS220_POSTGRES_USER:-ss220};Password=${SS220_POSTGRES_PASSWORD:-ss220-dev}
+    ports:
+      - "${SS220_HUB_PORT:-21953}:21953"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  ss220-postgres:

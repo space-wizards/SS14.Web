@@ -1,5 +1,17 @@
 # Space Station 14 Web Services
 
+#
+Quick start:
+
+```sh
+docker compose up -d postgres
+dotnet ef database update --project SS14.Auth.Shared --startup-project SS14.Auth --context ApplicationDbContext
+dotnet ef database update --project SS14.ServerHub.Shared --startup-project SS14.ServerHub --context HubDbContext
+docker compose up -d auth hub
+```
+
+Default local endpoints are `http://localhost:5000/` for auth and `http://localhost:21953/` for hub.
+
 **These are backend services hosted by Space Wizards for all of Space Station 14 and Robust. You do not need need to host these yourself in any case (except if you feel like contributing, I guess).**
 
 This repo contains various frontend and backend web services used by **Space Station 14**.
@@ -26,7 +38,7 @@ ConnectionStrings:
 Mutex:
   # Change this to something local on disk.
   DbPath: 'C:\Users\Pieter-Jan Briers\Projects\ss14\web\mutex.db'
-``` 
+```
 
 * Create the mutex DB mentioned above manually, and run `init_mutex.sql` on it. (I recommend https://sqlitebrowser.org/ for this task)
 * If I didn't forget anything you should now be able to start both services and it should work:tm:.

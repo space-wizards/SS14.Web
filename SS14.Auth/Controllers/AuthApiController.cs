@@ -5,11 +5,11 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Internal;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
@@ -135,8 +135,6 @@ public class AuthApiController : ControllerBase
         return Ok(new AuthenticateResponse(token.AsBase64, user.UserName!, user.Id, expireTime));
     }
 
-    // Launcher registration disabled due to spam risk.
-    /*
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -152,17 +150,18 @@ public class AuthApiController : ControllerBase
             return UnprocessableEntity(new RegisterResponseError(errors));
         }
 
-        var confirmLink = await GenerateEmailConfirmLink(user);
-
-        await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
-
         var status = _userManager.Options.SignIn.RequireConfirmedAccount
             ? RegisterResponseStatus.RegisteredNeedConfirmation
             : RegisterResponseStatus.Registered;
 
+        if (status == RegisterResponseStatus.RegisteredNeedConfirmation)
+        {
+            var confirmLink = await GenerateEmailConfirmLink(user);
+            await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
+        }
+
         return Ok(new RegisterResponse(status));
     }
-    */
 
     [HttpPost("resetPassword")]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
@@ -185,8 +184,6 @@ public class AuthApiController : ControllerBase
         return Ok();
     }
 
-    // Launcher resend confirmation disabled due to spam risk.
-    /*
     [HttpPost("resendConfirmation")]
     public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request)
     {
@@ -205,7 +202,6 @@ public class AuthApiController : ControllerBase
 
         return Ok();
     }
-    */
 
     [Authorize(AuthenticationSchemes = "SS14Auth")]
     [HttpGet("ping")]
