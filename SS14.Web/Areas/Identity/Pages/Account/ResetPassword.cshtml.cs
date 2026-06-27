@@ -18,11 +18,12 @@ public class ResetPasswordModel : PageModel
     private readonly AccountLogManager _logManager;
     private readonly ILogger<ResetPasswordModel> _logger;
 
-    public ResetPasswordModel(SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager logManager)
+    public ResetPasswordModel(SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager logManager, ILogger<ResetPasswordModel> logger)
     {
         _userManager = userManager;
         _dbContext = dbContext;
         _logManager = logManager;
+        _logger = logger;
     }
 
     [BindProperty]
