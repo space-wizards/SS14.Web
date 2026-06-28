@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,6 +12,8 @@ using SS14.Auth.Services;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Auth;
 using SS14.WebEverythingShared;
+using System;
+using System.Threading.RateLimiting;
 
 namespace SS14.Auth;
 
@@ -34,6 +37,61 @@ public class Startup
                 .RequireAuthenticatedUser()
                 .AddAuthenticationSchemes("AuthHub")
                 .Build());
+        });
+
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy("registration", httpContext =>
+            {
+                var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(15),
+                        QueueLimit = 0,
+                    });
+            });
+
+            options.AddPolicy("resend-confirmation", httpContext =>
+            {
+                var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 2,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0,
+                    });
+            });
+
+            options.AddPolicy("authenticate", httpContext => {
+                var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+            });
+
+            options.AddPolicy("reset-password", httpContext => {
+                var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 3,
+                        Window = TimeSpan.FromMinutes(15),
+                        QueueLimit = 0
+                    });
+            });
+
+            options.OnRejected = async (ctx, token) =>
+            {
+                ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                await ctx.HttpContext.Response.WriteAsJsonAsync(new { Error = "rate_limited" }, token);
+            };
         });
 
         services.AddAuthentication()
@@ -84,6 +142,8 @@ public class Startup
         MoreStartupHelpers.AddForwardedSupport(app, Configuration);
 
         app.UseRouting();
+
+        app.UseRateLimiter();
 
         app.UseHttpMetrics();
         
