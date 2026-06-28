@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
@@ -12,6 +13,7 @@ public partial class IndexModel : PageModel
 {
     private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly IEmailSender _emailSender;
     private readonly IOptions<AccountOptions> _options;
     private readonly ApplicationDbContext _dbContext;
     private readonly AccountLogManager _accountLogManager;
@@ -22,13 +24,15 @@ public partial class IndexModel : PageModel
 
     public IndexModel(
         SpaceUserManager userManager,
-        SignInManager<SpaceUser> signInManager, 
+        SignInManager<SpaceUser> signInManager,
+        IEmailSender emailSender,
         IOptions<AccountOptions> options,
         ApplicationDbContext dbContext,
         AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _emailSender = emailSender;
         _options = options;
         _dbContext = dbContext;
         _accountLogManager = accountLogManager;
@@ -88,13 +92,13 @@ public partial class IndexModel : PageModel
             await LoadAsync(user);
             return Page();
         }
-        
+
         Username = Username.Trim();
         if (Username == user.UserName)
         {
             return RedirectToPage();
         }
-        
+
         UpdateCanEditUsername(user);
         if (!CanEditUsername)
         {
@@ -107,7 +111,7 @@ public partial class IndexModel : PageModel
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
 
         var result = await _userManager.SetUserNameAsync(user, Username);
-        
+
         if (!result.Succeeded)
         {
             foreach (var error in result.Errors)
@@ -118,16 +122,23 @@ public partial class IndexModel : PageModel
             await LoadAsync(user);
             return Page();
         }
-        
+
         user.LastUsernameChange = DateTime.UtcNow;
 
         await _accountLogManager.LogNameChanged(user, oldName, user.UserName);
 
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Your username has been changed. Note that it may take some time to visibly update in some places, such as the launcher.";
-        
+
         await _dbContext.SaveChangesAsync();
         await tx.CommitAsync();
+
+        var userEmail = await _userManager.GetEmailAsync(user);
+        await _emailSender.SendEmailAsync(userEmail,
+            "Your Space Station 14 account username was changed",
+            $"This email was sent to you to confirm your username change, you were known as {oldName} but from now on will be known as {user.UserName}. " +
+            $"If this was you feel free to ignore this email." +
+            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
 
         return RedirectToPage();
     }
