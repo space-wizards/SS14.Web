@@ -41,18 +41,6 @@ public class Startup
 
         services.AddRateLimiter(options =>
         {
-            options.AddPolicy("registration", httpContext =>
-            {
-                var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-                return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
-                    new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = 5,
-                        Window = TimeSpan.FromMinutes(15),
-                        QueueLimit = 0,
-                    });
-            });
-
             options.AddPolicy("resend-confirmation", httpContext =>
             {
                 var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";

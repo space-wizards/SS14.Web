@@ -146,45 +146,6 @@ public class AuthApiController : ControllerBase
         return Ok(new AuthenticateResponse(token.AsBase64, user.UserName!, user.Id, expireTime));
     }
 
-    [EnableRateLimiting("registration")]
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest request)
-    {
-        var userName = request.Username.Trim();
-        var email = request.Email.Trim();
-
-        var user = ModelShared.CreateNewUser(userName, email, _systemClock.GetUtcNow());
-        var result = await _userManager.CreateAsync(user, request.Password);
-
-        var successStatus = _userManager.Options.SignIn.RequireConfirmedEmail
-            ? RegisterResponseStatus.RegisteredNeedConfirmation
-            : RegisterResponseStatus.Registered;
-
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors
-                .Where(e => e.Code != DuplicateEmailCode)
-                .Select(e => e.Description)
-                .ToArray();
-
-            if (errors.Length == 0)
-            {
-                var loginUrl = $"{WebBaseUrl}Identity/Account/Login";
-                await ModelShared.SendAccountExistsEmail(_emailSender, email, loginUrl);
-
-                return Ok(new RegisterResponse(successStatus));
-            }
-
-            return UnprocessableEntity(new RegisterResponseError(errors));
-        }
-
-        var confirmLink = await GenerateEmailConfirmLink(user);
-
-        await ModelShared.SendConfirmEmail(_emailSender, email, confirmLink);
-
-        return Ok(new RegisterResponse(successStatus));
-    }
-
     [EnableRateLimiting("reset-password")]
     [HttpPost("resetPassword")]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
