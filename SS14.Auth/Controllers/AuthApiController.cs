@@ -259,27 +259,12 @@ public enum AuthenticateDenyResponseCode
     // @formatter:on
 }
 
-public sealed record RegisterRequest(
-    [Required, StringLength(32, MinimumLength = 3)] string Username,
-    [Required, EmailAddress] string Email,
-    [Required, StringLength(100, MinimumLength = 6)] string Password);
-
 public sealed record ResetPasswordRequest([Required, EmailAddress] string Email);
 
 public sealed record ResendConfirmationRequest([Required, EmailAddress] string Email);
-
-public sealed record RegisterResponse(RegisterResponseStatus Status);
-
-public sealed record RegisterResponseError(string[] Errors);
 
 public sealed record LogoutRequest(string Token);
 
 public sealed record RefreshRequest(string Token);
 
 public sealed record RefreshResponse(DateTimeOffset ExpireTime, string NewToken);
-
-public enum RegisterResponseStatus
-{
-    Registered,
-    RegisteredNeedConfirmation
-}
