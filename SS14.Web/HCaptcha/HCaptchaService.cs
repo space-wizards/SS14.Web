@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -21,8 +22,8 @@ public sealed class HCaptchaService
     private readonly ILogger<HCaptchaService> _logger;
 
     public HCaptchaService(
-        IHttpClientFactory httpClientFactory, 
-        IHttpContextAccessor httpContextAccessor, 
+        IHttpClientFactory httpClientFactory,
+        IHttpContextAccessor httpContextAccessor,
         IOptions<HCaptchaOptions> options,
         ILogger<HCaptchaService> logger)
     {
@@ -39,7 +40,7 @@ public sealed class HCaptchaService
             // hCaptcha disabled.
             return true;
         }
-        
+
         if (string.IsNullOrEmpty(response))
         {
             modelState.AddModelError("", "Please confirm the captcha");
@@ -51,9 +52,16 @@ public sealed class HCaptchaService
             return true;
 
         modelState.AddModelError("", "Failed to verify captcha response.");
-        
-        _logger.LogError("Captcha ");
-        
+
+        _logger.LogError(
+            "Captcha failed to get validated server side: Success: {Success}, Challenge Time: {ChallengeTS}, Hostname: {Hostname}, Credit: {Credit}, Error Codes: {ErrorCodes}",
+            verifyResponse.Success,
+            verifyResponse.ChallengeTS,
+            verifyResponse.Hostname,
+            verifyResponse.Credit,
+            string.Join(", ", verifyResponse.ErrorCodes ?? Array.Empty<string>())
+        );
+
         return false;
     }
 
@@ -61,20 +69,20 @@ public sealed class HCaptchaService
     {
         var client = _httpClientFactory.CreateClient(nameof(HCaptchaService));
         var options = _options.Value;
-        
+
         var verifyParams = new List<KeyValuePair<string, string>>(4)
         {
             new("response", response),
             new("secret", options.Secret),
             new("sitekey", options.SiteKey)
         };
-        
+
         if (_httpContextAccessor.HttpContext?.Connection.RemoteIpAddress is { } ip)
             verifyParams.Add(new ("remoteip", ip.ToString()));
-        
+
         var content = new FormUrlEncodedContent(verifyParams);
 
-        var resp = await client.PostAsync("https://hcaptcha.com/siteverify", content);
+        var resp = await client.PostAsync("https://challenges.cloudflare.com/turnstile/v0/siteverify", content);
         resp.EnsureSuccessStatusCode();
 
         return await resp.Content.ReadFromJsonAsync<HCaptchaVerifyResponse>();

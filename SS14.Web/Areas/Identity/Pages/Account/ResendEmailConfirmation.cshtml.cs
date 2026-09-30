@@ -33,7 +33,7 @@ public class ResendEmailConfirmationModel : PageModel
     [BindProperty]
     public InputModel Input { get; set; }
 
-    [BindProperty(Name = "h-captcha-response")]
+    [BindProperty(Name = "cf-turnstile-response")]
     public string HCaptchaResponse { get; set; }
 
     public class InputModel
@@ -53,7 +53,7 @@ public class ResendEmailConfirmationModel : PageModel
         {
             return Page();
         }
-        
+
         if (!await _hCaptcha.ValidateHCaptcha(HCaptchaResponse, ModelState))
             return Page();
 

@@ -46,7 +46,7 @@ public class RegisterModel : PageModel
 
     [BindProperty] public InputModel Input { get; set; }
 
-    [BindProperty(Name = "h-captcha-response")]
+    [BindProperty(Name = "cf-turnstile-response")]
     public string HCaptchaResponse { get; set; }
 
     public string ReturnUrl { get; set; }
