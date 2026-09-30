@@ -1,6 +1,6 @@
 ﻿@using Microsoft.Extensions.Options
-@using SS14.Web.HCaptcha
-@inject IOptions<HCaptchaOptions> Options
+@using SS14.Web.Captcha
+@inject IOptions<CaptchaOptions> Options
 
 @if (Options.Value.SiteKey != "")
 {

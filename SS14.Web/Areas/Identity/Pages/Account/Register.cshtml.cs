@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
-using SS14.Web.HCaptcha;
+using SS14.Web.Captcha;
 using SS14.Web.Helpers;
 
 namespace SS14.Web.Areas.Identity.Pages.Account;
@@ -26,7 +26,7 @@ public class RegisterModel : PageModel
     private readonly ILogger<RegisterModel> _logger;
     private readonly IEmailSender _emailSender;
     private readonly ISystemClock _systemClock;
-    private readonly HCaptchaService _hCaptcha;
+    private readonly CaptchaService _captcha;
 
     public RegisterModel(
         UserManager<SpaceUser> userManager,
@@ -34,20 +34,20 @@ public class RegisterModel : PageModel
         ILogger<RegisterModel> logger,
         IEmailSender emailSender,
         ISystemClock systemClock,
-        HCaptchaService hCaptcha)
+        CaptchaService captcha)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
         _emailSender = emailSender;
         _systemClock = systemClock;
-        _hCaptcha = hCaptcha;
+        _captcha = captcha;
     }
 
     [BindProperty] public InputModel Input { get; set; }
 
     [BindProperty(Name = "cf-turnstile-response")]
-    public string HCaptchaResponse { get; set; }
+    public string CaptchaResponse { get; set; }
 
     public string ReturnUrl { get; set; }
 
@@ -98,7 +98,7 @@ public class RegisterModel : PageModel
         if (!ModelState.IsValid)
             return Page();
 
-        if (!await _hCaptcha.ValidateHCaptcha(HCaptchaResponse, ModelState))
+        if (!await _captcha.ValidateCaptcha(CaptchaResponse, ModelState))
             return Page();
 
         var user = ModelShared.CreateNewUser(userName, email, _systemClock);
