@@ -1,0 +1,8 @@
+﻿@using Microsoft.Extensions.Options
+@using SS14.Web.Captcha
+@inject IOptions<CaptchaOptions> Options
+
+@if (Options.Value.SiteKey != "")
+{
+    <div class="cf-turnstile" data-sitekey="@(Options.Value.SiteKey)"></div>
+}

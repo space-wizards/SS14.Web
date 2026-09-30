@@ -20,7 +20,7 @@ using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
 using SS14.ServerHub.Shared.Data;
 using SS14.Web.Data;
-using SS14.Web.HCaptcha;
+using SS14.Web.Captcha;
 using SS14.WebEverythingShared;
 
 namespace SS14.Web;
@@ -42,7 +42,7 @@ public class Startup
         services.AddScoped<HubAuditLogManager>();
 
         services.Configure<AccountOptions>(Configuration.GetSection("Account"));
-        HCaptchaService.RegisterServices(services, Configuration);
+        CaptchaService.RegisterServices(services, Configuration);
 
         services.AddDatabaseDeveloperPageExceptionFilter();
         StartupHelpers.AddShared(services, Configuration);
