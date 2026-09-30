@@ -17,7 +17,7 @@
                 <input asp-for="Input.Email" class="form-control" />
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
             </div>
-            <partial name="HCaptcha"/>
+            <partial name="Captcha"/>
             <button type="submit" class="btn btn-primary">Resend</button>
         </form>
     </div>
@@ -25,5 +25,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <partial name="_HCaptchaScripts"/>
+    <partial name="_CaptchaScripts"/>
 }

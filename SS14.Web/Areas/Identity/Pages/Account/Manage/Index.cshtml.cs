@@ -19,10 +19,11 @@ public partial class IndexModel : PageModel
     public bool CanEditUsername { get; set; }
     public int UsernameChangeDelay => _options.Value.UsernameChangeDays;
     public DateTime NextUsernameChangeAllowed { get; set; }
+    public DateTimeOffset CreatedTime { get; set; }
 
     public IndexModel(
         SpaceUserManager userManager,
-        SignInManager<SpaceUser> signInManager, 
+        SignInManager<SpaceUser> signInManager,
         IOptions<AccountOptions> options,
         ApplicationDbContext dbContext,
         AccountLogManager accountLogManager)
@@ -44,6 +45,7 @@ public partial class IndexModel : PageModel
         var userName = await _userManager.GetUserNameAsync(user);
 
         Username = userName;
+        CreatedTime = user.CreatedTime;
         UpdateCanEditUsername(user);
     }
 
@@ -88,13 +90,13 @@ public partial class IndexModel : PageModel
             await LoadAsync(user);
             return Page();
         }
-        
+
         Username = Username.Trim();
         if (Username == user.UserName)
         {
             return RedirectToPage();
         }
-        
+
         UpdateCanEditUsername(user);
         if (!CanEditUsername)
         {
@@ -107,7 +109,7 @@ public partial class IndexModel : PageModel
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
 
         var result = await _userManager.SetUserNameAsync(user, Username);
-        
+
         if (!result.Succeeded)
         {
             foreach (var error in result.Errors)
@@ -118,14 +120,14 @@ public partial class IndexModel : PageModel
             await LoadAsync(user);
             return Page();
         }
-        
+
         user.LastUsernameChange = DateTime.UtcNow;
 
         await _accountLogManager.LogNameChanged(user, oldName, user.UserName);
 
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Your username has been changed. Note that it may take some time to visibly update in some places, such as the launcher.";
-        
+
         await _dbContext.SaveChangesAsync();
         await tx.CommitAsync();
 
