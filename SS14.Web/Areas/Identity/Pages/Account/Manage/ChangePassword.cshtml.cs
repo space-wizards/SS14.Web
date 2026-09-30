@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.Sessions;
@@ -110,10 +111,7 @@ public class ChangePasswordModel : PageModel
         StatusMessage = "Your password has been changed.";
 
         var userEmail = await _userManager.GetEmailAsync(user);
-        await _emailSender.SendEmailAsync(userEmail,
-            "Your Space Station 14 account password was changed",
-            $"This email was sent to you to confirm your password change. If this was you feel free to ignore this email." +
-            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+        await ModelShared.SendPasswordChangedEmail(_emailSender, userEmail);
 
         return RedirectToPage();
     }

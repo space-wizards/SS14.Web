@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 
@@ -81,10 +82,7 @@ public class Disable2faModel : PageModel
         StatusMessage = "2FA has been disabled. You can re-enable 2FA when you setup an authenticator app";
 
         var userEmail = await _userManager.GetEmailAsync(user);
-        await _emailSender.SendEmailAsync(userEmail,
-            "Your Space Station 14 account 2fa was disabled",
-            $"This email was sent to you to confirm that 2fa has been disabled on your account. If this was you feel free to ignore this email." +
-            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+        await ModelShared.Send2FaDisabledEmail(_emailSender, userEmail);
 
         return RedirectToPage("./TwoFactorAuthentication");
     }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 
@@ -40,10 +41,7 @@ public class PersonalDataModel(
         // TODO: Once net 9 is in, in order to not hit MaxEmailsPerHour. This should have a rate limit to only allow data download once per hour or 1 email per hour
         // Not doing it now because i dont wanna do db migrations and mess up julians pr
         // var userEmail = await userManager.GetEmailAsync(user);
-        // await emailSender.SendEmailAsync(userEmail,
-        //     "Your Space Station 14 account data was requested",
-        //     $"This email was sent to you to confirm your account data was requested. If this was you feel free to ignore this email." +
-        //     $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+        // await ModelShared.SendPersonalDataEmail(emailSender, userEmail);
 
         return new FileStreamResult(data, MediaTypeNames.Application.Zip);
     }

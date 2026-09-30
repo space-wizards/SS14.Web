@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 
@@ -74,12 +75,8 @@ public class ConfirmEmailChangeModel : PageModel
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Thank you for confirming your email change.";
 
-        await _emailSender.SendEmailAsync(
-            oldEmail,
-            "Your Space Station 14 account email was changed",
-            $"This email was sent to the old email address for security, if this was you feel free to ignore this email." +
-            $"\n\nFurther emails from this point forward will go to {email}." +
-            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+        await ModelShared.SendEmailChangedEmail(_emailSender, email, oldEmail);
+
         return Page();
     }
 }

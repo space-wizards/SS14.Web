@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 
@@ -119,11 +120,7 @@ public class EnableAuthenticatorModel : PageModel
         await _signInManager.RefreshSignInAsync(user);
 
         var userEmail = await _userManager.GetEmailAsync(user);
-        await _emailSender.SendEmailAsync(userEmail,
-            "Your Space Station 14 account 2fa was enabled",
-            $"This email was sent to you to confirm that 2fa has been enabled on your account. If this was you feel free to ignore this email." +
-            $"(And make sure you wrote down your recovery codes)" +
-            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+        await ModelShared.Send2FaEnabledEmail(_emailSender, userEmail);
 
         if (await _userManager.CountRecoveryCodesAsync(user) == 0)
         {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 
@@ -136,11 +137,7 @@ public partial class IndexModel : PageModel
         await tx.CommitAsync();
 
         var userEmail = await _userManager.GetEmailAsync(user);
-        await _emailSender.SendEmailAsync(userEmail,
-            "Your Space Station 14 account username was changed",
-            $"This email was sent to you to confirm your username change, you were known as {oldName} but from now on will be known as {user.UserName}. " +
-            $"If this was you feel free to ignore this email." +
-            $"\n\nIf this was not you, send an email to support@spacestation14.com immediately.");
+        await ModelShared.SendUsernameChangeEmail(_emailSender, userEmail, oldName, user.UserName);
 
         return RedirectToPage();
     }
