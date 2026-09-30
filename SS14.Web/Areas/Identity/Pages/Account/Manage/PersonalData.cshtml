@@ -12,16 +12,16 @@
         <p>Your account contains personal data that you have given us. This page will allow you to download the data on the accounts server.
             For data on game servers and other services (forums, wiki), you need to contact the operator of those servers.
             For official servers ("Wizard's Den") you can <a asp-area="" asp-controller="Home" asp-action="Contact">contact us</a> via email.
-            If you would like to delete the personal data we have about you, please <a asp-area="" asp-controller="Home" asp-action="Contact">contact us</a> via email.</p>
+            If you would like to delete the personal data we have about you, click the <strong>Delete my data</strong> button below or <a asp-area="" asp-controller="Home" asp-action="Contact">contact us</a> via email.</p>
         @*<p>
             <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
         </p>*@
         <form id="download-data" asp-page-handler="DownloadPersonalData" method="post" class="form-group">
             <button class="btn btn-primary" type="submit">Download</button>
         </form>
-        @*<p>
-            <a id="delete" asp-page="DeletePersonalData" class="btn btn-primary">Delete</a>
-        </p>*@
+        <p>
+            <a id="delete" asp-page="DeletePersonalData" class="btn btn-primary">Delete my data</a>
+        </p>
     </div>
 </div>
 

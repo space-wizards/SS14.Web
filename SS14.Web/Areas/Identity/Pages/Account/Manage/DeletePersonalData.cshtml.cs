@@ -1,4 +1,4 @@
-/*
+
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared.Data;
 using SS14.Web.Data;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage
@@ -14,16 +15,19 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<SpaceUser> _userManager;
         private readonly SignInManager<SpaceUser> _signInManager;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<DeletePersonalDataModel> _logger;
 
         public DeletePersonalDataModel(
             UserManager<SpaceUser> userManager,
             SignInManager<SpaceUser> signInManager,
-            ILogger<DeletePersonalDataModel> logger)
+            ILogger<DeletePersonalDataModel> logger,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _context = context;
         }
 
         [BindProperty]
@@ -68,6 +72,8 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
                 }
             }
 
+            _context.DeletedUserIds.Add(new DeletedUser { SpaceUserId = user.Id, DeletedOn = DateTime.UtcNow });
+
             var result = await _userManager.DeleteAsync(user);
             var userId = await _userManager.GetUserIdAsync(user);
             if (!result.Succeeded)
@@ -83,4 +89,4 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
         }
     }
 }
-*/
+

@@ -24,7 +24,7 @@ public class CreateReserved : PageModel
     {
         [Required] public string Username { get; set; } = "";
     }
-    
+
     public CreateReserved(ISystemClock systemClock, SpaceUserManager userManager, ApplicationDbContext dbContext, AccountLogManager accountLogManager)
     {
         _systemClock = systemClock;
@@ -32,7 +32,7 @@ public class CreateReserved : PageModel
         _dbContext = dbContext;
         _accountLogManager = accountLogManager;
     }
-    
+
     public void OnGet()
     {
     }
@@ -46,8 +46,8 @@ public class CreateReserved : PageModel
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
 
         var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-        
-        var user = ModelShared.CreateNewUser(userName, $"reserved+{userName}@spacestation14.com", _systemClock);
+
+        var user = ModelShared.CreateNewUser(userName, $"reserved+{userName}@playss14.com", _systemClock);
         user.AdminLocked = true;
         user.AdminNotes = "Account reserved via admin panel. If unlocking, change email and password!";
         user.EmailConfirmed = true;
@@ -57,11 +57,11 @@ public class CreateReserved : PageModel
             await _accountLogManager.LogAndSave(user, new AccountLogCreatedReserved());
 
             await tx.CommitAsync();
-            
+
             TempData["StatusMessage"] = "Reserved account created";
             return RedirectToPage("ViewUser", new { id = user.Id });
         }
-        
+
         foreach (var error in result.Errors)
         {
             ModelState.AddModelError(string.Empty, error.Description);

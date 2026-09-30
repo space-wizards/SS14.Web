@@ -73,6 +73,17 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .HasIndex(h => new { h.HwidId, h.SpaceUserId })
             .IsUnique();
 
+        builder.Entity<DeletedUser>()
+            .HasKey(d => d.SpaceUserId);
+
+        builder.Entity<DeletedUser>()
+            .HasIndex(d => d.DeletedOn);
+
+        builder.Entity<DeletedUser>()
+            .Property(d => d.DeletedOn)
+            .HasDefaultValue(DateTime.UtcNow);
+
+
         var cfgStoreOptions = new ConfigurationStoreOptions
         {
             IdentityResource = new TableConfiguration("IdentityResources", "IS4"),
@@ -118,6 +129,8 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<AccountLog> AccountLogs { get; set; }
     public DbSet<Hwid> Hwids { get; set; }
     public DbSet<HwidUser> HwidUsers { get; set; }
+
+    public DbSet<DeletedUser> DeletedUserIds { get; set; }
 
     // IS4 configuration.
     public DbSet<Client> Clients { get; set; }

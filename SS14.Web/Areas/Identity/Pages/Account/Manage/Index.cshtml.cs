@@ -21,6 +21,7 @@ public partial class IndexModel : PageModel
     public bool CanEditUsername { get; set; }
     public int UsernameChangeDelay => _options.Value.UsernameChangeDays;
     public DateTime NextUsernameChangeAllowed { get; set; }
+    public DateTimeOffset CreatedTime { get; set; }
 
     public IndexModel(
         SpaceUserManager userManager,
@@ -48,6 +49,7 @@ public partial class IndexModel : PageModel
         var userName = await _userManager.GetUserNameAsync(user);
 
         Username = userName;
+        CreatedTime = user.CreatedTime;
         UpdateCanEditUsername(user);
     }
 

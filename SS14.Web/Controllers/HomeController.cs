@@ -1,32 +1,24 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using SS14.Web.Models;
 
 namespace SS14.Web.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
-    {
-        _logger = logger;
-    }
-
     public IActionResult Index()
     {
-        return View();
+        return Redirect("/Identity/Account/Manage");
     }
 
     public IActionResult Privacy()
     {
-        return Redirect("https://spacestation14.com/about/privacy/");
+        return Redirect("https://playss14.com/about/privacy/");
     }
 
     public IActionResult Contact()
     {
-        return Redirect("https://spacestation14.com/about/contact/");
+        return Redirect("https://playss14.com/about/contact/");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -37,6 +29,6 @@ public class HomeController : Controller
 
     public IActionResult MainWebsite()
     {
-        return Redirect("https://spacestation14.com/");
+        return Redirect("https://playss14.com/");
     }
 }
