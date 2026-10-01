@@ -13,12 +13,12 @@ public class HomeController : Controller
 
     public IActionResult Privacy()
     {
-        return Redirect("https://playss14.com/about/privacy/");
+        return Redirect("https://spacestation14.com/about/privacy/");
     }
 
     public IActionResult Contact()
     {
-        return Redirect("https://playss14.com/about/contact/");
+        return Redirect("https://spacestation14.com/about/contact/");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -29,6 +29,6 @@ public class HomeController : Controller
 
     public IActionResult MainWebsite()
     {
-        return Redirect("https://playss14.com/");
+        return Redirect("https://spacestation14.com/");
     }
 }
