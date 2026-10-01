@@ -4,24 +4,29 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class GenerateRecoveryCodesModel : PageModel
 {
     private readonly SpaceUserManager _userManager;
+    private readonly IEmailSender _emailSender;
     private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<GenerateRecoveryCodesModel> _logger;
     private readonly AccountLogManager _accountLogManager;
 
     public GenerateRecoveryCodesModel(
         SpaceUserManager userManager,
+        IEmailSender emailSender,
         ApplicationDbContext dbContext,
         ILogger<GenerateRecoveryCodesModel> logger,
         AccountLogManager accountLogManager)
     {
         _userManager = userManager;
+        _emailSender = emailSender;
         _dbContext = dbContext;
         _logger = logger;
         _accountLogManager = accountLogManager;
@@ -79,6 +84,10 @@ public class GenerateRecoveryCodesModel : PageModel
 
         _logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
         StatusMessage = "You have generated new recovery codes.";
+
+        var userEmail = await _userManager.GetEmailAsync(user);
+        await ModelShared.Send2FaCodesRegeneratedEmail(_emailSender, userEmail);
+
         return RedirectToPage("./ShowRecoveryCodes");
     }
 }

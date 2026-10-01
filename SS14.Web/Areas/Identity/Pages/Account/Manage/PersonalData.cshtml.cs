@@ -4,12 +4,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
 public class PersonalDataModel(
     UserManager<SpaceUser> userManager,
+    IEmailSender emailSender,
     PersonalDataCollector personalDataCollector)
     : PageModel
 {
@@ -34,6 +37,12 @@ public class PersonalDataModel(
 
         var data = await personalDataCollector.CollectPersonalData(user, cancel);
         Response.Headers.Add("Content-Disposition", $"attachment; filename={user.UserName}-PersonalData.zip");
+
+        // TODO: Once net 9 is in, in order to not hit MaxEmailsPerHour. This should have a rate limit to only allow data download once per hour or 1 email per hour
+        // Not doing it now because i dont wanna do db migrations and mess up julians pr
+        // var userEmail = await userManager.GetEmailAsync(user);
+        // await ModelShared.SendPersonalDataEmail(emailSender, userEmail);
+
         return new FileStreamResult(data, MediaTypeNames.Application.Zip);
     }
 }

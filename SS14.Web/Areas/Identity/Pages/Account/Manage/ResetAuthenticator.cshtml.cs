@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
@@ -14,6 +16,7 @@ public class ResetAuthenticatorModel : PageModel
 {
     private readonly SpaceUserManager _userManager;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly IEmailSender _emailSender;
     private readonly ApplicationDbContext _dbContext;
     ILogger<ResetAuthenticatorModel> _logger;
     private readonly AccountLogManager _accountLogManager;
@@ -21,12 +24,14 @@ public class ResetAuthenticatorModel : PageModel
     public ResetAuthenticatorModel(
         SpaceUserManager userManager,
         SignInManager<SpaceUser> signInManager,
+        IEmailSender emailSender,
         ApplicationDbContext dbContext,
         ILogger<ResetAuthenticatorModel> logger,
         AccountLogManager accountLogManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _emailSender = emailSender;
         _dbContext = dbContext;
         _logger = logger;
         _accountLogManager = accountLogManager;
@@ -63,9 +68,12 @@ public class ResetAuthenticatorModel : PageModel
         await _accountLogManager.LogAndSave(user, new AccountLogAuthenticatorReset());
 
         await tx.CommitAsync();
-        
+
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.";
+
+        var userEmail = await _userManager.GetEmailAsync(user);
+        await ModelShared.Send2FaResetEmail(_emailSender, userEmail);
 
         return RedirectToPage("./EnableAuthenticator");
     }
