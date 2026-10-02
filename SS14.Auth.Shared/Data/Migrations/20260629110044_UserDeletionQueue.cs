@@ -14,7 +14,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                 columns: table => new
                 {
                     SpaceUserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    QueuedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
+                    QueuedOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {

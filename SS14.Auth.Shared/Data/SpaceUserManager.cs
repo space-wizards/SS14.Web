@@ -61,7 +61,7 @@ public sealed class SpaceUserManager(
     /// <param name="user">The user to be queued for deletion.</param>
     public void QueueDeletion(SpaceUser user)
     {
-        dbContext.UserDeletionQueue.Add(new UserDeletionQueueEntry {SpaceUserId = user.Id, QueuedOn = DateTime.UtcNow });
+        dbContext.UserDeletionQueue.Add(new UserDeletionQueueEntry { SpaceUserId = user.Id, QueuedOn = DateTime.UtcNow });
         dbContext.SaveChanges();
     }
 
