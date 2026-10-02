@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartz;
 using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Auth.Jobs;
 
@@ -16,6 +17,7 @@ public sealed class DeleteMarkedUsersJob(
     ApplicationDbContext dbContext,
     IOptions<AccountConfiguration> configuration,
     UserManager<SpaceUser> userManager,
+    EmailSender emailSender,
     ILogger<CleanOldSessionsJob> logger) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
@@ -25,6 +27,9 @@ public sealed class DeleteMarkedUsersJob(
         var entries = await dbContext.UserDeletionQueue
             .Where(e => e.QueuedOn < DateTime.UtcNow.AddDays(-gracePeriod))
             .ToListAsync(context.CancellationToken);
+
+        var deletedAccounts = new List<(Guid, string?)>();
+
         foreach (var entry in entries)
         {
             var user = await userManager.FindByIdAsync(entry.SpaceUserId.ToString());
@@ -38,8 +43,20 @@ public sealed class DeleteMarkedUsersJob(
             var result = await userManager.DeleteAsync(user);
             if (!result.Succeeded)
                 logger.LogError("Failed to delete user {Id} marked for deletion.", entry.SpaceUserId);
+            deletedAccounts.Add((entry.SpaceUserId, user.UserName));
         }
 
         await dbContext.SaveChangesAsync();
+
+        if (deletedAccounts.Count == 0)
+            return;
+
+        // Email support@spacestation14.com a list of the deleted accounts so we can manually delete them from the forum and the game db
+        // Remove this once the gdpr deletion flow is fully automated
+        await emailSender.SendEmailAsync(
+            "support@spacestation14.com",
+            "Processed account deletions",
+            $"Deleted {deletedAccounts.Count} accounts:\n{string.Join("\n", deletedAccounts.Select(x => $"{x.Item2} | {x.Item1}"))}");
+
     }
 }
