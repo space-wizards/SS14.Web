@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartz;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
@@ -51,12 +52,6 @@ public sealed class DeleteMarkedUsersJob(
         if (deletedAccounts.Count == 0)
             return;
 
-        // Email support@spacestation14.com a list of the deleted accounts so we can manually delete them from the forum and the game db
-        // Remove this once the gdpr deletion flow is fully automated
-        await emailSender.SendEmailAsync(
-            "support@spacestation14.com",
-            "Processed account deletions",
-            $"Deleted {deletedAccounts.Count} accounts:\n{string.Join("\n", deletedAccounts.Select(x => $"{x.Item2} | {x.Item1}"))}");
-
+        await ModelShared.SendUserDeletionQueueEmail(emailSender, deletedAccounts);
     }
 }
