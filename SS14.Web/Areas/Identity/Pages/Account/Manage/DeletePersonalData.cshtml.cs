@@ -61,7 +61,7 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
 
             _userManager.CancelQueuedDeletion(user);
 
-            _logger.LogInformation("User with ID '{UserId}' queued their deletion.", user.Id);
+            _logger.LogInformation("User with ID '{UserId}' canceled their deletion.", user.Id);
 
             StatusMessage = "Account deletion canceled.";
             return RedirectToPage();
