@@ -6,4 +6,5 @@ public sealed  class DeletedUser
 {
     public Guid SpaceUserId { get; set; }
     public DateTime DeletedOn { get; set; }
+    public bool DeletionPropagated { get; set; }
 }

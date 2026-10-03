@@ -42,6 +42,14 @@ public static class ModelShared
             $"Deleted {deletedAccounts.Count} accounts:\n{string.Join("\n", deletedAccounts.Select(x => $"{x.Item2} | {x.Item1}"))}");
     }
 
+    public static async Task SendDeletionFailedEmail(EmailSender emailSender, Guid entrySpaceUserId)
+    {
+        await emailSender.SendEmailAsync(
+            "support@spacestation14.com",
+            "Failed to delete account",
+            $"Failed to delete account with id {entrySpaceUserId}");
+    }
+
     public static SpaceUser CreateNewUser(string userName, string email, ISystemClock systemClock)
     {
         return new SpaceUser {UserName = userName, Email = email, CreatedTime = systemClock.UtcNow};

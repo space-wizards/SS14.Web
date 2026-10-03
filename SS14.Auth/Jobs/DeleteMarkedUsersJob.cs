@@ -43,7 +43,11 @@ public sealed class DeleteMarkedUsersJob(
 
             var result = await userManager.DeleteAsync(user);
             if (!result.Succeeded)
+            {
                 logger.LogError("Failed to delete user {Id} marked for deletion.", entry.SpaceUserId);
+                await ModelShared.SendDeletionFailedEmail(emailSender, entry.SpaceUserId);
+            }
+
             deletedAccounts.Add((entry.SpaceUserId, user.UserName));
         }
 

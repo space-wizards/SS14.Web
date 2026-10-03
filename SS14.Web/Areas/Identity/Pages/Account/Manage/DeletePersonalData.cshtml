@@ -10,6 +10,13 @@
 <h4>@ViewData["Title"]</h4>
 <partial name="_StatusMessage" model="Model.StatusMessage" />
 
+<div class="alert alert-info" role="alert">
+    <p>
+        Currently deletion requests are not forwarded to third party services including other games on the hub and services using Space Station 14 authentication not owned by us.
+    </p>
+</div>
+
+
 @if (await userManager.GetDaysUntilDeletionAsync(User) is {} timeSpan)
 {
     <div>
