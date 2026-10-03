@@ -40,7 +40,7 @@ public class Startup
             .AddScheme<SS14AuthOptions, SS14AuthHandler>("SS14Auth", _ => {});
 
         services.AddHostedService<EnsureRolesService>();
-        
+
         StartupHelpers.AddShared(services, Configuration);
 
         services.AddQuartz(q =>
@@ -66,6 +66,11 @@ public class Startup
                 {
                     schedule.RepeatForever().WithIntervalInHours(24);
                 }));
+
+                q.ScheduleJob<DeleteMarkedUsersJob>(trigger => trigger.WithSimpleSchedule(schedule =>
+                {
+                    schedule.RepeatForever().WithIntervalInHours(24);
+                }));
             }
         });
         services.AddQuartzHostedService();
@@ -86,7 +91,7 @@ public class Startup
         app.UseRouting();
 
         app.UseHttpMetrics();
-        
+
         app.UseAuthorization();
 
         app.UseEndpoints(endpoints =>

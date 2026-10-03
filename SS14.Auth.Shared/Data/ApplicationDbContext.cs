@@ -81,8 +81,19 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
 
         builder.Entity<DeletedUser>()
             .Property(d => d.DeletedOn)
-            .HasDefaultValue(DateTime.UtcNow);
+            .HasDefaultValueSql("now()");
 
+        builder.Entity<UserDeletionQueueEntry>()
+            .HasKey(d => d.SpaceUserId);
+
+        builder.Entity<UserDeletionQueueEntry>()
+            .HasOne<SpaceUser>()
+            .WithOne()
+            .HasForeignKey<UserDeletionQueueEntry>(d => d.SpaceUserId);
+
+        builder.Entity<UserDeletionQueueEntry>()
+            .Property(d => d.QueuedOn)
+            .HasDefaultValueSql("now()");
 
         var cfgStoreOptions = new ConfigurationStoreOptions
         {
@@ -130,6 +141,7 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<Hwid> Hwids { get; set; }
     public DbSet<HwidUser> HwidUsers { get; set; }
 
+    public DbSet<UserDeletionQueueEntry> UserDeletionQueue { get; set; }
     public DbSet<DeletedUser> DeletedUserIds { get; set; }
 
     // IS4 configuration.

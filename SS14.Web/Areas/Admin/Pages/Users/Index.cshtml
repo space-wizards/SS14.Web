@@ -14,14 +14,14 @@
 
 @if (TempData.ContainsKey("StatusMessage"))
 {
-    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />   
+    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />
 }
 
 <a asp-page="./CreateReserved" class="btn btn-primary">Create reserved account</a>
 
 <form asp-page="./Index" method="get" class="container">
     <div class="form-group row">
-            <label class="col-md-3" for="searchBar">Search name or email:</label>
+            <label class="col-md-3" for="searchBar">Search name, email, or id:</label>
             <input type="text" id="searchBar" name="SearchString" value="@Model.CurrentFilter" class="form-control form-control-sm col-md-7" />
             <input type="submit" value="Search" class="btn btn-primary col-md-1 btn-sm"/>
             <a class="btn btn-danger btn-sm col-md-1" asp-page="./Index">Clear</a>

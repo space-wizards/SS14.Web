@@ -1,6 +1,9 @@
 ﻿@using SS14.Auth.Shared
 @using Microsoft.AspNetCore.Authorization
+@using SS14.Auth.Shared.Data
 @inject IAuthorizationService AuthorizationService
+@inject SpaceUserManager UserManager
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +42,14 @@
             </div>
         </div>
     </nav>
+    @if (await UserManager.GetDaysUntilDeletionAsync(User) is { } timeSpan)
+    {
+        <div class="alert alert-warning mx-3 d-flex" role="alert">
+            Your account will be deleted in <strong class="ml-1">@timeSpan.Days days</strong>. <div class="flex-fill"></div> <a class="btn btn-primary btn-sm" href="/Identity/Account/Manage/DeletePersonalData">Cancel deletion</a>
+        </div>
+    }
 </header>
+
 <div class="container">
     <main role="main" class="pb-3">
         @RenderBody()

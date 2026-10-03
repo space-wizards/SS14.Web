@@ -4,6 +4,7 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS14.Auth.Shared.Data;
@@ -13,9 +14,10 @@ using SS14.Auth.Shared.Data;
 namespace SS14.Auth.Shared.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629110044_UserDeletionQueue")]
+    partial class UserDeletionQueue
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,6 +25,21 @@ namespace SS14.Auth.Shared.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("AuthHashHwid", b =>
+                {
+                    b.Property<long>("AuthHashesAuthHashId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("HwidsId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("AuthHashesAuthHashId", "HwidsId");
+
+                    b.HasIndex("HwidsId");
+
+                    b.ToTable("AuthHashHwid");
+                });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResource", b =>
                 {
@@ -1045,15 +1062,10 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .IsRequired()
                         .HasColumnType("bytea");
 
-                    b.Property<long?>("HwidId")
-                        .HasColumnType("bigint");
-
                     b.Property<Guid>("SpaceUserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("AuthHashId");
-
-                    b.HasIndex("HwidId");
 
                     b.HasIndex("SpaceUserId");
 
@@ -1092,9 +1104,6 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
-
-                    b.Property<bool>("DeletionPropagated")
-                        .HasColumnType("boolean");
 
                     b.HasKey("SpaceUserId");
 
@@ -1301,6 +1310,11 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("CanonicalEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -1356,7 +1370,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Property<Guid>("SpaceUserId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("QueuedOn")
+                    b.Property<DateTime?>("QueuedOn")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
@@ -1407,6 +1421,21 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("WhitelistEmails");
+                });
+
+            modelBuilder.Entity("AuthHashHwid", b =>
+                {
+                    b.HasOne("SS14.Auth.Shared.Data.AuthHash", null)
+                        .WithMany()
+                        .HasForeignKey("AuthHashesAuthHashId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SS14.Auth.Shared.Data.Hwid", null)
+                        .WithMany()
+                        .HasForeignKey("HwidsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceClaim", b =>
@@ -1660,18 +1689,11 @@ namespace SS14.Auth.Shared.Data.Migrations
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.AuthHash", b =>
                 {
-                    b.HasOne("SS14.Auth.Shared.Data.Hwid", "Hwid")
-                        .WithMany()
-                        .HasForeignKey("HwidId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("SS14.Auth.Shared.Data.SpaceUser", "SpaceUser")
                         .WithMany("AuthHashes")
                         .HasForeignKey("SpaceUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Hwid");
 
                     b.Navigation("SpaceUser");
                 });

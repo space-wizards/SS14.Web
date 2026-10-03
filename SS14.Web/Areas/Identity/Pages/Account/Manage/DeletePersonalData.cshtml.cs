@@ -13,22 +13,19 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
 {
     public class DeletePersonalDataModel : PageModel
     {
-        private readonly UserManager<SpaceUser> _userManager;
-        private readonly SignInManager<SpaceUser> _signInManager;
-        private readonly ApplicationDbContext _context;
+        private readonly SpaceUserManager _userManager;
         private readonly ILogger<DeletePersonalDataModel> _logger;
 
         public DeletePersonalDataModel(
-            UserManager<SpaceUser> userManager,
-            SignInManager<SpaceUser> signInManager,
-            ILogger<DeletePersonalDataModel> logger,
-            ApplicationDbContext context)
+            SpaceUserManager userManager,
+            ILogger<DeletePersonalDataModel> logger)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _logger = logger;
-            _context = context;
         }
+
+        [TempData]
+        public string StatusMessage { get; set; }
 
         [BindProperty]
         public InputModel Input { get; set; }
@@ -54,7 +51,23 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostCancelAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            _userManager.CancelQueuedDeletion(user);
+
+            _logger.LogInformation("User with ID '{UserId}' canceled their deletion.", user.Id);
+
+            StatusMessage = "Account deletion canceled.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -72,20 +85,13 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
                 }
             }
 
-            _context.DeletedUserIds.Add(new DeletedUser { SpaceUserId = user.Id, DeletedOn = DateTime.UtcNow });
-
-            var result = await _userManager.DeleteAsync(user);
             var userId = await _userManager.GetUserIdAsync(user);
-            if (!result.Succeeded)
-            {
-                throw new InvalidOperationException($"Unexpected error occurred deleting user with ID '{userId}'.");
-            }
+            _userManager.QueueDeletion(user);
 
-            await _signInManager.SignOutAsync();
+            _logger.LogInformation("User with ID '{UserId}' queued their deletion.", userId);
 
-            _logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
-
-            return Redirect("~/");
+            StatusMessage = "Account deletion queued.";
+            return RedirectToPage();
         }
     }
 }
