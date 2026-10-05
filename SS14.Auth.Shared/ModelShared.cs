@@ -42,7 +42,7 @@ public static class ModelShared
             $"Deleted {deletedAccounts.Count} accounts:\n{string.Join("\n", deletedAccounts.Select(x => $"{x.Item2} | {x.Item1}"))}");
     }
 
-    public static async Task SendDeletionFailedEmail(EmailSender emailSender, Guid entrySpaceUserId)
+    public static async Task SendDeletionFailedEmail(IEmailSender emailSender, Guid entrySpaceUserId)
     {
         await emailSender.SendEmailAsync(
             "support@spacestation14.com",

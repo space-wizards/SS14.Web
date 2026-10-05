@@ -19,7 +19,7 @@ public sealed class DeleteMarkedUsersJob(
     IOptions<AccountConfiguration> configuration,
     UserManager<SpaceUser> userManager,
     EmailSender emailSender,
-    ILogger<CleanOldSessionsJob> logger) : IJob
+    ILogger<DeleteMarkedUsersJob> logger) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
@@ -46,6 +46,7 @@ public sealed class DeleteMarkedUsersJob(
             {
                 logger.LogError("Failed to delete user {Id} marked for deletion.", entry.SpaceUserId);
                 await ModelShared.SendDeletionFailedEmail(emailSender, entry.SpaceUserId);
+                return;
             }
 
             deletedAccounts.Add((entry.SpaceUserId, user.UserName));

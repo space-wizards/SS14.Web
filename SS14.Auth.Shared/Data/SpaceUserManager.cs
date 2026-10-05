@@ -61,6 +61,9 @@ public sealed class SpaceUserManager(
     /// <param name="user">The user to be queued for deletion.</param>
     public void QueueDeletion(SpaceUser user)
     {
+        if (dbContext.UserDeletionQueue.Any(x => x.SpaceUserId == user.Id))
+            return;
+
         dbContext.UserDeletionQueue.Add(new UserDeletionQueueEntry { SpaceUserId = user.Id, QueuedOn = DateTime.UtcNow });
         dbContext.SaveChanges();
     }
@@ -85,8 +88,9 @@ public sealed class SpaceUserManager(
     /// </remarks>
     public override async  Task<IdentityResult> DeleteAsync(SpaceUser user)
     {
+        var result = await base.DeleteAsync(user);
         dbContext.DeletedUserIds.Add(new DeletedUser { SpaceUserId = user.Id, DeletedOn = DateTime.UtcNow });
-        return await base.DeleteAsync(user);
+        return result;
     }
 
     /// <summary>
