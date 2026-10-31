@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SS14.Auth.Shared.Data.Migrations
 {
-    public partial class AddUserDeletionPropergatedColumn : Migration
+    public partial class AddUserDeletionPropagatedColumn : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

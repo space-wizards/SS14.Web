@@ -15,7 +15,7 @@ namespace SS14.Auth.Shared.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20261003184718_AddUserDeletionPropergatedColumn")]
-    partial class AddUserDeletionPropergatedColumn
+    partial class AddUserDeletionPropagatedColumn
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -58,7 +58,7 @@ public static class ModelShared
         await emailSender.SendEmailAsync(
             email,
             "Account deletion queued",
-            $"We received a request to delete your Space Station 14 account. It will be permanently deleted on {deletionDateString}.<br />If you want to keep your account, you can cancel the deletion at any time by logging in at https://account.spacestation14.com<br />Once the deletion goes through, your account can't be recovered. This includes your login, any OAuth apps you've created an all first party data we keep on you.");
+            $"We received a request to delete your Space Station 14 account. It will be permanently deleted on {deletionDateString}.<br />If you want to keep your account, you can cancel the deletion at any time by logging in at https://account.spacestation14.com<br />Once the deletion goes through, your account can't be recovered. This includes your login, any OAuth apps you've created and all first party data we keep on you.");
     }
 
     public static async Task SendDeletionCanceledEmail(IEmailSender emailSender, string email)
@@ -74,7 +74,7 @@ public static class ModelShared
         await emailSender.SendEmailAsync(
             email,
             "Account deleted",
-            "Your Space Station 14 account has been permanently deleted.<br />This is the result of a deletion request<br />OR<br >/Your account was deleted by account support.<br />Your login and associated data has been removed, and you will no longer be able to sign in or play on servers using this account. This can't be undone, but you're welcome to create a new account at any time.");
+            "Your Space Station 14 account has been permanently deleted.<br/>This is the result of a deletion request<br/>OR<br>/Your account was deleted by account support.<br/>Your login and associated data has been removed, and you will no longer be able to sign in or play on servers using this account. This can't be undone, but you're welcome to create a new account at any time.");
     }
 
     public static SpaceUser CreateNewUser(string userName, string email, ISystemClock systemClock)

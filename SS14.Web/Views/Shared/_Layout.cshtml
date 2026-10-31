@@ -44,8 +44,9 @@
     </nav>
     @if (await UserManager.GetDaysUntilDeletionAsync(User) is { } timeSpan)
     {
+        var deletionTimeText = timeSpan.Days < 0 ? "soon" : $"in <strong class=\"ml-1\">{timeSpan.Days}</strong> days";
         <div class="alert alert-warning mx-3 d-flex" role="alert">
-            Your account will be deleted in <strong class="ml-1">@timeSpan.Days days</strong>. <div class="flex-fill"></div> <a class="btn btn-primary btn-sm" href="/Identity/Account/Manage/DeletePersonalData">Cancel deletion</a>
+            Your account will be deleted @deletionTimeText. <div class="flex-fill"></div> <a class="btn btn-primary btn-sm" href="/Identity/Account/Manage/DeletePersonalData">Cancel deletion</a>
         </div>
     }
 </header>

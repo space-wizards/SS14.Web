@@ -49,7 +49,7 @@ public sealed class DeleteMarkedUsersJob(
             {
                 logger.LogError("Failed to delete user {Id} marked for deletion.", entry.SpaceUserId);
                 await ModelShared.SendDeletionFailedEmail(emailSender, entry.SpaceUserId);
-                return;
+                continue;
             }
 
             deletedAccounts.Add(deletedAccount);

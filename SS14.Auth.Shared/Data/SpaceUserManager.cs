@@ -89,7 +89,8 @@ public sealed class SpaceUserManager(
     public override async  Task<IdentityResult> DeleteAsync(SpaceUser user)
     {
         var result = await base.DeleteAsync(user);
-        dbContext.DeletedUserIds.Add(new DeletedUser { SpaceUserId = user.Id, DeletedOn = DateTime.UtcNow });
+        if (result.Succeeded)
+            dbContext.DeletedUserIds.Add(new DeletedUser { SpaceUserId = user.Id, DeletedOn = DateTime.UtcNow });
         return result;
     }
 
