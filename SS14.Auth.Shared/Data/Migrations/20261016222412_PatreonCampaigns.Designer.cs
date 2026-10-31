@@ -1203,6 +1203,10 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Property<string>("AccessToken")
                         .HasColumnType("text");
 
+                    b.Property<string[]>("DisabledTierIds")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<bool>("Enabled")
                         .HasColumnType("boolean");
 

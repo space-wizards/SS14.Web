@@ -57,6 +57,7 @@ public class ManagePatreonCampaigns : PageModel
     {
         public string TierId { get; set; }
         public string Reward { get; set; }
+        public bool Enabled { get; set; }
     }
 
     [TempData] public string StatusMessage { get; set; }
@@ -137,11 +138,17 @@ public class ManagePatreonCampaigns : PageModel
 
         var tierMap = campaign.TierMap;
         var tierNames = campaign.TierNames;
+        var disabledTierIds = new HashSet<string>(campaign.DisabledTierIds);
         foreach (var input in Tiers)
         {
             // The tier IDs come from the form, only accept ones the campaign has.
             if (input.TierId == null || !tierMap.ContainsKey(input.TierId))
                 continue;
+
+            if (input.Enabled)
+                disabledTierIds.Remove(input.TierId);
+            else
+                disabledTierIds.Add(input.TierId);
 
             var reward = input.Reward?.Trim();
             if (string.IsNullOrEmpty(reward) || reward.Length > MaxRewardLength)
@@ -155,6 +162,7 @@ public class ManagePatreonCampaigns : PageModel
 
         campaign.TierMap = tierMap;
         campaign.TierNames = tierNames;
+        campaign.DisabledTierIds = disabledTierIds.ToArray();
         await _membershipManager.RemapTiersAsync(campaign);
 
         StatusMessage = "Tiers saved.";

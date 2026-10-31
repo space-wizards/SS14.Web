@@ -67,6 +67,9 @@ public class Campaign : PageModel
         [Display(Name = "Tier names (one per line, reward=display name)")]
         public string TierNames { get; set; }
 
+        [Display(Name = "Disabled tier IDs (one per line)")]
+        public string DisabledTierIds { get; set; }
+
         [Display(Name = "Webhook secret (leave empty to keep)")]
         public string WebhookSecret { get; set; }
 
@@ -96,7 +99,8 @@ public class Campaign : PageModel
             IsFirstParty = DbCampaign.IsFirstParty,
             Enabled = DbCampaign.Enabled,
             TierMap = FormatPairs(DbCampaign.TierMap),
-            TierNames = FormatPairs(DbCampaign.TierNames)
+            TierNames = FormatPairs(DbCampaign.TierNames),
+            DisabledTierIds = string.Join("\n", DbCampaign.DisabledTierIds)
         };
 
         return Page();
@@ -152,6 +156,11 @@ public class Campaign : PageModel
         DbCampaign.Enabled = Input.Enabled;
         DbCampaign.TierMap = tierMap;
         DbCampaign.TierNames = tierNames;
+        DbCampaign.DisabledTierIds = (Input.DisabledTierIds ?? "")
+            .Replace("\r", "")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct()
+            .ToArray();
 
         if (!string.IsNullOrEmpty(Input.WebhookSecret))
             DbCampaign.WebhookSecret = _secretProtector.Protect(Input.WebhookSecret);

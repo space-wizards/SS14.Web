@@ -34,6 +34,7 @@ public class ManagePatreon : PageModel
         public int CampaignId { get; set; }
         public string CampaignName { get; set; }
         public bool Share { get; set; }
+        public string Tier { get; set; }
     }
 
     public ManagePatreon(
@@ -74,16 +75,28 @@ public class ManagePatreon : PageModel
                 PatreonTier = membership.TierNames.GetValueOrDefault(t, t);
             }
 
-            Sharing = await _db.PatreonMemberships
+            var communities = await _db.PatreonMemberships
                 .Where(m => !m.Campaign.IsFirstParty && m.PatreonUserId == patron.PatreonId)
                 .OrderBy(m => m.Campaign.Name)
+                .Select(m => new
+                {
+                    m.CampaignId,
+                    CampaignName = m.Campaign.Name,
+                    m.Hidden,
+                    m.CurrentTier,
+                    m.Campaign.TierNames
+                })
+                .ToListAsync();
+
+            Sharing = communities
                 .Select(m => new SharingInput
                 {
                     CampaignId = m.CampaignId,
-                    CampaignName = m.Campaign.Name,
-                    Share = !m.Hidden
+                    CampaignName = m.CampaignName,
+                    Share = !m.Hidden,
+                    Tier = m.CurrentTier == null ? null : m.TierNames.GetValueOrDefault(m.CurrentTier, m.CurrentTier)
                 })
-                .ToListAsync();
+                .ToList();
         }
 
         return Page();

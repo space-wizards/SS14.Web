@@ -35,6 +35,7 @@ namespace SS14.Auth.Shared.Data.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     TierMap = table.Column<Dictionary<string, string>>(type: "jsonb", nullable: false),
                     TierNames = table.Column<Dictionary<string, string>>(type: "jsonb", nullable: false),
+                    DisabledTierIds = table.Column<string[]>(type: "text[]", nullable: false),
                     WebhookSecret = table.Column<string>(type: "text", nullable: true),
                     AccessToken = table.Column<string>(type: "text", nullable: true),
                     RefreshToken = table.Column<string>(type: "text", nullable: true),

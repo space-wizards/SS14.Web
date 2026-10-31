@@ -114,7 +114,7 @@ public sealed class PatreonMembershipManager
 
         foreach (var membership in memberships)
         {
-            membership.CurrentTier = MapTier(campaign.TierMap, membership.EntitledTierIds);
+            membership.CurrentTier = MapTier(campaign.TierMap, membership.EntitledTierIds, campaign.DisabledTierIds);
         }
 
         await _db.SaveChangesAsync();
@@ -130,10 +130,13 @@ public sealed class PatreonMembershipManager
         await _db.SaveChangesAsync();
     }
 
-    public static string? MapTier(IReadOnlyDictionary<string, string> tierMap, IEnumerable<string> tierIds)
+    public static string? MapTier(
+        IReadOnlyDictionary<string, string> tierMap,
+        IEnumerable<string> tierIds,
+        IReadOnlyCollection<string>? disabledTierIds = null)
     {
         return tierIds
-            .Where(tierMap.ContainsKey)
+            .Where(t => tierMap.ContainsKey(t) && disabledTierIds?.Contains(t) != true)
             .Select(t => tierMap[t])
             .FirstOrDefault();
     }
@@ -143,7 +146,7 @@ public sealed class PatreonMembershipManager
         membership.PatreonMemberId = data.MemberId;
         membership.PatronStatus = data.PatronStatus;
         membership.EntitledTierIds = data.TierIds;
-        membership.CurrentTier = MapTier(campaign.TierMap, data.TierIds);
+        membership.CurrentTier = MapTier(campaign.TierMap, data.TierIds, campaign.DisabledTierIds);
         membership.UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

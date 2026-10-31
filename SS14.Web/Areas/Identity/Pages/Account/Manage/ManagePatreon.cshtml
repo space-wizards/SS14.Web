@@ -41,7 +41,14 @@
                             <input type="hidden" asp-for="Sharing[i].CampaignId"/>
                             <input type="hidden" asp-for="Sharing[i].CampaignName"/>
                             <input asp-for="Sharing[i].Share" class="form-check-input"/>
-                            <label asp-for="Sharing[i].Share" class="form-check-label">@Model.Sharing[i].CampaignName</label>
+                            <input type="hidden" asp-for="Sharing[i].Tier"/>
+                            <label asp-for="Sharing[i].Share" class="form-check-label">
+                                @Model.Sharing[i].CampaignName
+                                @if (Model.Sharing[i].Tier != null)
+                                {
+                                    <span class="text-muted">(@Model.Sharing[i].Tier)</span>
+                                }
+                            </label>
                         </div>
                     }
                     <button type="submit" class="btn btn-primary mt-2">Save</button>

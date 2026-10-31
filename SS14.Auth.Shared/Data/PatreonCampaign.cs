@@ -31,6 +31,11 @@ public sealed class PatreonCampaign
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string> TierNames { get; set; } = new();
 
+    /// <summary>
+    /// Patreon tier IDs that are turned off
+    /// </summary>
+    public string[] DisabledTierIds { get; set; } = [];
+
     // The following secrets are encrypted, see PatreonSecretProtector
     public string? WebhookSecret { get; set; }
     public string? AccessToken { get; set; }
