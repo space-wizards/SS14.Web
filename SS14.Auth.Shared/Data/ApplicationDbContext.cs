@@ -15,7 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     IConfigurationDbContext,
     IPersistedGrantDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public ApplicationDbContext(DbContextOptions options)
         : base(options)
     {
     }
