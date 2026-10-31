@@ -3,8 +3,8 @@
 @using SS14.Auth.Shared.Config
 @using SS14.Auth.Shared.Data
 @model DeletePersonalDataModel
-@inject SpaceUserManager userManager
-@inject IOptions<AccountConfiguration> config
+@inject SpaceUserManager UserManager
+@inject IOptions<AccountConfiguration> Config
 @{
     ViewData["Title"] = "Delete Personal Data";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
@@ -20,7 +20,7 @@
 </div>
 
 
-@if (await userManager.GetDaysUntilDeletionAsync(User) is {} timeSpan)
+@if (await UserManager.GetDaysUntilDeletionAsync(User) is {} timeSpan)
 {
     var deletionTimeText = timeSpan.Days < 0 ? "soon" : $"in {timeSpan.Days} days";
 
@@ -40,7 +40,7 @@ else
     <div class="alert alert-warning" role="alert">
         <p>
             <strong>Deleting this data will permanently remove your account and this cannot be recovered.</strong><br/>
-            After confirming that you want to delete your account it will be deleted after @config.Value.UserDeletionGracePeriodDays days unless you cancel the deletion process.
+            After confirming that you want to delete your account it will be deleted after @Config.Value.UserDeletionGracePeriodDays days unless you cancel the deletion process.
         </p>
     </div>
 

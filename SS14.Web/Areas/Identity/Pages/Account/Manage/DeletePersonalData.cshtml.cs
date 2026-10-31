@@ -1,13 +1,14 @@
-
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SS14.Auth.Shared;
+using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage
 {
@@ -15,13 +16,19 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
     {
         private readonly SpaceUserManager _userManager;
         private readonly ILogger<DeletePersonalDataModel> _logger;
+        private readonly IEmailSender _emailSender;
+        private readonly IOptions<AccountConfiguration> _configuration;
 
         public DeletePersonalDataModel(
             SpaceUserManager userManager,
-            ILogger<DeletePersonalDataModel> logger)
+            ILogger<DeletePersonalDataModel> logger,
+            IEmailSender emailSender,
+            IOptions<AccountConfiguration> configuration)
         {
             _userManager = userManager;
             _logger = logger;
+            _emailSender = emailSender;
+            _configuration = configuration;
         }
 
         [TempData]
@@ -59,8 +66,9 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            _userManager.CancelQueuedDeletion(user);
+            await _userManager.CancelQueuedDeletion(user);
 
+            await ModelShared.SendDeletionCanceledEmail(_emailSender, user.Email);
             _logger.LogInformation("User with ID '{UserId}' canceled their deletion.", user.Id);
 
             StatusMessage = "Account deletion canceled.";
@@ -86,8 +94,12 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
             }
 
             var userId = await _userManager.GetUserIdAsync(user);
-            _userManager.QueueDeletion(user);
+            await _userManager.QueueDeletion(user);
 
+            var gracePeriod = _configuration.Value.UserDeletionGracePeriodDays;
+            var deletionDate = DateTime.UtcNow.AddDays(gracePeriod);
+
+            await ModelShared.SendDeletionQueuedEmail(_emailSender, user.Email, deletionDate);
             _logger.LogInformation("User with ID '{UserId}' queued their deletion.", userId);
 
             StatusMessage = "Account deletion queued.";

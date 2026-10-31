@@ -59,27 +59,27 @@ public sealed class SpaceUserManager(
     /// Adds the specified user to the deletion queue.
     /// </summary>
     /// <param name="user">The user to be queued for deletion.</param>
-    public void QueueDeletion(SpaceUser user)
+    public async Task QueueDeletion(SpaceUser user)
     {
         if (dbContext.UserDeletionQueue.Any(x => x.SpaceUserId == user.Id))
             return;
 
         dbContext.UserDeletionQueue.Add(new UserDeletionQueueEntry { SpaceUserId = user.Id, QueuedOn = DateTime.UtcNow });
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
     }
 
     /// <summary>
     /// Removes the specified user from the deletion queue if they are currently queued for deletion.
     /// </summary>
     /// <param name="user">The user to be removed from the deletion queue.</param>
-    public void CancelQueuedDeletion(SpaceUser user)
+    public async Task CancelQueuedDeletion(SpaceUser user)
     {
         var entry = dbContext.UserDeletionQueue.FirstOrDefault(x => x.SpaceUserId == user.Id);
         if (entry == null)
             return;
 
         dbContext.UserDeletionQueue.Remove(entry);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
     }
 
     ///<inheritdoc />

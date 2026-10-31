@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,12 @@ using SS14.Auth.Shared.Emails;
 
 namespace SS14.Auth.Jobs;
 
+[UsedImplicitly]
 public sealed class DeleteMarkedUsersJob(
     ApplicationDbContext dbContext,
     IOptions<AccountConfiguration> configuration,
     UserManager<SpaceUser> userManager,
-    EmailSender emailSender,
+    IEmailSender emailSender,
     ILogger<DeleteMarkedUsersJob> logger) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
@@ -29,7 +31,7 @@ public sealed class DeleteMarkedUsersJob(
             .Where(e => e.QueuedOn < DateTime.UtcNow.AddDays(-gracePeriod))
             .ToListAsync(context.CancellationToken);
 
-        var deletedAccounts = new List<(Guid, string?)>();
+        var deletedAccounts = new List<(Guid, string?, string?)>();
 
         foreach (var entry in entries)
         {
@@ -41,6 +43,7 @@ public sealed class DeleteMarkedUsersJob(
                 continue;
             }
 
+            var deletedAccount = (entry.SpaceUserId, user.UserName, user.Email);
             var result = await userManager.DeleteAsync(user);
             if (!result.Succeeded)
             {
@@ -49,7 +52,7 @@ public sealed class DeleteMarkedUsersJob(
                 return;
             }
 
-            deletedAccounts.Add((entry.SpaceUserId, user.UserName));
+            deletedAccounts.Add(deletedAccount);
         }
 
         await dbContext.SaveChangesAsync();
@@ -58,5 +61,12 @@ public sealed class DeleteMarkedUsersJob(
             return;
 
         await ModelShared.SendUserDeletionQueueEmail(emailSender, deletedAccounts);
+        foreach (var (_, _, email) in deletedAccounts)
+        {
+            if (email == null)
+                continue;
+
+            await ModelShared.SendUserDeletedEmail(emailSender, email);
+        }
     }
 }
