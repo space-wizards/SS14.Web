@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Security.Claims;
@@ -23,8 +24,8 @@ public class IdentityClaimsProvider
     /// <summary>
     /// Provides claims for the specified identity.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="scopes"></param>
+    /// <param name="userId">The id of the user to get the claims from</param>
+    /// <param name="scopes">The list of scopes to get the claims for</param>
     /// <param name="identity">The identity for which claims are to be provided.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task ProvideClaimsAsync(string userId, ImmutableArray<string> scopes, ClaimsIdentity identity)
@@ -33,7 +34,7 @@ public class IdentityClaimsProvider
         if (user == null)
             return;
 
-        var username = await _userManager.GetUserNameAsync(user) ?? "";
+        var username = await _userManager.GetUserNameAsync(user) ?? string.Empty;
 
         identity.AddClaim(new Claim(Claims.Subject, await _userManager.GetUserIdAsync(user)));
 

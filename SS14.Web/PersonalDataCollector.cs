@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpenIddict.Core;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Extensions;
 using SS14.Web.OpenId.Extensions;
 using SS14.WebEverythingShared;
 

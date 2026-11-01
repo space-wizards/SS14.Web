@@ -11,13 +11,11 @@ public class SignedInIdentityService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<SpaceUser> _userManager;
-    private readonly SignInManager<SpaceUser> _signInManager;
 
     public SignedInIdentityService(IHttpContextAccessor httpContextAccessor, UserManager<SpaceUser> userManager, SignInManager<SpaceUser> signInManager)
     {
         _httpContextAccessor = httpContextAccessor;
         _userManager = userManager;
-        _signInManager = signInManager;
     }
 
     public async Task<bool> IsAvailableAsync()
