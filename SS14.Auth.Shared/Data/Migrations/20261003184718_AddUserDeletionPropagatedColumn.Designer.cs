@@ -14,7 +14,7 @@ using SS14.Auth.Shared.Data;
 namespace SS14.Auth.Shared.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261003184718_AddUserDeletionPropergatedColumn")]
+    [Migration("20261003184718_AddUserDeletionPropagatedColumn")]
     partial class AddUserDeletionPropagatedColumn
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

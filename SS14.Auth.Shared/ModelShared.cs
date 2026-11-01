@@ -74,7 +74,7 @@ public static class ModelShared
         await emailSender.SendEmailAsync(
             email,
             "Account deleted",
-            "Your Space Station 14 account has been permanently deleted.<br/>This is the result of a deletion request<br/>OR<br>/Your account was deleted by account support.<br/>Your login and associated data has been removed, and you will no longer be able to sign in or play on servers using this account. This can't be undone, but you're welcome to create a new account at any time.");
+            "Your Space Station 14 account has been permanently deleted.<br/>This is the result of a deletion request<br/>OR<br/>Your account was deleted by account support.<br/>Your login and associated data has been removed, and you will no longer be able to sign in or play on servers using this account. This can't be undone, but you're welcome to create a new account at any time.");
     }
 
     public static SpaceUser CreateNewUser(string userName, string email, ISystemClock systemClock)
