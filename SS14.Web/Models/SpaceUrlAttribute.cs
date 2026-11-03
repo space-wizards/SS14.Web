@@ -3,6 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SS14.Web.Models;
 
+/// <summary>
+/// Validates that a given value is a valid absolute URL.
+/// This validation is more specific than the standard <see cref="UrlAttribute"/> while also allowing other schemes.
+/// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class SpaceUrlAttribute : ValidationAttribute
 {

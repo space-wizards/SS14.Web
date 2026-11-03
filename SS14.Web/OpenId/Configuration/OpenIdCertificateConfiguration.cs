@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace SS14.Web.OpenId.Configuration;
 
@@ -14,7 +15,8 @@ public sealed class OpenIdCertificateConfiguration
     /// <remarks>
     /// A certificate with the matching algorithm needs to be present
     /// </remarks>
-    public string? DefaultEncryptionAlgorithm { get; set; }
+    [UsedImplicitly]
+    public string DefaultEncryptionAlgorithm { get; init; } = null!;
 
     /// <summary>
     /// Sets the default encryption algorithm if it didn't get overriden by the application.
@@ -23,8 +25,9 @@ public sealed class OpenIdCertificateConfiguration
     /// <remarks>
     /// A certificate with the matching algorithm needs to be present
     /// </remarks>
-    public string? DefaultSigningAlgorithm { get; set; }
+    [UsedImplicitly]
+    public string DefaultSigningAlgorithm { get; init; } = null!;
 
-    public List<CertificateOptions> EncryptionCertificates { get; set; } = [];
-    public List<CertificateOptions> SigningCertificates { get; set; } = [];
+    public List<CertificateOptions> EncryptionCertificates { get; init; } = [];
+    public List<CertificateOptions> SigningCertificates { get; init; } = [];
 }

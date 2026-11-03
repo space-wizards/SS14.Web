@@ -73,7 +73,7 @@ public class SpaceApplicationManager(
             secret = secret[5..];
 
         var secrets = secret.Split(',');
-        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var obfuscatedSecrets = new string[secrets.Length];
 
         for (var i = 0; i < secrets.Length; i++)

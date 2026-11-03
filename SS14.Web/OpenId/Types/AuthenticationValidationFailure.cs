@@ -9,8 +9,9 @@ public record AuthenticationValidationFailure(
     bool IsChallenge = false,
     AuthenticationProperties? Properties = null)
 {
-    public static AuthenticationValidationFailure LoginRequired => new(Error: OpenIddictConstants.Errors.LoginRequired);
+    public static AuthenticationValidationFailure LoginRequired =>
+        new(Error: OpenIddictConstants.Errors.LoginRequired);
 
-    public static AuthenticationValidationFailure Challenge (AuthenticationProperties properties) =>
+    public static AuthenticationValidationFailure Challenge(AuthenticationProperties properties) =>
         new(IsChallenge: true, Properties: properties);
 };

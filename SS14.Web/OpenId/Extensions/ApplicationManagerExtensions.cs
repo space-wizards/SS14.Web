@@ -12,78 +12,65 @@ namespace SS14.Web.OpenId.Extensions;
 
 public static class ApplicationManagerExtensions
 {
-    public static async ValueTask<string?> GetFirstRedirectUrl(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
+    extension(OpenIddictApplicationManager<SpaceApplication> manager)
     {
-        var callbackUris = await manager.GetRedirectUrisAsync(app);
-        return callbackUris.IsEmpty ? null : callbackUris[0];
-    }
+        public async ValueTask<string?> GetFirstRedirectUrl(SpaceApplication app)
+        {
+            var callbackUris = await manager.GetRedirectUrisAsync(app);
+            return callbackUris.IsEmpty ? null : callbackUris[0];
+        }
 
-    public static async ValueTask<bool> GetRequiresPkce(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
-    {
-        var requirements = await manager.GetRequirementsAsync(app);
-        return requirements.Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
-    }
+        public async ValueTask<bool> GetRequiresPkce(SpaceApplication app)
+        {
+            var requirements = await manager.GetRequirementsAsync(app);
+            return requirements.Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
+        }
 
-    public static async ValueTask<bool> GetPs256Setting(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
-    {
-        return await manager.CheckSetting(app, OpenIdConstants.SigningAlgorithmSetting, OpenIddictConstants.Algorithms.RsaSsaPssSha256);
-    }
+        public async ValueTask<bool> GetPs256Setting(SpaceApplication app)
+        {
+            return await manager.CheckSetting(app, OpenIdConstants.SigningAlgorithmSetting, OpenIddictConstants.Algorithms.RsaSsaPssSha256);
+        }
 
-    public static async ValueTask<bool> GetAllowPlainPkceSetting(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
-    {
-        return await manager.CheckSetting(app, OpenIdConstants.AllowPlainPkce, "true");
-    }
+        public async ValueTask<bool> GetAllowPlainPkceSetting(SpaceApplication app)
+        {
+            return await manager.CheckSetting(app, OpenIdConstants.AllowPlainPkce, "true");
+        }
 
-    public static async ValueTask<bool> IsDisabled(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
-    {
-        return await manager.CheckSetting(app, OpenIdConstants.DisabledSetting, "true");
-    }
+        public async ValueTask<bool> IsDisabled(SpaceApplication app)
+        {
+            return await manager.CheckSetting(app, OpenIdConstants.DisabledSetting, "true");
+        }
 
-    public static async ValueTask<bool> CheckSetting(this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app,
-        string setting,
-        string comparand)
-    {
-        var settings = await manager.GetSettingsAsync(app);
-        return settings.TryGetValue(setting, out var value)
-               && value.Equals(comparand);
-    }
+        private async ValueTask<bool> CheckSetting(SpaceApplication app,
+            string setting,
+            string comparand)
+        {
+            var settings = await manager.GetSettingsAsync(app);
+            return settings.TryGetValue(setting, out var value)
+                   && value.Equals(comparand);
+        }
 
-    public static async ValueTask<List<SpaceApplication>> FindApplicationsByUserId(this OpenIddictApplicationManager<SpaceApplication> manager, Guid userId, CancellationToken cancel = default)
-    {
-        return await manager.ListAsync(x => x.Where(a => a.SpaceUserId == userId)
-            , cancel).ToListAsync(cancellationToken: cancel);
-    }
+        public async ValueTask<List<SpaceApplication>> FindApplicationsByUserId(Guid userId, CancellationToken cancel = default)
+        {
+            return await manager
+                .ListAsync(x => x.Where(a => a.SpaceUserId == userId), cancel)
+                .ToListAsync(cancellationToken: cancel);
+        }
 
-    public static async ValueTask<int> GetAccessTokenLifetime(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
-    {
-        return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.AccessToken);
-    }
+        public async ValueTask<int> GetAccessTokenLifetime(SpaceApplication app)
+        {
+            return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.AccessToken);
+        }
 
-    public static async ValueTask<int> GetIdentityTokenLifetime(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
-    {
-        return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.IdentityToken);
-    }
+        public async ValueTask<int> GetIdentityTokenLifetime(SpaceApplication app)
+        {
+            return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.IdentityToken);
+        }
 
-    public static async ValueTask<int> GetRefreshTokenLifetime(
-        this OpenIddictApplicationManager<SpaceApplication> manager,
-        SpaceApplication app)
-    {
-        return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.RefreshToken);
+        public async ValueTask<int> GetRefreshTokenLifetime(SpaceApplication app)
+        {
+            return await GetLifetime(manager, app, OpenIddictConstants.Settings.TokenLifetimes.RefreshToken);
+        }
     }
 
     private static async ValueTask<int> GetLifetime(OpenIddictApplicationManager<SpaceApplication> manager,

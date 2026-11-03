@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using OpenIddict.Abstractions;
-
-namespace SS14.Web.OpenId;
+﻿namespace SS14.Web.OpenId;
 
 public static class OpenIdConstants
 {

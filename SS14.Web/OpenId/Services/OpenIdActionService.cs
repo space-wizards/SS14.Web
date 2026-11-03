@@ -19,9 +19,9 @@ using Void = SS14.Web.Models.Types.Void;
 
 namespace SS14.Web.OpenId.Services;
 
-/**
- * Handles all the OpenIddict action plumbing. Used inside the consent page.
- */
+/// <summary>
+/// Handles all the OpenIddict action plumbing. Used inside the consent page.
+/// </summary>
 public class OpenIdActionService
 {
     public const string ApplicationNotFoundError = "application_not_found";

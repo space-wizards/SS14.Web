@@ -12,8 +12,11 @@ public record AuthorizationResult(
     ImmutableArray<string>? Scopes,
     ClaimsPrincipal? Principal)
 {
-    public static AuthorizationResult SignIn(ClaimsPrincipal principal) =>
-        new(ResultType.SignIn, null, null, null, principal);
+    public static AuthorizationResult SignIn(ClaimsPrincipal principal)
+    {
+        return new AuthorizationResult(ResultType.SignIn, null, null, null, principal);
+    }
+
 
     public static AuthorizationResult Forbidden(SpaceApplication app, string error)
     {

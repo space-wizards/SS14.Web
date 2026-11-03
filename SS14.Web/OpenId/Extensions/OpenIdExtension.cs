@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using OpenIddict.Abstractions;
 using SS14.Auth.Shared.Data;
 using SS14.Web.OpenId.Configuration;
 using SS14.Web.OpenId.EventHandlers;
