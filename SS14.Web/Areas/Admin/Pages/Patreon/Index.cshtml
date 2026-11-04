@@ -1,0 +1,57 @@
+@page
+@model SS14.Web.Areas.Admin.Pages.Patreon.Index
+
+@{
+    ViewData["Title"] = "Patreon Campaigns";
+}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+@if (TempData.ContainsKey("StatusMessage"))
+{
+    <partial name="_StatusMessage" model="@TempData["StatusMessage"]" />
+}
+
+<a asp-page="./Campaign" class="btn btn-success">New Campaign</a>
+
+<table class="table table-dark">
+    <thead>
+    <tr>
+        <th>Key</th>
+        <th>Name</th>
+        <th>Members</th>
+        <th>Last import</th>
+        <th>Last webhook</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var (campaign, members) in Model.Campaigns)
+    {
+        <tr>
+            <td>@campaign.Key</td>
+            <td>
+                @campaign.Name
+                @if (campaign.IsFirstParty)
+                {
+                    <span class="badge badge-info">First party</span>
+                }
+                @if (!campaign.Enabled)
+                {
+                    <span class="badge badge-secondary">Disabled</span>
+                }
+            </td>
+            <td>@members</td>
+            <td>@(campaign.LastFullSyncAt?.ToUniversalTime().ToString("u") ?? "Never")</td>
+            <td>@(campaign.LastWebhookAt?.ToUniversalTime().ToString("u") ?? "Never")</td>
+            <td>
+                <a asp-page="./Campaign" asp-route-id="@campaign.Id">View</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

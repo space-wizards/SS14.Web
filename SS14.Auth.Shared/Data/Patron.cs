@@ -13,6 +13,4 @@ public class Patron
 
     [JsonIgnore]
     public SpaceUser SpaceUser { get; set; }
-
-    public string CurrentTier { get; set; }
 }

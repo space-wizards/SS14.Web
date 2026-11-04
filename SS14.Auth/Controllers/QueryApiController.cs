@@ -81,13 +81,28 @@ public class QueryApiController : ControllerBase
         return await DoResponse(user);
     }
 
+    /// <summary>
+    /// Servers can send this header to also get the user's membership in their community's Patreon campaign.
+    /// </summary>
+    internal const string CampaignTokenHeader = "SS14-Campaign-Token";
+
     internal static async Task<QueryUserResponse> BuildUserResponse(
         PatreonDataManager patreonDataManager,
-        SpaceUser user)
+        SpaceUser user,
+        string? campaignToken)
     {
         var patronTier = await patreonDataManager.GetPatreonTierAsync(user);
 
-        return new QueryUserResponse(user.UserName!, user.Id, patronTier, user.CreatedTime);
+        // A missing or invalid token is not an error, just no the community data is returned.
+        CommunityPatronResponse? communityPatron = null;
+        if (await patreonDataManager.GetCampaignByServerTokenAsync(campaignToken!) is { } campaign)
+        {
+            var statuses = await patreonDataManager.GetCampaignStatusesAsync(campaign, [user.Id]);
+            if (statuses.TryGetValue(user.Id, out var status))
+                communityPatron = new CommunityPatronResponse(status.PatronStatus, status.Tier);
+        }
+
+        return new QueryUserResponse(user.UserName!, user.Id, patronTier, user.CreatedTime, communityPatron);
     }
 
     private async Task<IActionResult> DoResponse(SpaceUser? user)
@@ -95,6 +110,6 @@ public class QueryApiController : ControllerBase
         if (user == null)
             return NotFound();
 
-        return Ok(await BuildUserResponse(_patreonDataManager, user));
+        return Ok(await BuildUserResponse(_patreonDataManager, user, Request.Headers[CampaignTokenHeader]));
     }
 }

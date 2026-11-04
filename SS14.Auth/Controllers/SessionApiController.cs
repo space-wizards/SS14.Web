@@ -91,7 +91,9 @@ public class SessionApiController : ControllerBase
         }
 
         var userResponse = await QueryApiController.BuildUserResponse(
-            _patreonDataManager, authHash.SpaceUser);
+            _patreonDataManager,
+            authHash.SpaceUser,
+            Request.Headers[QueryApiController.CampaignTokenHeader]);
 
         var hwidString = authHash.Hwid?.Value is { } hwid ? Convert.ToBase64String(hwid) : null;
 

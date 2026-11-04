@@ -79,6 +79,7 @@ public class Startup
                 options.Conventions.AuthorizeAreaFolder("Admin", "/", AuthConstants.PolicyAnyHubAdmin);
                 options.Conventions.AuthorizeAreaFolder("Admin", "/Clients", AuthConstants.PolicySysAdmin);
                 options.Conventions.AuthorizeAreaFolder("Admin", "/Users", AuthConstants.PolicySysAdmin);
+                options.Conventions.AuthorizeAreaFolder("Admin", "/Patreon", AuthConstants.PolicySysAdmin);
                 options.Conventions.AuthorizeAreaFolder("Admin", "/Servers", AuthConstants.PolicyServerHubAdmin);
             });
 
@@ -93,6 +94,7 @@ public class Startup
         services.AddRazorPages();
 
         services.AddScoped<PatreonConnectionHandler>();
+        services.AddScoped<PatreonCampaignConnectHandler>();
 
         var patreonSection = Configuration.GetSection("Patreon");
         var patreonCfg = patreonSection.Get<PatreonConfiguration>();
@@ -108,19 +110,30 @@ public class Startup
                 {
                     // Patreon docs lied you don't need this to see memberships to your own campaign.
                     // options.Scope.Add("identity.memberships");
-                    options.Includes.Add("memberships.currently_entitled_tiers");
                     options.ClientId = patreonCfg.ClientId;
                     options.ClientSecret = patreonCfg.ClientSecret;
-
-                    options.Events.OnCreatingTicket += context =>
-                    {
-                        var handler = context.HttpContext.RequestServices.GetService<PatreonConnectionHandler>();
-                        return handler!.HookCreatingTicket(context);
-                    };
 
                     options.Events.OnTicketReceived += context =>
                     {
                         var handler = context.HttpContext.RequestServices.GetService<PatreonConnectionHandler>();
+                        return handler!.HookReceivedTicket(context);
+                    };
+                })
+                // Campaign creators connecting their campaign. Needs the callback registered in the Patreon client.
+                .AddPatreon("PatreonCreator", null!, options =>
+                {
+                    options.Scope.Add("campaigns");
+                    options.Scope.Add("campaigns.members");
+                    options.Scope.Add("w:campaigns.webhook");
+                    options.ClientId = patreonCfg.ClientId;
+                    options.ClientSecret = patreonCfg.ClientSecret;
+                    options.CallbackPath = "/signin-patreon-creator";
+                    options.SaveTokens = true;
+
+                    options.Events.OnTicketReceived += context =>
+                    {
+                        var handler = context.HttpContext.RequestServices
+                            .GetService<PatreonCampaignConnectHandler>();
                         return handler!.HookReceivedTicket(context);
                     };
                 });

@@ -19,6 +19,7 @@
 {
     <a asp-page="Users/Index" class="btn btn-primary">Users</a>
     <a asp-page="Clients/Index" class="btn btn-primary">OAuth Clients</a>
+    <a asp-page="Patreon/Index" class="btn btn-primary">Patreon</a>
 }
 
 @if ((await AuthorizationService.AuthorizeAsync(User, AuthConstants.PolicyServerHubAdmin)).Succeeded)

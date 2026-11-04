@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -22,6 +24,18 @@ public class ManagePatreon : PageModel
 
     public bool PatreonLinked { get; private set; }
     public string PatreonTier { get; private set; }
+
+    [BindProperty] public List<SharingInput> Sharing { get; set; } = new();
+
+    [TempData] public string StatusMessage { get; set; }
+
+    public sealed class SharingInput
+    {
+        public int CampaignId { get; set; }
+        public string CampaignName { get; set; }
+        public bool Share { get; set; }
+        public string Tier { get; set; }
+    }
 
     public ManagePatreon(
         SpaceUserManager userManager,
@@ -49,18 +63,77 @@ public class ManagePatreon : PageModel
 
         PatreonLinked = patron != null;
 
-        if (patron?.CurrentTier is { } t)
+        if (patron != null)
         {
-            if (_cfg.Value.TierNames.TryGetValue(t, out var name))
+            var membership = await _db.PatreonMemberships
+                .Where(m => m.Campaign.IsFirstParty && m.Campaign.Enabled && m.PatreonUserId == patron.PatreonId)
+                .Select(m => new { m.CurrentTier, m.Campaign.TierNames })
+                .SingleOrDefaultAsync();
+
+            if (membership?.CurrentTier is { } t)
             {
-                PatreonTier = name;
+                PatreonTier = membership.TierNames.GetValueOrDefault(t, t);
             }
-            else
+
+            var communities = await _db.PatreonMemberships
+                .Where(m => !m.Campaign.IsFirstParty && m.PatreonUserId == patron.PatreonId)
+                .OrderBy(m => m.Campaign.Name)
+                .Select(m => new
+                {
+                    m.CampaignId,
+                    CampaignName = m.Campaign.Name,
+                    m.Hidden,
+                    m.CurrentTier,
+                    m.Campaign.TierNames
+                })
+                .ToListAsync();
+
+            Sharing = communities
+                .Select(m => new SharingInput
+                {
+                    CampaignId = m.CampaignId,
+                    CampaignName = m.CampaignName,
+                    Share = !m.Hidden,
+                    Tier = m.CurrentTier == null ? null : m.TierNames.GetValueOrDefault(m.CurrentTier, m.CurrentTier)
+                })
+                .ToList();
+        }
+
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostSharingAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+        }
+
+        var patron = await _db.Patrons.SingleOrDefaultAsync(p => p.SpaceUserId == user.Id);
+        if (patron == null)
+        {
+            return RedirectToPage();
+        }
+
+        // Only touch the user's own memberships, the campaign IDs come from the form
+        var memberships = await _db.PatreonMemberships
+            .Where(m => !m.Campaign.IsFirstParty && m.PatreonUserId == patron.PatreonId)
+            .ToListAsync();
+
+        foreach (var membership in memberships)
+        {
+            var input = Sharing.FirstOrDefault(s => s.CampaignId == membership.CampaignId);
+            if (input != null)
             {
-                PatreonTier = t;
+                membership.Hidden = !input.Share;
             }
         }
-        return Page();
+
+        await _db.SaveChangesAsync();
+
+        StatusMessage = "Sharing preferences saved.";
+        return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostUnlinkPatreonAsync()

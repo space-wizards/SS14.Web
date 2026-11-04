@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace SS14.Auth.Shared.Config;
+﻿namespace SS14.Auth.Shared.Config;
 
 public sealed class PatreonConfiguration
 {
     public string ClientId { get; set; }
     public string ClientSecret { get; set; }
-    public Dictionary<string, string> TierMap { get; set; }
-    public Dictionary<string, string> TierNames { get; set; }
-    public string WebhookSecret { get; set; }
     public bool LogWebhooks { get; set; } = true;
+
+    /// <summary>
+    /// Public base URL of the auth API, used to tell Patreon where to send webhook messages
+    /// </summary>
+    public string WebhookBaseUrl { get; set; }
 }

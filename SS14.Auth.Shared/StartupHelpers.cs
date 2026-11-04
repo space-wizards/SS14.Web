@@ -15,6 +15,7 @@ using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.MutexDb;
+using SS14.Auth.Shared.Patreon;
 using SS14.Auth.Shared.Sessions;
 
 namespace SS14.Auth.Shared;
@@ -79,6 +80,13 @@ public static class StartupHelpers
 
         services.AddScoped<SessionManager>();
         services.AddScoped<PatreonDataManager>();
+        services.AddScoped<PatreonMembershipManager>();
+        services.AddSingleton<PatreonSecretProtector>();
+        services.AddScoped<PatreonImporter>();
+        services.AddHttpClient<PatreonApiClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://www.patreon.com/");
+        });
 
         services.AddTransient(_ => RandomNumberGenerator.Create());
 

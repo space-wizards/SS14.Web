@@ -9,5 +9,10 @@ public class PatreonWebhookLog
     public string Trigger { get; set; }
     public DateTimeOffset Time { get; set; }
 
+    /// <summary>
+    /// The campaign this was received for. Null for the first-party webhook.
+    /// </summary>
+    public int? CampaignId { get; set; }
+
     [Column(TypeName = "jsonb")] public string Content { get; set; }
 }

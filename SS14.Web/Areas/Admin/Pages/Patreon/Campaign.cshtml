@@ -1,0 +1,133 @@
+@page "{id:int?}"
+@model SS14.Web.Areas.Admin.Pages.Patreon.Campaign
+
+@{
+    ViewData["Title"] = $"Patreon Campaign: {Model.Title}";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="../Index">Hub Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="./Index">Patreon Campaigns</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+    </ol>
+</nav>
+
+<partial name="_StatusMessage" model="Model.StatusMessage"/>
+
+<h5>Options</h5>
+<form method="post" class="container">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group row">
+        <label asp-for="Input.Key" class="col-sm-3 col-form-label"></label>
+        <input asp-for="Input.Key" class="form-control col-sm-9"/>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.Name" class="col-sm-3 col-form-label"></label>
+        <input asp-for="Input.Name" class="form-control col-sm-9"/>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.PatreonCampaignId" class="col-sm-3 col-form-label"></label>
+        <input asp-for="Input.PatreonCampaignId" class="form-control col-sm-9"/>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-sm-9 offset-sm-3">
+            <div class="form-check">
+                <input asp-for="Input.Enabled" class="form-check-input"/>
+                <label asp-for="Input.Enabled" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-sm-9 offset-sm-3">
+            <div class="form-check">
+                <input asp-for="Input.IsFirstParty" class="form-check-input"/>
+                <label asp-for="Input.IsFirstParty" class="form-check-label"></label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.TierMap" class="col-sm-3 col-form-label"></label>
+        <textarea asp-for="Input.TierMap" class="form-control col-sm-9" rows="4"></textarea>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.TierNames" class="col-sm-3 col-form-label"></label>
+        <textarea asp-for="Input.TierNames" class="form-control col-sm-9" rows="4"></textarea>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.DisabledTierIds" class="col-sm-3 col-form-label"></label>
+        <textarea asp-for="Input.DisabledTierIds" class="form-control col-sm-9" rows="2"></textarea>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.WebhookSecret" class="col-sm-3 col-form-label"></label>
+        <input asp-for="Input.WebhookSecret" type="password" autocomplete="off" class="form-control col-sm-9"/>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.AccessToken" class="col-sm-3 col-form-label"></label>
+        <input asp-for="Input.AccessToken" type="password" autocomplete="off" class="form-control col-sm-9"/>
+    </div>
+
+    <div class="form-group row">
+        <label asp-for="Input.RefreshToken" class="col-sm-3 col-form-label"></label>
+        <input asp-for="Input.RefreshToken" type="password" autocomplete="off" class="form-control col-sm-9"/>
+    </div>
+
+    <button type="submit" asp-page-handler="Save" asp-route-id="@Model.DbCampaign?.Id" class="btn btn-primary btn-sm">Save</button>
+</form>
+
+@if (Model.DbCampaign?.Id is { } id and not 0)
+{
+    <h5 class="mt-5">Status</h5>
+
+    <dl class="row">
+        <dt class="col-sm-3">Webhook URL</dt>
+        <dd class="col-sm-9"><code>/hook/patreon/@Model.DbCampaign.Key</code></dd>
+        <dt class="col-sm-3">Webhook secret</dt>
+        <dd class="col-sm-9">@(Model.DbCampaign.WebhookSecret == null ? "Not set" : "Set")</dd>
+        <dt class="col-sm-3">Access token</dt>
+        <dd class="col-sm-9">@(Model.DbCampaign.AccessToken == null ? "Not set" : "Set")</dd>
+        <dt class="col-sm-3">Owner</dt>
+        <dd class="col-sm-9">
+            @if (Model.DbCampaign.OwnerUserId is { } ownerId)
+            {
+                <a asp-page="../Users/ViewUser" asp-route-id="@ownerId">@ownerId</a>
+            }
+            else
+            {
+                <span>Added by an admin</span>
+            }
+        </dd>
+        <dt class="col-sm-3">Server token</dt>
+        <dd class="col-sm-9">@(Model.DbCampaign.ServerTokenHash == null ? "Not set" : "Set")</dd>
+        <dt class="col-sm-3">Members</dt>
+        <dd class="col-sm-9">@Model.MemberCount</dd>
+        <dt class="col-sm-3">Last import</dt>
+        <dd class="col-sm-9">@(Model.DbCampaign.LastFullSyncAt?.ToUniversalTime().ToString("u") ?? "Never")</dd>
+        <dt class="col-sm-3">Last webhook received</dt>
+        <dd class="col-sm-9">@(Model.DbCampaign.LastWebhookAt?.ToUniversalTime().ToString("u") ?? "Never")</dd>
+    </dl>
+
+    <h5 class="mt-5">Actions</h5>
+
+    <form method="post" class="d-inline">
+        <button type="submit" asp-page-handler="Import" asp-route-id="@id" class="btn btn-primary">Import members</button>
+    </form>
+    <form method="post" class="d-inline">
+        <button type="submit" asp-page-handler="GenerateToken" asp-route-id="@id" class="btn btn-warning"
+                onclick="return confirm('This replaces the current server token, servers using it will stop working.');">Generate server token</button>
+    </form>
+    <form method="post" class="d-inline">
+        <button type="submit" asp-page-handler="Delete" asp-route-id="@id" class="btn btn-danger"
+                onclick="return confirm('Delete this campaign and all its memberships?');">Delete</button>
+    </form>
+}

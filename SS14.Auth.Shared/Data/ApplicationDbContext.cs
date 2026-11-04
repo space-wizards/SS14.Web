@@ -61,6 +61,47 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
             .HasIndex(p => p.SpaceUserId)
             .IsUnique();
 
+        builder.Entity<PatreonCampaign>()
+            .HasIndex(c => c.Key)
+            .IsUnique();
+
+        builder.Entity<PatreonCampaign>()
+            .HasIndex(c => c.PatreonCampaignId)
+            .IsUnique();
+
+        builder.Entity<PatreonCampaign>()
+            .HasOne<SpaceUser>()
+            .WithMany()
+            .HasForeignKey(c => c.OwnerUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // At most one campaign per owner, campaigns without an owner don't count.
+        builder.Entity<PatreonCampaign>()
+            .HasIndex(c => c.OwnerUserId)
+            .IsUnique();
+
+        builder.Entity<PatreonCampaign>()
+            .HasIndex(c => c.ServerTokenHash)
+            .IsUnique();
+
+        builder.Entity<PatreonCampaign>()
+            .HasIndex(c => c.IsFirstParty)
+            .IsUnique()
+            .HasFilter("\"IsFirstParty\"");
+
+        builder.Entity<PatreonMembership>()
+            .HasIndex(m => new { m.CampaignId, m.PatreonUserId })
+            .IsUnique();
+
+        builder.Entity<PatreonMembership>()
+            .HasIndex(m => m.PatreonUserId);
+
+        builder.Entity<PatreonWebhookLog>()
+            .HasOne<PatreonCampaign>()
+            .WithMany()
+            .HasForeignKey(l => l.CampaignId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Entity<UserOAuthClient>()
             .HasIndex(p => new { p.ClientId })
             .IsUnique();
@@ -124,6 +165,8 @@ public class ApplicationDbContext : IdentityDbContext<SpaceUser, SpaceRole, Guid
     public DbSet<WhitelistEmail> WhitelistEmails { get; set; }
     public DbSet<Patron> Patrons { get; set; }
     public DbSet<PatreonWebhookLog> PatreonWebhookLogs { get; set; }
+    public DbSet<PatreonCampaign> PatreonCampaigns { get; set; }
+    public DbSet<PatreonMembership> PatreonMemberships { get; set; }
     public DbSet<UserOAuthClient> UserOAuthClients { get; set; }
     public DbSet<PastAccountName> PastAccountNames { get; set; }
     public DbSet<AccountLog> AccountLogs { get; set; }

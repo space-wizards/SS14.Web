@@ -7,6 +7,7 @@
 }
 
 <h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" for="StatusMessage"/>
 
 <div class="row">
     <div class="col-md-9">
@@ -26,7 +27,35 @@
                 }
             </p>
 
-            <form id="unlink-form" method="post">
+            @if (Model.Sharing.Count > 0)
+            {
+                <h5 class="mt-4">Communities</h5>
+                <p>
+                    You support the following communities on Patreon. Their servers can see your membership
+                    in their campaign (and only theirs) when you play on them. Untick a community to hide it.
+                </p>
+                <form id="sharing-form" method="post" asp-page-handler="Sharing">
+                    @for (var i = 0; i < Model.Sharing.Count; i++)
+                    {
+                        <div class="form-check">
+                            <input type="hidden" asp-for="Sharing[i].CampaignId"/>
+                            <input type="hidden" asp-for="Sharing[i].CampaignName"/>
+                            <input asp-for="Sharing[i].Share" class="form-check-input"/>
+                            <input type="hidden" asp-for="Sharing[i].Tier"/>
+                            <label asp-for="Sharing[i].Share" class="form-check-label">
+                                @Model.Sharing[i].CampaignName
+                                @if (Model.Sharing[i].Tier != null)
+                                {
+                                    <span class="text-muted">(@Model.Sharing[i].Tier)</span>
+                                }
+                            </label>
+                        </div>
+                    }
+                    <button type="submit" class="btn btn-primary mt-2">Save</button>
+                </form>
+            }
+
+            <form id="unlink-form" method="post" class="mt-4">
                 <button id="unlink-patreon" type="submit" asp-page-handler="UnlinkPatreon" class="btn btn-danger">Unlink Patreon account</button>
             </form>        }
         else
@@ -34,6 +63,14 @@
             <p>
                 If you are one of our <a href="https://patreon.com/spacestation14">patrons</a>,
                 you can link your Patreon account with your Space Station 14 account here to receive recognition on servers.
+            </p>
+            <p>
+                Linking also lets servers of other communities whose Patreon you support see your membership in
+                their campaign. You can hide it from individual communities after linking.
+            </p>
+            <p>
+                Patreon will ask you to share your Patreon identity info. We only keep your Patreon user ID, which
+                is used to match you to your memberships. We do not store your name or email address from Patreon.
             </p>
             <form id="link-form" method="post">
                 <button id="link-patreon" type="submit" asp-page-handler="LinkPatreon" class="btn btn-primary">Link Patreon account</button>

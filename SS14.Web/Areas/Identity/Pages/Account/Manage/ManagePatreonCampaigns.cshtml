@@ -1,0 +1,135 @@
+@page
+@model ManagePatreonCampaigns
+
+@{
+    ViewData["Title"] = "Patreon campaigns";
+    ViewData["ActivePage"] = ManageNavPages.ManagePatreonCampaigns;
+}
+
+<h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" for="StatusMessage"/>
+@if (Model.ResultMessage != null)
+{
+    <partial name="_StatusMessage" model="Model.ResultMessage"/>
+}
+
+<div class="row">
+    <div class="col-md-9">
+        <p>
+            If you run a community with its own Patreon campaign, you can connect it here so your servers
+            can recognize your patrons. You authorize us to read your campaign's members and to set up a webhook
+            for membership changes, and you can revoke that on Patreon at any time. Players who linked their Patreon
+            account can hide their membership from your servers.
+        </p>
+
+        <h5 class="mt-4">What we ask Patreon for, and why</h5>
+        <p>When you connect, Patreon shows you a list of permissions. Here is what each one is used for:</p>
+        <ul>
+            <li>
+                <strong>View your Patreon identity info</strong> (Patreon always includes this).
+                We don't use or store it. It is only needed to complete the sign-in.
+            </li>
+            <li>
+                <strong>View your campaign</strong>: so we can read your campaign's name and tiers, and to identify it.
+            </li>
+            <li>
+                <strong>View your campaign's members</strong>: so we can import your current patrons, and know who
+                your patrons are when they play on your servers. We store each patron's Patreon user ID, patron status
+                and tier. We do not ask for or store patrons' names or email addresses.
+            </li>
+            <li>
+                <strong>Manage your campaign's webhooks</strong>: so we can set up one webhook that tells us when
+                someone joins, changes or ends their pledge, keeping the data current.
+            </li>
+        </ul>
+        <p>
+            Your servers get a token from us to ask whether a player is a patron of your campaign. They only ever see
+            your campaign's data, never other campaigns a player supports, and players can choose to hide their
+            membership from you. You can revoke our access at any time in your Patreon account's connected apps,
+            or by disconnecting the campaign here.
+        </p>
+
+        @if (Model.Campaigns.Count == 0)
+        {
+            <form method="post" asp-page-handler="Connect">
+                <button type="submit" class="btn btn-primary">Continue to Patreon</button>
+            </form>
+        }
+        else
+        {
+            <p class="text-muted">Each account can have one campaign connected. Disconnect it to connect a different one.</p>
+        }
+
+        @foreach (var (campaign, members) in Model.Campaigns)
+        {
+            <h5 class="mt-4">@campaign.Name</h5>
+            <dl class="row">
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8">@(campaign.Enabled ? "Active" : "Pending, members have not been imported yet")</dd>
+                <dt class="col-sm-4">Members</dt>
+                <dd class="col-sm-8">@members</dd>
+                <dt class="col-sm-4">Last import</dt>
+                <dd class="col-sm-8">@(campaign.LastFullSyncAt?.ToUniversalTime().ToString("u") ?? "Never")</dd>
+                <dt class="col-sm-4">Last webhook received</dt>
+                <dd class="col-sm-8">@(campaign.LastWebhookAt?.ToUniversalTime().ToString("u") ?? "Never")</dd>
+                <dt class="col-sm-4">Server token</dt>
+                <dd class="col-sm-8">@(campaign.ServerTokenHash == null ? "Not generated" : "Generated")</dd>
+            </dl>
+
+            <h6 class="mt-3">Tiers</h6>
+            <p>
+                The reward name is what your servers receive for a patron of that tier. It starts out as the tier's
+                title, change it if your servers expect something else. Patrons on a disabled tier are treated as
+                having no tier.
+            </p>
+            <form method="post" asp-page-handler="SaveTiers" asp-route-id="@campaign.Id">
+                <table class="table table-sm table-dark">
+                    <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Reward name</th>
+                        <th>Enabled</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @{ var i = 0; }
+                    @foreach (var (tierId, reward) in campaign.TierMap.OrderBy(t => t.Value))
+                    {
+                        <tr>
+                            <td>@campaign.TierNames.GetValueOrDefault(reward, reward)</td>
+                            <td>
+                                <input type="hidden" name="Tiers[@i].TierId" value="@tierId"/>
+                                <input name="Tiers[@i].Reward" value="@reward" maxlength="64" class="form-control"/>
+                            </td>
+                            <td>
+                                <input type="checkbox" name="Tiers[@i].Enabled" value="true"
+                                       checked="@(!campaign.DisabledTierIds.Contains(tierId))"/>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-primary mr-2 mb-2">Save tiers</button>
+                <button type="submit" asp-page-handler="RefreshTiers" asp-route-id="@campaign.Id" class="btn btn-secondary mb-2">Look for new tiers on Patreon</button>
+            </form>
+
+            <h6 class="mt-3">Actions</h6>
+            <div class="d-flex flex-wrap">
+                <form method="post" class="mr-2 mb-2">
+                    <button type="submit" asp-page-handler="RetryImport" asp-route-id="@campaign.Id" class="btn btn-secondary">Import members again</button>
+                </form>
+                <form method="post" class="mr-2 mb-2">
+                    <button type="submit" asp-page-handler="RegenerateToken" asp-route-id="@campaign.Id" class="btn btn-warning"
+                            onclick="return confirm('This replaces the current server token, servers using it will stop working.');">
+                        @(campaign.ServerTokenHash == null ? "Generate server token" : "Regenerate server token")
+                    </button>
+                </form>
+                <form method="post" class="mb-2">
+                    <button type="submit" asp-page-handler="Disconnect" asp-route-id="@campaign.Id" class="btn btn-danger"
+                            onclick="return confirm('Disconnect this campaign and delete its imported members?');">Disconnect</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
