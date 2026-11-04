@@ -113,22 +113,22 @@ public class AuthApiController : ControllerBase
                     new[] { "" },
                     AuthenticateDenyResponseCode.TfaRequired));
             }
-            
+
             var verify = await _userManager.VerifyTwoFactorTokenAsync(
-                user, 
+                user,
                 _userManager.Options.Tokens.AuthenticatorTokenProvider,
                 request.TfaCode);
-            
+
             if (!verify)
             {
                 return Unauthorized(new AuthenticateDenyResponse(
                     new[] { "" },
                     AuthenticateDenyResponseCode.TfaInvalid));
             }
-            
+
             // 2FA passed, we're good.
         }
-        
+
         var (token, expireTime) =
             await _sessionManager.RegisterNewSession(user, SessionManager.DefaultExpireTime);
 
@@ -164,6 +164,8 @@ public class AuthApiController : ControllerBase
     }
     */
 
+    // Launcher reset password confirmation disabled due to spam risk.
+    /*
     [HttpPost("resetPassword")]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
     {
@@ -184,6 +186,7 @@ public class AuthApiController : ControllerBase
 
         return Ok();
     }
+    */
 
     // Launcher resend confirmation disabled due to spam risk.
     /*

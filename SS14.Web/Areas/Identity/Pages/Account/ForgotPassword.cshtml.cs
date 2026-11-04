@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
 using SS14.Auth.Shared.Emails;
+using SS14.Web.Captcha;
 
 namespace SS14.Web.Areas.Identity.Pages.Account;
 
@@ -17,15 +18,20 @@ public class ForgotPasswordModel : PageModel
 {
     private readonly UserManager<SpaceUser> _userManager;
     private readonly IEmailSender _emailSender;
+    private readonly CaptchaService _captcha;
 
-    public ForgotPasswordModel(UserManager<SpaceUser> userManager, IEmailSender emailSender)
+    public ForgotPasswordModel(UserManager<SpaceUser> userManager, IEmailSender emailSender, CaptchaService captcha)
     {
         _userManager = userManager;
         _emailSender = emailSender;
+        _captcha = captcha;
     }
 
     [BindProperty]
     public InputModel Input { get; set; }
+
+    [BindProperty(Name = "cf-turnstile-response")]
+    public string CaptchaResponse { get; set; }
 
     public class InputModel
     {
@@ -36,6 +42,9 @@ public class ForgotPasswordModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (!await _captcha.ValidateCaptcha(CaptchaResponse, ModelState))
+            return Page();
+
         if (ModelState.IsValid)
         {
             var user = await _userManager.FindByEmailAsync(Input.Email);
