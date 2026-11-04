@@ -1,34 +1,38 @@
-
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SS14.Auth.Shared;
+using SS14.Auth.Shared.Config;
 using SS14.Auth.Shared.Data;
-using SS14.Web.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage
 {
     public class DeletePersonalDataModel : PageModel
     {
-        private readonly UserManager<SpaceUser> _userManager;
-        private readonly SignInManager<SpaceUser> _signInManager;
-        private readonly ApplicationDbContext _context;
+        private readonly SpaceUserManager _userManager;
         private readonly ILogger<DeletePersonalDataModel> _logger;
+        private readonly IEmailSender _emailSender;
+        private readonly IOptions<AccountConfiguration> _configuration;
 
         public DeletePersonalDataModel(
-            UserManager<SpaceUser> userManager,
-            SignInManager<SpaceUser> signInManager,
+            SpaceUserManager userManager,
             ILogger<DeletePersonalDataModel> logger,
-            ApplicationDbContext context)
+            IEmailSender emailSender,
+            IOptions<AccountConfiguration> configuration)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _logger = logger;
-            _context = context;
+            _emailSender = emailSender;
+            _configuration = configuration;
         }
+
+        [TempData]
+        public string StatusMessage { get; set; }
 
         [BindProperty]
         public InputModel Input { get; set; }
@@ -54,7 +58,24 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostCancelAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            await _userManager.CancelQueuedDeletion(user);
+
+            await ModelShared.SendDeletionCanceledEmail(_emailSender, user.Email);
+            _logger.LogInformation("User with ID '{UserId}' canceled their deletion.", user.Id);
+
+            StatusMessage = "Account deletion canceled.";
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -72,20 +93,17 @@ namespace SS14.Web.Areas.Identity.Pages.Account.Manage
                 }
             }
 
-            _context.DeletedUserIds.Add(new DeletedUser { SpaceUserId = user.Id, DeletedOn = DateTime.UtcNow });
-
-            var result = await _userManager.DeleteAsync(user);
             var userId = await _userManager.GetUserIdAsync(user);
-            if (!result.Succeeded)
-            {
-                throw new InvalidOperationException($"Unexpected error occurred deleting user with ID '{userId}'.");
-            }
+            await _userManager.QueueDeletion(user);
 
-            await _signInManager.SignOutAsync();
+            var gracePeriod = _configuration.Value.UserDeletionGracePeriodDays;
+            var deletionDate = DateTime.UtcNow.AddDays(gracePeriod);
 
-            _logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
+            await ModelShared.SendDeletionQueuedEmail(_emailSender, user.Email, deletionDate);
+            _logger.LogInformation("User with ID '{UserId}' queued their deletion.", userId);
 
-            return Redirect("~/");
+            StatusMessage = "Account deletion queued.";
+            return RedirectToPage();
         }
     }
 }

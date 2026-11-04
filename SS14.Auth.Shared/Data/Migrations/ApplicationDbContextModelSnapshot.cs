@@ -1091,7 +1091,10 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Property<DateTime>("DeletedOn")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2026, 6, 16, 9, 14, 39, 255, DateTimeKind.Utc).AddTicks(2141));
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("DeletionPropagated")
+                        .HasColumnType("boolean");
 
                     b.HasKey("SpaceUserId");
 
@@ -1346,6 +1349,21 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.UserDeletionQueueEntry", b =>
+                {
+                    b.Property<Guid>("SpaceUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("QueuedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("SpaceUserId");
+
+                    b.ToTable("UserDeletionQueue");
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.UserOAuthClient", b =>
@@ -1708,6 +1726,15 @@ namespace SS14.Auth.Shared.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("SpaceUser");
+                });
+
+            modelBuilder.Entity("SS14.Auth.Shared.Data.UserDeletionQueueEntry", b =>
+                {
+                    b.HasOne("SS14.Auth.Shared.Data.SpaceUser", null)
+                        .WithOne()
+                        .HasForeignKey("SS14.Auth.Shared.Data.UserDeletionQueueEntry", "SpaceUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SS14.Auth.Shared.Data.UserOAuthClient", b =>

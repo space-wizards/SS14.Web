@@ -6,4 +6,9 @@ public sealed class AccountConfiguration
     /// Delete unconfirmed accounts after this many days.
     /// </summary>
     public int DeleteUnconfirmedAfter { get; set; } = 3;
+
+    /// <summary>
+    /// How long to wait before deleting a user account.
+    /// </summary>
+    public int UserDeletionGracePeriodDays { get; set; } = 30;
 }
