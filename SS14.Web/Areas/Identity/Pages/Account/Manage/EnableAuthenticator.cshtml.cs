@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
 
@@ -20,6 +22,7 @@ public class EnableAuthenticatorModel : PageModel
     private readonly ILogger<EnableAuthenticatorModel> _logger;
     private readonly UrlEncoder _urlEncoder;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly IEmailSender _emailSender;
     private readonly ApplicationDbContext _dbContext;
     private readonly AccountLogManager _accountLogManager;
 
@@ -28,6 +31,7 @@ public class EnableAuthenticatorModel : PageModel
     public EnableAuthenticatorModel(
         SpaceUserManager userManager,
         ILogger<EnableAuthenticatorModel> logger,
+        IEmailSender emailSender,
         UrlEncoder urlEncoder,
         SignInManager<SpaceUser> signInManager,
         ApplicationDbContext dbContext,
@@ -37,6 +41,7 @@ public class EnableAuthenticatorModel : PageModel
         _logger = logger;
         _urlEncoder = urlEncoder;
         _signInManager = signInManager;
+        _emailSender = emailSender;
         _dbContext = dbContext;
         _accountLogManager = accountLogManager;
     }
@@ -91,7 +96,7 @@ public class EnableAuthenticatorModel : PageModel
         }
 
         await using var tx = await _dbContext.Database.BeginTransactionAsync();
-        
+
         // Strip spaces and hypens
         var verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
 
@@ -110,15 +115,18 @@ public class EnableAuthenticatorModel : PageModel
         await _userManager.SetTwoFactorEnabledAsync(user, true);
         var userId = await _userManager.GetUserIdAsync(user);
         _logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
-        
+
         StatusMessage = "Your authenticator app has been verified.";
         await _signInManager.RefreshSignInAsync(user);
+
+        var userEmail = await _userManager.GetEmailAsync(user);
+        await ModelShared.Send2FaEnabledEmail(_emailSender, userEmail);
 
         if (await _userManager.CountRecoveryCodesAsync(user) == 0)
         {
             var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
             RecoveryCodes = recoveryCodes.ToArray();
-        
+
             await tx.CommitAsync();
             return RedirectToPage("./ShowRecoveryCodes");
         }
@@ -137,7 +145,7 @@ public class EnableAuthenticatorModel : PageModel
         {
             await _userManager.ResetAuthenticatorKeyAsync(user);
             unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
-            
+
             await _signInManager.RefreshSignInAsync(user);
         }
 

@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SS14.Auth.Shared;
 using SS14.Auth.Shared.Data;
+using SS14.Auth.Shared.Emails;
 using SS14.Auth.Shared.Sessions;
 
 namespace SS14.Web.Areas.Identity.Pages.Account.Manage;
@@ -18,17 +20,20 @@ public class ChangePasswordModel : PageModel
     private readonly SessionManager _sessionManager;
     private readonly AccountLogManager _logManager;
     private readonly SignInManager<SpaceUser> _signInManager;
+    private readonly IEmailSender _emailSender;
     private readonly ILogger<ChangePasswordModel> _logger;
 
     public ChangePasswordModel(
         UserManager<SpaceUser> userManager,
         SignInManager<SpaceUser> signInManager,
+        IEmailSender emailSender,
         ILogger<ChangePasswordModel> logger,
         SessionManager sessionManager,
         AccountLogManager logManager)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _emailSender = emailSender;
         _logger = logger;
         _sessionManager = sessionManager;
         _logManager = logManager;
@@ -104,6 +109,9 @@ public class ChangePasswordModel : PageModel
         await _signInManager.RefreshSignInAsync(user);
         _logger.LogInformation("User changed their password successfully.");
         StatusMessage = "Your password has been changed.";
+
+        var userEmail = await _userManager.GetEmailAsync(user);
+        await ModelShared.SendPasswordChangedEmail(_emailSender, userEmail);
 
         return RedirectToPage();
     }
