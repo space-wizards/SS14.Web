@@ -1,9 +1,35 @@
-﻿@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication
 @{
     ViewData["Title"] = "Home Page";
+
+    var tfa = User.FindFirst("two_factor_enabled")?.Value;
+    var amr = User.FindAll("amr").Select(c => c.Value).ToArray();
 }
 
 <div class="text-center">
+    <form method="post" style="display: inline">
+        <button type="submit" formaction="@Url.Action("LogoutLocal")">Log out (this app only)</button>
+        <button type="submit" formaction="@Url.Action("LogoutProvider")">Log out (also at provider)</button>
+    </form>
+
+    <h2>Security scope</h2>
+
+    <dl>
+        <dt>two_factor_enabled</dt>
+        <dd>
+            @if (tfa == null)
+            {
+                <span class="text-danger">not present</span>
+            }
+            else
+            {
+                <strong>@tfa</strong>
+            }
+        </dd>
+        <dt>amr</dt>
+        <dd>@(amr.Length == 0 ? "not present" : string.Join(", ", amr))</dd>
+    </dl>
+
     <h2>Claims</h2>
 
     <dl>
@@ -13,9 +39,9 @@
             <dd>@claim.Value</dd>
         }
     </dl>
-    
+
     <h2>Properties</h2>
-    
+
     <dl>
         @foreach (var prop in (await Context.AuthenticateAsync()).Properties.Items)
         {

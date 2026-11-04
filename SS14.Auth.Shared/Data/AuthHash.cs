@@ -17,6 +17,12 @@ public class AuthHash
     public long? HwidId { get; set; }
     [CanBeNull] public Hwid Hwid { get; set; }
 
+    /// <summary>
+    /// If true, the client granted the server it is connecting to permission to see security info about the user,
+    /// such as whether 2FA is enabled. Only released through hasJoined for this single connection attempt.
+    /// </summary>
+    public bool RequestSecurity { get; set; }
+
     public DateTimeOffset Expires { get; set; }
 
     [Required]

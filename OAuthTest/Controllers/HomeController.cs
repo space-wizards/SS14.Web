@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,23 @@ public class HomeController : Controller
 
     [Authorize]
     public IActionResult Index()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public IActionResult LogoutLocal()
+    {
+        return SignOut(new AuthenticationProperties {RedirectUri = Url.Action(nameof(LoggedOut))}, "Cookies");
+    }
+
+    [HttpPost]
+    public IActionResult LogoutProvider()
+    {
+        return SignOut(new AuthenticationProperties {RedirectUri = Url.Action(nameof(LoggedOut))}, "Cookies", "oidc");
+    }
+
+    public IActionResult LoggedOut()
     {
         return View();
     }

@@ -1,0 +1,28 @@
+Logging:
+  LogLevel:
+    Default: Information
+    Microsoft: Information
+    Microsoft.Hosting.Lifetime: Information
+
+AllowedHosts: "*"
+
+# Address this test app listens on (the OAuth callback is <this>/signin-oidc).
+Urls: https://localhost:5002
+
+OAuthTest:
+  Authority: https://localhost:5003
+  ClientId: A
+  ClientSecret: A
+  ResponseType: code
+  UsePkce: true
+  GetClaimsFromUserInfoEndpoint: true
+  SaveTokens: false
+  RequireHttpsMetadata: true
+  # false = keep claim types exactly as sent by the server (no mapping to ClaimTypes.*).
+  MapInboundClaims: false
+  # Dump full HTTP request/response logging. One of the HttpLoggingFields values.
+  HttpLoggingFields: All
+  Scopes:
+    - profile
+    - email
+    - security

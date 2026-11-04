@@ -1,9 +1,8 @@
-﻿{
+{
   "profiles": {
     "OAuthTest": {
       "commandName": "Project",
-      "dotnetRunMessages": "true",
-      "applicationUrl": "https://localhost:5002",
+      "dotnetRunMessages": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

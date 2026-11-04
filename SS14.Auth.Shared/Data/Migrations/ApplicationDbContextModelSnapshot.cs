@@ -1048,6 +1048,9 @@ namespace SS14.Auth.Shared.Data.Migrations
                     b.Property<long?>("HwidId")
                         .HasColumnType("bigint");
 
+                    b.Property<bool>("RequestSecurity")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("SpaceUserId")
                         .HasColumnType("uuid");
 

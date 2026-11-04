@@ -139,7 +139,12 @@ public class Startup
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
                 new IdentityResources.Email(),
-            });
+                new IdentityResource(
+                    SpaceProfileService.SecurityScope,
+                    "Account security information, such as whether two-factor authentication is enabled",
+                    new[] { SpaceProfileService.TwoFactorEnabledClaim }),
+            })
+            .AddProfileService<SpaceProfileService>();
 
         var keyPath = Configuration.GetValue<string>("Is4SigningKeyPath");
         if (keyPath == null)

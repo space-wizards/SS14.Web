@@ -60,7 +60,8 @@ public class Create : PageModel
             {
                 new() { Scope = "openid" },
                 new() { Scope = "profile" },
-                new() { Scope = "email" }
+                new() { Scope = "email" },
+                new() { Scope = SpaceProfileService.SecurityScope }
             },
             AllowedIdentityTokenSigningAlgorithms = "PS256",
             RedirectUris = new List<ClientRedirectUri>

@@ -1,3 +1,4 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -5,7 +6,6 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace OAuthTest;
 
@@ -21,13 +21,14 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddHttpLogging(logging =>
-        {
-            logging.LoggingFields = HttpLoggingFields.All;
-            //Write your code to configure the HttpLogging middleware here    
-        });
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-            
+        var settings = Configuration.GetSection("OAuthTest").Get<OAuthTestSettings>()
+                       ?? throw new InvalidOperationException("Missing OAuthTest config section");
+
+        services.AddHttpLogging(logging => { logging.LoggingFields = settings.HttpLoggingFields; });
+
+        if (!settings.MapInboundClaims)
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
         services.AddControllersWithViews();
 
         services.AddAuthentication(options =>
@@ -39,19 +40,22 @@ public class Startup
             .AddOpenIdConnect("oidc", options =>
             {
                 options.SignInScheme = "Cookies";
-                    
-                options.Authority = "https://localhost:5003";
-                options.ClientId = "A";
-                options.ClientSecret = "A";
 
-                options.GetClaimsFromUserInfoEndpoint = true;
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                //options.SaveTokens = true;
-                    
-                options.Scope.Add("profile");
-                options.Scope.Add("email");
-                options.ResponseType = "code";
-                options.UsePkce = true;
+                options.Authority = settings.Authority;
+                options.ClientId = settings.ClientId;
+                options.ClientSecret = settings.ClientSecret;
+
+                options.GetClaimsFromUserInfoEndpoint = settings.GetClaimsFromUserInfoEndpoint;
+                options.ResponseType = settings.ResponseType;
+                options.SaveTokens = settings.SaveTokens;
+                options.UsePkce = settings.UsePkce;
+                options.RequireHttpsMetadata = settings.RequireHttpsMetadata;
+                options.MapInboundClaims = settings.MapInboundClaims;
+
+                foreach (var scope in settings.Scopes)
+                {
+                    options.Scope.Add(scope);
+                }
             });
     }
 
@@ -85,4 +89,22 @@ public class Startup
                 pattern: "{controller=Home}/{action=Index}/{id?}");
         });
     }
+}
+
+/// <summary>
+/// Bound from the "OAuthTest" section of appsettings
+/// </summary>
+public sealed class OAuthTestSettings
+{
+    public string Authority { get; set; } = "";
+    public string ClientId { get; set; } = "";
+    public string ClientSecret { get; set; } = "";
+    public string ResponseType { get; set; } = "code";
+    public bool UsePkce { get; set; } = true;
+    public bool GetClaimsFromUserInfoEndpoint { get; set; } = true;
+    public bool SaveTokens { get; set; }
+    public bool RequireHttpsMetadata { get; set; } = true;
+    public bool MapInboundClaims { get; set; }
+    public HttpLoggingFields HttpLoggingFields { get; set; } = HttpLoggingFields.All;
+    public string[] Scopes { get; set; } = Array.Empty<string>();
 }
